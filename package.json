@@ -1,0 +1,12 @@
+{
+  "name": "notes",
+  "version": "1.0.0",
+  "license": "MIT",
+  "scripts": {
+    "start": "elm-app start",
+    "build": "PUBLIC_URL=./ elm-app build"
+  },
+  "dependencies": {
+    "create-elm-app": "^0.0.0-development"
+  }
+}
