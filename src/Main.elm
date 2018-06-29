@@ -6,6 +6,24 @@ import Html.Attributes exposing (src)
 
 ---- MODEL ----
 
+type alias NoteBook = {
+    name: String,
+    notes: List Note
+}
+
+type alias Note = {
+    contentBlocks: List Content,
+    tags: List Tag
+}
+
+type Content = MarkdownContent { 
+    text: String
+} | CodeContent {
+    text: String,
+    language: String
+}
+
+type alias Tag = String
 
 type alias Model =
     {}
