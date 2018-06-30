@@ -7,6 +7,7 @@
     "build": "PUBLIC_URL=./ elm-app build"
   },
   "dependencies": {
+    "bulma": "^0.7.1",
     "create-elm-app": "^0.0.0-development"
   }
 }
