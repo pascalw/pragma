@@ -1,0 +1,53 @@
+@import "bulma/sass/utilities/_all.sass";
+@import "bulma/sass/base/_all.sass";
+
+main {
+  height: 100vh;
+}
+
+.columns {
+  display: flex;
+  height: 100%;
+
+  > * {
+    flex: 1;
+  }
+}
+
+.notebooks, .notes {
+  padding: 0.75rem 0;
+  max-width: 15%;
+  min-width: 200px;
+
+  background: #fbfbfb;
+  border-right: 1px solid darken(#fbfbfb, 5%);
+
+  li {
+    cursor: pointer;
+    padding: 0.25rem 0.75rem;
+    border-bottom: 1px solid darken(#fbfbfb, 5%);
+
+    &:hover {
+      background: darken(#fbfbfb, 10%);
+    }
+  }
+
+  .selected {
+    font-weight: bold;
+  }
+}
+
+.notebooks {
+  li { 
+    display: flex;
+  }
+
+  .notebooks__list__note-count {
+
+  }
+}
+
+.editor {
+  flex: 2;
+  padding: 0.75rem;
+}

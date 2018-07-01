@@ -182,25 +182,21 @@ module.exports = {
       // in development "style" loader enables hot editing of CSS.
       // By default we support CSS Modules with the extension .module.css
       {
-        test: /\.css$/,
+        test: /\.s?css$/,
         exclude: /\.module\.css$/,
         use: [
           require.resolve('style-loader'),
-          {
-            loader: require.resolve('css-loader'),
-            options: {
-              importLoaders: 1
-            }
-          },
+          require.resolve('css-loader'),
           {
             loader: require.resolve('postcss-loader'),
             options: postCSSLoaderOptions
-          }
+          },
+          require.resolve('sass-loader')
         ]
       },
 
       {
-        exclude: [/\.html$/, /\.js$/, /\.elm$/, /\.css$/, /\.json$/, /\.svg$/],
+        exclude: [/\.html$/, /\.js$/, /\.elm$/, /\.s?css$/, /\.json$/, /\.svg$/],
         loader: require.resolve('url-loader'),
         options: {
           limit: 10000,

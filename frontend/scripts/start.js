@@ -1,3 +1,4 @@
+#!/usr/bin/env node
 'use strict';
 
 // Do this as the first thing so that any code reading it knows the right env.
@@ -176,7 +177,7 @@ choosePort(HOST, DEFAULT_PORT)
         clearConsole();
       }
       console.log(chalk.cyan('Starting the development server...\n'));
-      openBrowser(urls.localUrlForBrowser);
+      process.env.OPEN_BROWSER && openBrowser(urls.localUrlForBrowser);
     });
 
     ['SIGINT', 'SIGTERM'].forEach(sig => {

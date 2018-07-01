@@ -3,8 +3,8 @@
   "version": "1.0.0",
   "license": "MIT",
   "scripts": {
-    "build": "PUBLIC_URL=./ elm-app build",
-    "start": "elm-app start",
+    "build": "PUBLIC_URL=./ ./scripts/build.js",
+    "start": "./scripts/start.js",
     "package": "elm-package",
     "make": "elm-make",
     "repl": "elm-repl",
@@ -12,8 +12,7 @@
     "test": "elm-test"
   },
   "dependencies": {
-    "bulma": "^0.7.1",
-    "create-elm-app": "^0.0.0-development"
+    "bulma": "^0.7.1"
   },
   "devDependencies": {
     "autoprefixer": "^8.1.0",
@@ -38,10 +37,12 @@
     "http-proxy-middleware": "^0.17.4",
     "mini-css-extract-plugin": "^0.4.0",
     "minimist": "1.2.0",
+    "node-sass": "^4.9.0",
     "postcss-flexbugs-fixes": "^3.3.0",
     "postcss-loader": "2.1.5",
     "react-dev-utils": "6.0.0-next.3e165448",
     "react-error-overlay": "^4.0.0",
+    "sass-loader": "^7.0.3",
     "string-replace-loader": "^2.1.1",
     "style-loader": "^0.21.0",
     "sw-precache-webpack-plugin": "^0.11.5",
