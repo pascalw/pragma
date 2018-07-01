@@ -1,4 +1,4 @@
-import './main.scss';
+import './styles/main.scss';
 import { Main } from './Main.elm';
 import registerServiceWorker from './registerServiceWorker';
 

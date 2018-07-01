@@ -25,7 +25,9 @@ allNotes =
 
 
 type alias Note =
-    { title : String
+    { 
+      id: Int
+    , title : String
     , createdAt : Time
     , updatedAt : Time
     , contentBlocks : List Content
@@ -54,13 +56,13 @@ type alias Model =
     }
 
 
-buildNote : String -> Time -> String -> Note
-buildNote title createdAt contentString =
+buildNote : Int -> String -> Time -> String -> Note
+buildNote id title createdAt contentString =
     let
         content =
             MarkdownContent { text = contentString }
     in
-        Note title createdAt createdAt [ content ] []
+        Note id title createdAt createdAt [ content ] []
 
 
 init : ( Model, Cmd Msg )
@@ -85,14 +87,14 @@ update msg model =
             let
                 noteBooks =
                     [ (NoteBook "Pascal"
-                        [ (buildNote "Note 1 by Pascal" time "Hello *world*!")
-                        , (buildNote "Note 2 by Pascal" time "Hello *world*!")
+                        [ (buildNote 1 "Note 1 by Pascal" time "Hello *world*!")
+                        , (buildNote 2 "Note 2 by Pascal" time "Hello *world*!")
                         ]
                         time
                       )
                     , (NoteBook "Testing"
-                        [ (buildNote "Note 1 for Testing" time "Hello **Testing**!")
-                        , (buildNote "Note 2 for Testing" time "Hello **Testing**!")
+                        [ (buildNote 3 "Note 1 for Testing" time "Hello **Testing**!")
+                        , (buildNote 4 "Note 2 for Testing" time "Hello **Testing**!")
                         ]
                         time
                       )
@@ -193,7 +195,9 @@ renderNoteEditor model =
                 text "No note selected."
 
             Just note ->
-                text note.title
+                div [ style [("display", "none")] ] [
+                    text note.title
+                ]
         ]
 
 

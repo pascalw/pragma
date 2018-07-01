@@ -115,8 +115,7 @@ module.exports = {
               require.resolve('babel-preset-env'),
               {
                 targets: {
-                  // React parses on ie 9, so we should too
-                  ie: 9,
+                  browsers: ["chrome >= 60", "Firefox >= 62"],
                   // We currently minify with uglify
                   // Remove after https://github.com/mishoo/UglifyJS2/issues/448
                   uglify: true
