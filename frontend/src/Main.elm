@@ -1,8 +1,11 @@
 module Main exposing (..)
 
+import Debug
+import Json.Encode
+import Json.Decode
 import Html exposing (..)
 import Html.Attributes exposing (..)
-import Html.Events exposing (onClick)
+import Html.Events exposing (onClick, on)
 import Time exposing (Time)
 import Date
 import Task
@@ -13,7 +16,8 @@ import Date.Format
 
 
 type alias NoteBook =
-    { name : String
+    { id : Int
+    , name : String
     , notes : List Note
     , createdAt : Time
     }
@@ -25,8 +29,7 @@ allNotes =
 
 
 type alias Note =
-    { 
-      id: Int
+    { id : Int
     , title : String
     , createdAt : Time
     , updatedAt : Time
@@ -36,9 +39,7 @@ type alias Note =
 
 
 type Content
-    = MarkdownContent
-        { text : String
-        }
+    = TextContent String
     | CodeContent
         { text : String
         , language : String
@@ -51,16 +52,41 @@ type alias Tag =
 
 type alias Model =
     { notebooks : Maybe (List NoteBook)
-    , selectedNoteBook : Maybe NoteBook
-    , editingNote : Maybe Note
+    , selectedNoteBook : Maybe Int
+    , editingNote : Maybe Int
     }
+
+
+noteById : Model -> Int -> Maybe Note
+noteById model noteId =
+    case model.notebooks of
+        Nothing ->
+            Nothing
+
+        Just noteBooks ->
+            noteBooks
+                |> allNotes
+                |> List.filter (\note -> note.id == noteId)
+                |> List.head
+
+
+noteBookById : Model -> Int -> Maybe NoteBook
+noteBookById model noteBookId =
+    case model.notebooks of
+        Nothing ->
+            Nothing
+
+        Just noteBooks ->
+            noteBooks
+                |> List.filter (\noteBook -> noteBook.id == noteBookId)
+                |> List.head
 
 
 buildNote : Int -> String -> Time -> String -> Note
 buildNote id title createdAt contentString =
     let
         content =
-            MarkdownContent { text = contentString }
+            TextContent contentString
     in
         Note id title createdAt createdAt [ content ] []
 
@@ -78,6 +104,32 @@ type Msg
     = CurrentTime Time
     | EditNote Note
     | SelectNoteBook NoteBook
+    | NoteContentChanged Note Content String
+
+
+updateNote : Note -> NoteBook -> NoteBook
+updateNote note noteBook =
+    let
+        newNotes =
+            noteBook.notes
+                |> List.map
+                    (\listNote ->
+                        if listNote.id == note.id then
+                            note
+                        else
+                            listNote
+                    )
+    in
+        { noteBook | notes = newNotes }
+
+updateNoteContent : Note -> Content -> String -> Note
+updateNoteContent note content text =
+    let
+        updatedContentBlocks =
+        note.contentBlocks
+        |> List.map (\c -> if c == content then (TextContent text) else c)
+    in
+        { note | contentBlocks = updatedContentBlocks }
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -86,13 +138,15 @@ update msg model =
         CurrentTime time ->
             let
                 noteBooks =
-                    [ (NoteBook "Pascal"
+                    [ (NoteBook 1
+                        "Pascal"
                         [ (buildNote 1 "Note 1 by Pascal" time "Hello *world*!")
                         , (buildNote 2 "Note 2 by Pascal" time "Hello *world*!")
                         ]
                         time
                       )
-                    , (NoteBook "Testing"
+                    , (NoteBook 2
+                        "Testing"
                         [ (buildNote 3 "Note 1 for Testing" time "Hello **Testing**!")
                         , (buildNote 4 "Note 2 for Testing" time "Hello **Testing**!")
                         ]
@@ -100,17 +154,33 @@ update msg model =
                       )
                     ]
             in
-                ( { model | notebooks = (Just noteBooks), selectedNoteBook = (List.head noteBooks) }, Cmd.none )
+                ( { model | notebooks = (Just noteBooks), selectedNoteBook = (List.head noteBooks) |> Maybe.map (\n -> n.id) }, Cmd.none )
 
         EditNote note ->
-            ( { model | editingNote = (Just note) }, Cmd.none )
+            ( { model | editingNote = (Just note.id) }, Cmd.none )
 
         SelectNoteBook noteBook ->
-            ( { model | selectedNoteBook = (Just noteBook), editingNote = Nothing }, Cmd.none )
+            ( { model | selectedNoteBook = (Just noteBook.id), editingNote = Nothing }, Cmd.none )
+
+        NoteContentChanged note content text ->
+            let
+                updatedNote = updateNoteContent note content text
+
+                updatedNoteBooks =
+                    Maybe.map (\notebooks -> List.map (updateNote updatedNote) notebooks) model.notebooks
+            in
+                ( { model | editingNote = (Just updatedNote.id), notebooks = updatedNoteBooks }, Cmd.none )
 
 
 
 ---- VIEW ----
+
+
+script : String -> Html any
+script code =
+    node "script"
+        []
+        [ text code ]
 
 
 timeToDateString : Time -> String
@@ -119,12 +189,14 @@ timeToDateString time =
         |> Date.fromTime
         |> Date.Format.format "%d %A %Y"
 
+
 noteClass : Note -> Model -> String
 noteClass note model =
-    if model.editingNote == (Just note) then
+    if model.editingNote == (Just note.id) then
         "selected"
     else
         ""
+
 
 renderNote : Model -> Note -> Html Msg
 renderNote model note =
@@ -135,18 +207,20 @@ renderNotes : Model -> List Note -> Html Msg
 renderNotes model notes =
     ul [] (List.map (renderNote model) notes)
 
+
 noteBookClass : NoteBook -> Model -> String
 noteBookClass noteBook model =
-    if model.selectedNoteBook == (Just noteBook) then
+    if model.selectedNoteBook == (Just noteBook.id) then
         "selected"
     else
         ""
 
+
 renderNoteBook : Model -> NoteBook -> Html Msg
 renderNoteBook model noteBook =
     li [ onClick (SelectNoteBook noteBook), class <| noteBookClass noteBook model ]
-        [ span [] [ text noteBook.name ],
-          span [ class "notebooks__list__note-count" ] [ text (noteBook.notes |> List.length |> toString ) ]
+        [ span [ class "notebooks__list_name" ] [ text noteBook.name ]
+        , span [ class "notebooks__list__note-count" ] [ text (noteBook.notes |> List.length |> toString) ]
         ]
 
 
@@ -166,7 +240,7 @@ renderNoteBooks model =
                         ]
 
                 Just noteBooks ->
-                    div [ class "content" ]
+                    div []
                         [ ul [] (List.map (renderNoteBook model) noteBooks)
                         ]
     in
@@ -176,29 +250,51 @@ renderNoteBooks model =
 renderNotesContainer : Model -> Html Msg
 renderNotesContainer model =
     div [ class "notes" ]
-        [ case model.selectedNoteBook of
+        [ case model.selectedNoteBook |> Maybe.andThen (noteBookById model) of
             Nothing ->
                 div [] []
 
             Just noteBook ->
                 div []
-                    [ noteBook.notes |> renderNotes(model)
+                    [ noteBook.notes |> renderNotes (model)
                     ]
         ]
 
 
+decodeNoteContentChanged : Json.Decode.Decoder String
+decodeNoteContentChanged =
+    Json.Decode.at [ "detail", "value" ] Json.Decode.string
+
+
+renderNoteContentBlocks : Note -> Content -> Html Msg
+renderNoteContentBlocks note content =
+    case content of
+        TextContent contentText ->
+            div [ class "content" ]
+                [ div [ style [ ( "display", "none" ) ],
+                     property "innerHTML" (Json.Encode.string (contentText |> Debug.log "contentText"))
+                ] []
+                , div [ on "change" (Json.Decode.map (NoteContentChanged note content) decodeNoteContentChanged) ] []
+                , script ("initPell(" ++ (note.id |> toString) ++ ")")
+                ]
+
+        _ ->
+            div [] [ text "unsupported" ]
+
+
 renderNoteEditor : Model -> Html Msg
 renderNoteEditor model =
-    div [ class "editor" ]
-        [ case model.editingNote of
-            Nothing ->
-                text "No note selected."
+    let
+        contents =
+            case model.editingNote |> Maybe.andThen (noteById model) of
+                Nothing ->
+                    [ text "No note selected." ]
 
-            Just note ->
-                div [ style [("display", "none")] ] [
-                    text note.title
-                ]
-        ]
+                Just note ->
+                    (h2 [] [ text note.title ])
+                        :: List.map (renderNoteContentBlocks note) note.contentBlocks
+    in
+        div [ class "editor" ] contents
 
 
 layout : List (Html Msg) -> Html Msg

@@ -1,5 +1,6 @@
 @import "bulma/sass/utilities/_all.sass";
 @import "bulma/sass/base/_all.sass";
+@import "bulma/sass/elements/content.sass";
 @import "./pell";
 
 main {
@@ -32,19 +33,26 @@ main {
       background: darken(#fbfbfb, 10%);
     }
   }
-
-  .selected {
-    font-weight: bold;
-  }
 }
 
 .notebooks {
   li { 
     display: flex;
+
+    &.selected {
+      .notebooks__list_name {
+        font-weight: bold;
+      }
+    }
+  }
+
+  .notebooks__list_name {
+    flex: 1;
   }
 
   .notebooks__list__note-count {
-
+    align-self: flex-end;
+    flex: 0;
   }
 }
 
