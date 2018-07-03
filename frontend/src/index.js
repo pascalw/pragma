@@ -1,66 +1,21 @@
 import './styles/main.scss';
 import { Main } from './Main.elm';
-import pell from 'pell';
+
+import 'trix';
+import 'trix/dist/trix.css';
+
 import registerServiceWorker from './registerServiceWorker';
 
-const buildCustomEvent = (eventName, detail) => {
-    if (typeof(CustomEvent) === 'function') {
-        return new CustomEvent(eventName, {
-            detail: detail,
-            bubbles: true
-        });
-    } else {
-        var event = document.createEvent('CustomEvent');
-        event.initCustomEvent(eventName, true, false, detail);
-        return event;
-    }
-}
+window.initTrix = () => {
+    const editor = document.currentScript.previousSibling;
+    const input = document.getElementById(editor.getAttribute("input"));
 
-window.initPell = () => {
-    const target = document.currentScript.previousSibling;
-
-    const contentTarget = target.previousSibling;
-    const content = contentTarget.innerHTML;
-
-    const observer = new MutationObserver(() => {
-        editor.content.innerHTML = contentTarget.innerHTML;
+    const observer = new MutationObserver((e) => {
+        editor.value = input.value;
+        editor.blur();
     });
-    observer.observe(contentTarget, { characterData: true, childList: true, subtree: true }); 
-
-    const editor = pell.init({
-        element: target,
-        onChange: (html) => {
-            const event  = buildCustomEvent("change", { value: html });
-            target.dispatchEvent(event);
-        }
-    });
-
-    editor.content.innerHTML = content;
+    observer.observe(input, { attributeFilter: ["id"] });
 };
-
-document.addEventListener("keydown", (e) => {
-    if(e.target.classList.contains("pell-content")) {
-        if(e.key == "b" && e.metaKey) {
-            pell.exec("bold");
-            e.preventDefault();
-            return;
-        }
-
-        if(e.key == "u" && e.metaKey) {
-            pell.exec("underline");
-            e.preventDefault();
-            return;
-        }
-
-        if(e.key == "i" && e.metaKey) {
-            pell.exec("italic");
-            
-            e.preventDefault();
-            return;
-        }
-    }
-
-}, false);
 
 Main.embed(document.getElementById('root'));
 

@@ -266,16 +266,19 @@ decodeNoteContentChanged =
     Json.Decode.at [ "detail", "value" ] Json.Decode.string
 
 
+noteContentInputId : Note -> String
+noteContentInputId note =
+    "note-" ++ (note.id |> toString) ++ "-content"
+
+
 renderNoteContentBlocks : Note -> Content -> Html Msg
 renderNoteContentBlocks note content =
     case content of
         TextContent contentText ->
             div [ class "content" ]
-                [ div [ style [ ( "display", "none" ) ],
-                     property "innerHTML" (Json.Encode.string (contentText |> Debug.log "contentText"))
-                ] []
-                , div [ on "change" (Json.Decode.map (NoteContentChanged note content) decodeNoteContentChanged) ] []
-                , script ("initPell(" ++ (note.id |> toString) ++ ")")
+                [ input [ id <| noteContentInputId note, type_ "hidden", value contentText ] []
+                , node "trix-editor" [ class "trix-content", attribute "input" <| noteContentInputId note, on "trix-change" (Json.Decode.map (NoteContentChanged note content) Html.Events.targetValue) ] []
+                , script "initTrix()"
                 ]
 
         _ ->
