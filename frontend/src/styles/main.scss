@@ -12,11 +12,11 @@ main {
 
   > * {
     flex: 1;
+    overflow-y: scroll;
   }
 }
 
 .notebooks, .notes {
-  padding: 0.75rem 0;
   max-width: 15%;
   min-width: 200px;
 
@@ -29,7 +29,12 @@ main {
     border-bottom: 1px solid darken(#fbfbfb, 5%);
 
     &:hover {
-      background: darken(#fbfbfb, 10%);
+      background: darken(#fbfbfb, 2%);
+    }
+
+    &.selected {
+      background-color: rgb(91, 136, 239);
+      color: #fff;
     }
   }
 }
@@ -37,12 +42,6 @@ main {
 .notebooks {
   li { 
     display: flex;
-
-    &.selected {
-      .notebooks__list_name {
-        font-weight: bold;
-      }
-    }
   }
 
   .notebooks__list_name {
@@ -57,5 +56,11 @@ main {
 
 .editor {
   flex: 2;
-  padding: 0.75rem;
+  padding: 0 0.75rem;
+
+  .note-title {
+    margin: 0.5em 0;
+    padding-bottom: 0.25em;
+    border-bottom: 1px solid darken(#fbfbfb, 5%);
+  }
 }

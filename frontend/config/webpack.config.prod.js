@@ -219,7 +219,7 @@ module.exports = {
       // files. If you use code splitting, async bundles will have their own separate CSS chunk file.
       // By default we support CSS Modules with the extension .module.css
       {
-        test: /\.css$/,
+        test: /\.s?css$/,
         exclude: /\.module\.css$/,
         use: [
           MiniCssExtractPlugin.loader,

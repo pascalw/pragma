@@ -122,15 +122,29 @@ updateNote note noteBook =
     in
         { noteBook | notes = newNotes }
 
+
 updateNoteContent : Note -> Content -> String -> Note
 updateNoteContent note content text =
     let
         updatedContentBlocks =
-        note.contentBlocks
-        |> List.map (\c -> if c == content then (TextContent text) else c)
+            note.contentBlocks
+                |> List.map
+                    (\c ->
+                        if c == content then
+                            (TextContent text)
+                        else
+                            c
+                    )
     in
         { note | contentBlocks = updatedContentBlocks }
 
+
+selectNotebook : Maybe NoteBook -> Model -> Model
+selectNotebook noteBook model =
+    case noteBook of
+        Nothing -> model
+        Just noteBook ->
+            { model | selectedNoteBook = (Just noteBook.id), editingNote = Maybe.map (.id) (List.head noteBook.notes) }
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
@@ -154,17 +168,18 @@ update msg model =
                       )
                     ]
             in
-                ( { model | notebooks = (Just noteBooks), selectedNoteBook = (List.head noteBooks) |> Maybe.map (\n -> n.id) }, Cmd.none )
+                ( { model | notebooks = (Just noteBooks) } |> selectNotebook (List.head noteBooks), Cmd.none )
 
         EditNote note ->
             ( { model | editingNote = (Just note.id) }, Cmd.none )
 
         SelectNoteBook noteBook ->
-            ( { model | selectedNoteBook = (Just noteBook.id), editingNote = Nothing }, Cmd.none )
+            ( selectNotebook (Just noteBook) model, Cmd.none )
 
         NoteContentChanged note content text ->
             let
-                updatedNote = updateNoteContent note content text
+                updatedNote =
+                    updateNoteContent note content text
 
                 updatedNoteBooks =
                     Maybe.map (\notebooks -> List.map (updateNote updatedNote) notebooks) model.notebooks
@@ -294,7 +309,7 @@ renderNoteEditor model =
                     [ text "No note selected." ]
 
                 Just note ->
-                    (h2 [] [ text note.title ])
+                    (h2 [ class "note-title" ] [ text note.title ])
                         :: List.map (renderNoteContentBlocks note) note.contentBlocks
     in
         div [ class "editor" ] contents
