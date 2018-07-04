@@ -17,6 +17,17 @@ window.initTrix = () => {
     observer.observe(input, { attributeFilter: ["id"] });
 };
 
+document.addEventListener(
+  "keydown",
+  e => {
+      if (e.key == "2" && e.metaKey) {
+          e.preventDefault();
+          document.querySelector(".notebooks").classList.toggle("hidden");
+      }
+    },
+  false
+);
+
 Main.embed(document.getElementById('root'));
 
 registerServiceWorker();

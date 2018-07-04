@@ -23,6 +23,14 @@ main {
   background: #fbfbfb;
   border-right: 1px solid darken(#fbfbfb, 5%);
 
+  transition: min-width 250ms, max-width 250ms;
+
+  &.hidden {
+    max-width: 0;
+    min-width: 0;
+    border-right: 0;
+  }
+
   li {
     cursor: pointer;
     padding: 0.25rem 0.75rem;
