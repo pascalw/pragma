@@ -5,7 +5,8 @@ use actix_web::{server, App};
 extern crate rust_embed;
 extern crate mime_guess;
 
-#[macro_use] extern crate log;
+#[macro_use]
+extern crate log;
 extern crate env_logger;
 
 use std::env;
@@ -17,13 +18,10 @@ fn main() {
 
     let port = port();
 
-    server::new(|| {
-        App::new()
-            .resource("/{path:.*}", |r| r.f(assets::handler))
-    })
-    .bind(format!("127.0.0.1:{}", port))
-    .expect(&format!("Can not bind to port {}", port))
-    .run();
+    server::new(|| App::new().resource("/{path:.*}", |r| r.f(assets::handler)))
+        .bind(format!("127.0.0.1:{}", port))
+        .expect(&format!("Can not bind to port {}", port))
+        .run();
 }
 
 fn configure_logger() {

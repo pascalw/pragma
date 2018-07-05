@@ -1,6 +1,6 @@
-use actix_web::{HttpRequest, HttpResponse, Error};
 use actix_web::http::{header, StatusCode};
-use mime_guess::{guess_mime_type};
+use actix_web::{Error, HttpRequest, HttpResponse};
+use mime_guess::guess_mime_type;
 
 #[derive(RustEmbed)]
 #[folder = "../frontend/build/"]
@@ -13,14 +13,10 @@ pub fn handler(req: HttpRequest) -> Result<HttpResponse, Error> {
         Some(asset) => {
             let mime = guess_mime_type(asset_path);
             Ok(HttpResponse::Ok()
-               .header(header::CONTENT_TYPE, mime)
-               .body(asset))
-        },
-        None => {
-            Ok(HttpResponse::Ok()
-               .status(StatusCode::NOT_FOUND)
-               .finish())
+                .header(header::CONTENT_TYPE, mime)
+                .body(asset))
         }
+        None => Ok(HttpResponse::Ok().status(StatusCode::NOT_FOUND).finish()),
     }
 }
 
@@ -29,6 +25,6 @@ fn asset_path<'a>(req: &'a HttpRequest) -> &'a str {
 
     match path {
         "" => "index.html",
-        _ => path
+        _ => path,
     }
 }
