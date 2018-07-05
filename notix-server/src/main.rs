@@ -1,10 +1,12 @@
 extern crate actix_web;
-use actix_web::{server, App};
+use actix_web::{http, server, App, HttpRequest};
 
 extern crate mime_guess;
 
 extern crate env_logger;
 extern crate log;
+#[macro_use]
+extern crate lazy_static;
 
 use std::env;
 
@@ -13,6 +15,8 @@ use std::env;
 extern crate rust_embed;
 #[cfg(feature = "embedded_assets")]
 mod assets;
+
+mod build_info;
 
 fn main() {
     configure_logger();
@@ -26,7 +30,10 @@ fn main() {
 }
 
 fn build_actix_app() -> App {
-    let app = App::new();
+    let app = App::new().route("/version", http::Method::GET, |_: HttpRequest| {
+        build_info::build_version()
+    });
+
     maybe_serve_embedded_assets(app)
 }
 
@@ -37,7 +44,7 @@ fn maybe_serve_embedded_assets(app: App) -> App {
 
 #[cfg(feature = "embedded_assets")]
 fn maybe_serve_embedded_assets(app: App) -> App {
-    app.resource("/{path:.*}", |r| r.f(assets::handler))
+    app.route("/{path:.*}", http::Method::GET, assets::handler)
 }
 
 fn configure_logger() {
