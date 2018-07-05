@@ -3,7 +3,7 @@ use actix_web::{Error, HttpRequest, HttpResponse};
 use mime_guess::guess_mime_type;
 
 #[derive(RustEmbed)]
-#[folder = "../frontend/build/"]
+#[folder = "assets/"]
 struct Asset;
 
 pub fn handler(req: HttpRequest) -> Result<HttpResponse, Error> {
