@@ -9,3 +9,6 @@ rust-embed="3.0.0"
 mime_guess = "2.0.0-alpha.5"
 log = "0.4"
 env_logger = "0.5.10"
+
+[features]
+embedded_assets = []

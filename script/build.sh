@@ -9,4 +9,4 @@ echo "Copying assets..."
 .) | (cd notix-server/assets && tar xvf - )
 
 echo "Building binary"
-(cd notix-server && cargo build --release)
+(cd notix-server && cargo build --release --features=embedded_assets)
