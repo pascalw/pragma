@@ -8,6 +8,13 @@ extern crate log;
 #[macro_use]
 extern crate lazy_static;
 
+#[macro_use]
+extern crate serde_derive;
+#[macro_use]
+extern crate serde_json;
+
+extern crate chrono;
+
 use std::env;
 
 #[cfg(feature = "embedded_assets")]
@@ -16,7 +23,9 @@ extern crate rust_embed;
 #[cfg(feature = "embedded_assets")]
 mod assets;
 
+mod api;
 mod build_info;
+mod notebooks;
 
 fn main() {
     configure_logger();
@@ -30,10 +39,11 @@ fn main() {
 }
 
 fn build_actix_app() -> App {
-    let app = App::new().route("/version", http::Method::GET, |_: HttpRequest| {
+    let mut app = App::new().route("/version", http::Method::GET, |_: HttpRequest| {
         build_info::build_version()
     });
 
+    app = api::mount(app);
     maybe_serve_embedded_assets(app)
 }
 
