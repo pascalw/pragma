@@ -1,12 +1,12 @@
 use chrono::prelude::*;
 
-#[derive(Serialize)]
+#[derive(Serialize, Queryable, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct Notebook {
-    pub id: u64,
+    pub id: i32,
     pub name: String,
-    pub created_at: DateTime<Utc>,
-    pub system_updated_at: DateTime<Utc>,
+    pub created_at: NaiveDateTime,
+    pub system_updated_at: NaiveDateTime,
 }
 
 impl TypeIdentifiable for Notebook {
@@ -15,16 +15,16 @@ impl TypeIdentifiable for Notebook {
     }
 }
 
-#[derive(Serialize)]
+#[derive(Serialize, Queryable)]
 #[serde(rename_all = "camelCase")]
 pub struct Note {
-    pub id: u64,
+    pub id: i32,
     pub title: String,
-    pub created_at: DateTime<Utc>,
-    pub updated_at: DateTime<Utc>,
     pub tags: Vec<Tag>,
-    pub system_updated_at: DateTime<Utc>,
-    pub notebook_id: u64,
+    pub notebook_id: i32,
+    pub created_at: NaiveDateTime,
+    pub updated_at: NaiveDateTime,
+    pub system_updated_at: NaiveDateTime,
 }
 
 impl TypeIdentifiable for Note {
@@ -33,7 +33,7 @@ impl TypeIdentifiable for Note {
     }
 }
 
-#[derive(Serialize)]
+#[derive(Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 #[serde(tag = "type", content = "data")]
 pub enum Content {
@@ -43,13 +43,15 @@ pub enum Content {
 
 pub type Tag = String;
 
-#[derive(Serialize)]
+#[derive(Serialize, Queryable)]
 #[serde(rename_all = "camelCase")]
 pub struct ContentBlock {
-    pub id: u64,
+    pub id: i32,
     pub content: Content,
-    pub system_updated_at: DateTime<Utc>,
-    pub note_id: u64,
+    pub system_updated_at: NaiveDateTime,
+    pub created_at: NaiveDateTime,
+    pub updated_at: NaiveDateTime,
+    pub note_id: i32,
 }
 
 impl TypeIdentifiable for ContentBlock {
@@ -62,8 +64,8 @@ impl TypeIdentifiable for ContentBlock {
 #[serde(rename_all = "camelCase")]
 pub struct Deletion {
     pub _type: String,
-    pub id: u64,
-    pub system_updated_at: DateTime<Utc>,
+    pub id: i32,
+    pub system_updated_at: NaiveDateTime,
 }
 
 pub trait TypeIdentifiable {

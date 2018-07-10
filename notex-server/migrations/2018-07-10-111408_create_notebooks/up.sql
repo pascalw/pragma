@@ -1,0 +1,10 @@
+CREATE TABLE notes (
+  id INTEGER NOT NULL PRIMARY KEY,
+  title VARCHAR NOT NULL,
+  tags VARCHAR,
+  notebook_id INTEGER NOT NULL,
+  created_at DATETIME NOT NULL,
+  updated_at DATETIME NOT NULL,
+  system_updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY(notebook_id) REFERENCES notebooks(id)
+);

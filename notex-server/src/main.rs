@@ -1,10 +1,10 @@
+extern crate actix;
 extern crate actix_web;
-use actix_web::{http, server, App, HttpRequest};
-
-extern crate mime_guess;
-
+extern crate chrono;
 extern crate env_logger;
 extern crate log;
+extern crate num_cpus;
+
 #[macro_use]
 extern crate lazy_static;
 
@@ -13,9 +13,10 @@ extern crate serde_derive;
 #[macro_use]
 extern crate serde_json;
 
-extern crate chrono;
+#[macro_use]
+extern crate diesel;
 
-use std::env;
+// <EMBEDDED ASSETS>
 
 #[cfg(feature = "embedded_assets")]
 #[macro_use]
@@ -23,37 +24,55 @@ extern crate rust_embed;
 #[cfg(feature = "embedded_assets")]
 mod assets;
 
+// </EMBEDDED ASSETS>
+
+use actix::prelude::*;
+use actix_state::State;
+use actix_web::{server, App};
+use diesel::sqlite::SqliteConnection;
+use std::env;
+
+mod actix_state;
 mod api;
 mod build_info;
-mod notebooks;
+mod data;
+mod repo;
+mod repo_actor;
+mod schema;
 
 fn main() {
     configure_logger();
-
     let port = port();
 
-    server::new(|| build_actix_app())
+    let sys = actix::System::new("notex-server");
+
+    server::HttpServer::new(|| build_actix_app())
         .bind(format!("127.0.0.1:{}", port))
         .expect(&format!("Can not bind to port {}", port))
-        .run();
+        .start();
+
+    let _ = sys.run();
 }
 
-fn build_actix_app() -> App {
-    let mut app = App::new().route("/version", http::Method::GET, |_: HttpRequest| {
-        build_info::build_version()
+fn build_actix_app() -> App<State> {
+    let addr = SyncArbiter::start(num_cpus::get(), || {
+        let connection = configure_repo();
+        repo_actor::DbExecutor(connection)
     });
+
+    let mut app = App::with_state(State { db: addr.clone() });
 
     app = api::mount(app);
     maybe_serve_embedded_assets(app)
 }
 
 #[cfg(not(feature = "embedded_assets"))]
-fn maybe_serve_embedded_assets(app: App) -> App {
+fn maybe_serve_embedded_assets(app: App<State>) -> App<State> {
     app
 }
 
 #[cfg(feature = "embedded_assets")]
-fn maybe_serve_embedded_assets(app: App) -> App {
+fn maybe_serve_embedded_assets(app: App<State>) -> App<State> {
     app.route("/{path:.*}", http::Method::GET, assets::handler)
 }
 
@@ -61,6 +80,11 @@ fn configure_logger() {
     env_logger::Builder::from_default_env()
         .filter_level(log::LevelFilter::Info)
         .init();
+}
+
+fn configure_repo() -> SqliteConnection {
+    let database_url = env::var("DATABASE_URL").expect("DATABASE_URL must be set");
+    repo::establish_connection(database_url)
 }
 
 fn port() -> String {
