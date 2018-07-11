@@ -1,6 +1,7 @@
 extern crate futures;
 
-use actix_web::{http, App, AsyncResponder, Error, HttpRequest, HttpResponse};
+use actix_web::http::Method;
+use actix_web::{App, AsyncResponder, Error, HttpRequest, HttpResponse};
 use chrono::naive::serde::ts_seconds;
 use chrono::prelude::*;
 use serde_json::Value;
@@ -13,11 +14,11 @@ use data::*;
 use repo_actor::*;
 
 pub fn mount(app: App<State>) -> App<State> {
-    app.route("/api/data", http::Method::GET, get_data).route(
-        "/version",
-        http::Method::GET,
-        |_: HttpRequest<State>| build_info::build_version(),
-    )
+    #[cfg_attr(rustfmt, rustfmt_skip)]
+    app.route("/api/data", Method::GET, get_data)
+       .route("/version", Method::GET, |_: HttpRequest<State>|
+           build_info::build_version()
+       )
 }
 
 #[derive(Serialize)]
@@ -83,9 +84,6 @@ fn build_response(
     content_blocks: Vec<ContentBlock>,
     deleted_records: Vec<Deletion>,
 ) -> DataResponse {
-    // FIXME
-    let now = Utc::now().naive_utc();
-
     let notebook_changes: Vec<DataChange> = notebooks
         .iter()
         .map(|n| DataChange {
@@ -131,8 +129,11 @@ fn build_response(
         })
         .collect();
 
+    // FIXME
+    let revision = Utc::now().naive_utc();
+
     DataResponse {
-        revision: now,
+        revision: revision,
         deletions: deletions,
         changes: changes,
     }
