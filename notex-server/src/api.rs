@@ -2,7 +2,6 @@ extern crate futures;
 
 use actix_web::http::Method;
 use actix_web::{App, AsyncResponder, Error, HttpRequest, HttpResponse, Query};
-use chrono::naive::serde::ts_seconds;
 use chrono::prelude::*;
 use serde_json::Value;
 
@@ -16,8 +15,7 @@ use repo_actor::*;
 #[derive(Serialize)]
 #[serde(rename_all = "camelCase")]
 struct DataResponse {
-    #[serde(with = "ts_seconds")]
-    revision: NaiveDateTime,
+    revision: DateTime<Utc>,
     deletions: Vec<Resource>,
     changes: Vec<DataChange>,
 }
@@ -134,8 +132,12 @@ fn build_response(
         })
         .collect();
 
-    // FIXME
-    let revision = Utc::now().naive_utc();
+    let iter1 = notebooks.iter().map(|n| n.system_updated_at);
+    let iter2 = notes.iter().map(|n| n.system_updated_at);
+    let iter3 = content_blocks.iter().map(|c| c.system_updated_at);
+
+    // FIXME include deletions
+    let revision = iter1.chain(iter2).chain(iter3).max().unwrap_or(Utc::now());
 
     DataResponse {
         revision: revision,
