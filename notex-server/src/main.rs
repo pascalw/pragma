@@ -15,6 +15,8 @@ extern crate serde_json;
 
 #[macro_use]
 extern crate diesel;
+#[macro_use]
+extern crate diesel_migrations;
 
 // <EMBEDDED ASSETS>
 
@@ -45,6 +47,7 @@ fn main() {
     let port = port();
 
     let sys = actix::System::new("notex-server");
+    init_repo();
 
     server::HttpServer::new(|| build_actix_app())
         .bind(format!("127.0.0.1:{}", port))
@@ -56,7 +59,7 @@ fn main() {
 
 fn build_actix_app() -> App<State> {
     let addr = SyncArbiter::start(num_cpus::get(), || {
-        let connection = configure_repo();
+        let connection = establish_repo_connection();
         repo_actor::DbExecutor(connection)
     });
 
@@ -82,8 +85,13 @@ fn configure_logger() {
         .init();
 }
 
-fn configure_repo() -> SqliteConnection {
-    let database_url = env::var("DATABASE_URL").expect("DATABASE_URL must be set");
+fn init_repo() {
+    let connection = establish_repo_connection();
+    repo::run_migrations(&connection);
+}
+
+fn establish_repo_connection() -> SqliteConnection {
+    let database_url = env::var("DATABASE_URL").expect("Missing required variable DATABASE_URL");
     repo::establish_connection(database_url)
 }
 

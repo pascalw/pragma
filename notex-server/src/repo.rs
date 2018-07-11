@@ -2,6 +2,9 @@ use chrono::prelude::*;
 use data;
 use diesel::prelude::*;
 use serde_json;
+use std;
+
+embed_migrations!("./migrations");
 
 #[derive(Queryable)]
 struct Notebook {
@@ -48,6 +51,10 @@ struct Deletion {
     system_updated_at: NaiveDateTime,
 }
 
+pub fn run_migrations(connection: &SqliteConnection) {
+    embedded_migrations::run_with_output(connection, &mut std::io::stdout()).unwrap();
+}
+
 pub fn establish_connection(database_url: String) -> SqliteConnection {
     let connection = SqliteConnection::establish(&database_url)
         .expect(&format!("Error connecting to {}", database_url));
@@ -55,6 +62,7 @@ pub fn establish_connection(database_url: String) -> SqliteConnection {
     connection
         .execute("PRAGMA foreign_keys = ON")
         .expect("Failed to enable forgein_keys.");
+
     connection
 }
 
