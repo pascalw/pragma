@@ -92,8 +92,8 @@ fn map_notebook(notebook: &Notebook) -> data::Notebook {
     data::Notebook {
         id: notebook.id,
         name: notebook.name.to_owned(),
-        created_at: notebook.created_at,
-        system_updated_at: notebook.system_updated_at,
+        created_at: to_utc(notebook.created_at),
+        system_updated_at: to_utc(notebook.system_updated_at),
     }
 }
 
@@ -112,9 +112,9 @@ fn map_note(note: &Note) -> data::Note {
         title: note.title.to_owned(),
         tags: tags,
         notebook_id: note.notebook_id,
-        created_at: note.created_at,
-        updated_at: note.updated_at,
-        system_updated_at: note.system_updated_at,
+        created_at: to_utc(note.created_at),
+        updated_at: to_utc(note.updated_at),
+        system_updated_at: to_utc(note.system_updated_at),
     }
 }
 
@@ -140,9 +140,9 @@ fn map_content_block(content_block: &ContentBlock) -> data::ContentBlock {
         id: content_block.id,
         note_id: content_block.note_id,
         content: map_content(content_block),
-        system_updated_at: content_block.system_updated_at,
-        created_at: content_block.created_at,
-        updated_at: content_block.updated_at,
+        system_updated_at: to_utc(content_block.system_updated_at),
+        created_at: to_utc(content_block.created_at),
+        updated_at: to_utc(content_block.updated_at),
     }
 }
 
@@ -160,4 +160,10 @@ fn map_content(content_block: &ContentBlock) -> data::Content {
 
 pub fn deletions(since_revision: NaiveDateTime) -> Result<Vec<data::Deletion>, String> {
     Ok(vec![])
+}
+
+// Convert to UTC DateTime. This is assuming that the
+// NaiveDateTimes stored in the DB are actually UTC!
+fn to_utc(date_time: NaiveDateTime) -> DateTime<Utc> {
+    DateTime::<Utc>::from_utc(date_time, Utc)
 }

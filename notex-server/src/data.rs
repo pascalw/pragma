@@ -5,8 +5,8 @@ use chrono::prelude::*;
 pub struct Notebook {
     pub id: i32,
     pub name: String,
-    pub created_at: NaiveDateTime,
-    pub system_updated_at: NaiveDateTime,
+    pub created_at: DateTime<Utc>,
+    pub system_updated_at: DateTime<Utc>,
 }
 
 impl TypeIdentifiable for Notebook {
@@ -22,9 +22,9 @@ pub struct Note {
     pub title: String,
     pub tags: Vec<Tag>,
     pub notebook_id: i32,
-    pub created_at: NaiveDateTime,
-    pub updated_at: NaiveDateTime,
-    pub system_updated_at: NaiveDateTime,
+    pub created_at: DateTime<Utc>,
+    pub updated_at: DateTime<Utc>,
+    pub system_updated_at: DateTime<Utc>,
 }
 
 impl TypeIdentifiable for Note {
@@ -48,9 +48,9 @@ pub type Tag = String;
 pub struct ContentBlock {
     pub id: i32,
     pub content: Content,
-    pub system_updated_at: NaiveDateTime,
-    pub created_at: NaiveDateTime,
-    pub updated_at: NaiveDateTime,
+    pub system_updated_at: DateTime<Utc>,
+    pub created_at: DateTime<Utc>,
+    pub updated_at: DateTime<Utc>,
     pub note_id: i32,
 }
 
@@ -65,7 +65,7 @@ impl TypeIdentifiable for ContentBlock {
 pub struct Deletion {
     pub _type: String,
     pub id: i32,
-    pub system_updated_at: NaiveDateTime,
+    pub system_updated_at: DateTime<Utc>,
 }
 
 pub trait TypeIdentifiable {
