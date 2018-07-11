@@ -1,7 +1,7 @@
 extern crate futures;
 
 use actix_web::http::Method;
-use actix_web::{App, AsyncResponder, Error, HttpRequest, HttpResponse};
+use actix_web::{App, AsyncResponder, Error, HttpRequest, HttpResponse, Query};
 use chrono::naive::serde::ts_seconds;
 use chrono::prelude::*;
 use serde_json::Value;
@@ -12,14 +12,6 @@ use build_info;
 use data::TypeIdentifiable;
 use data::*;
 use repo_actor::*;
-
-pub fn mount(app: App<State>) -> App<State> {
-    #[cfg_attr(rustfmt, rustfmt_skip)]
-    app.route("/api/data", Method::GET, get_data)
-       .route("/version", Method::GET, |_: HttpRequest<State>|
-           build_info::build_version()
-       )
-}
 
 #[derive(Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -46,22 +38,35 @@ struct Resource {
     _type: String,
 }
 
-fn get_data(req: HttpRequest<State>) -> Box<Future<Item = HttpResponse, Error = Error>> {
-    let now = Utc::now().naive_utc();
+#[derive(Deserialize)]
+struct GetDataQuery {
+    since_revision: DateTime<Utc>,
+}
 
+pub fn mount(app: App<State>) -> App<State> {
+    #[cfg_attr(rustfmt, rustfmt_skip)]
+    app.route("/api/data", Method::GET, get_data)
+       .route("/version", Method::GET, |_: HttpRequest<State>|
+           build_info::build_version()
+       )
+}
+
+fn get_data(
+    (req, query): (HttpRequest<State>, Query<GetDataQuery>),
+) -> Box<Future<Item = HttpResponse, Error = Error>> {
     let db = &req.state().db;
 
     let req_1 = db.send(GetNoteBooksMessage {
-        since_revision: now,
+        since_revision: query.since_revision,
     });
     let req_2 = db.send(GetNotesMessage {
-        since_revision: now,
+        since_revision: query.since_revision,
     });
     let req_3 = db.send(GetContentBlocksMessage {
-        since_revision: now,
+        since_revision: query.since_revision,
     });
     let req_4 = db.send(GetDeletionsMessage {
-        since_revision: now,
+        since_revision: query.since_revision,
     });
 
     req_1

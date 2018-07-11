@@ -59,26 +59,26 @@ pub fn establish_connection(database_url: String) -> SqliteConnection {
 }
 
 pub fn notebooks(
-    since_revision: NaiveDateTime,
+    since_revision: DateTime<Utc>,
     connection: &SqliteConnection,
 ) -> Result<Vec<data::Notebook>, String> {
     use schema::notebooks::dsl::*;
 
     notebooks
-        .filter(system_updated_at.gt(since_revision))
+        .filter(system_updated_at.gt(since_revision.naive_utc()))
         .load::<Notebook>(connection)
         .map_err(|e| format!("{}", e))
         .map(map_notebooks)
 }
 
 pub fn notes(
-    since_revision: NaiveDateTime,
+    since_revision: DateTime<Utc>,
     connection: &SqliteConnection,
 ) -> Result<Vec<data::Note>, String> {
     use schema::notes::dsl::*;
 
     notes
-        .filter(system_updated_at.gt(since_revision))
+        .filter(system_updated_at.gt(since_revision.naive_utc()))
         .load::<Note>(connection)
         .map_err(|e| format!("{}", e))
         .map(map_notes)
@@ -119,13 +119,13 @@ fn map_note(note: &Note) -> data::Note {
 }
 
 pub fn content_blocks(
-    since_revision: NaiveDateTime,
+    since_revision: DateTime<Utc>,
     connection: &SqliteConnection,
 ) -> Result<Vec<data::ContentBlock>, String> {
     use schema::content_blocks::dsl::*;
 
     content_blocks
-        .filter(system_updated_at.gt(since_revision))
+        .filter(system_updated_at.gt(since_revision.naive_utc()))
         .load::<ContentBlock>(connection)
         .map_err(|e| format!("{}", e))
         .map(map_content_blocks)
@@ -158,7 +158,7 @@ fn map_content(content_block: &ContentBlock) -> data::Content {
     }
 }
 
-pub fn deletions(since_revision: NaiveDateTime) -> Result<Vec<data::Deletion>, String> {
+pub fn deletions(since_revision: DateTime<Utc>) -> Result<Vec<data::Deletion>, String> {
     Ok(vec![])
 }
 
