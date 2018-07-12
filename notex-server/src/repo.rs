@@ -55,9 +55,9 @@ pub fn run_migrations(connection: &SqliteConnection) {
     embedded_migrations::run_with_output(connection, &mut std::io::stdout()).unwrap();
 }
 
-pub fn establish_connection(database_url: String) -> SqliteConnection {
-    let connection = SqliteConnection::establish(&database_url)
-        .expect(&format!("Error connecting to {}", database_url));
+pub fn establish_connection(database_url: &str) -> SqliteConnection {
+    let connection = SqliteConnection::establish(database_url)
+        .unwrap_or_else(|_| panic!("Error connecting to {}", database_url));
 
     connection
         .execute("PRAGMA foreign_keys = ON")
@@ -76,7 +76,7 @@ pub fn notebooks(
         .filter(system_updated_at.gt(since_revision.naive_utc()))
         .load::<Notebook>(connection)
         .map_err(|e| format!("{}", e))
-        .map(map_notebooks)
+        .map(|n| map_notebooks(&n))
 }
 
 pub fn notes(
@@ -89,10 +89,10 @@ pub fn notes(
         .filter(system_updated_at.gt(since_revision.naive_utc()))
         .load::<Note>(connection)
         .map_err(|e| format!("{}", e))
-        .map(map_notes)
+        .map(|n| map_notes(&n))
 }
 
-fn map_notebooks(notebooks: Vec<Notebook>) -> Vec<data::Notebook> {
+fn map_notebooks(notebooks: &[Notebook]) -> Vec<data::Notebook> {
     notebooks.iter().map(map_notebook).collect()
 }
 
@@ -105,20 +105,20 @@ fn map_notebook(notebook: &Notebook) -> data::Notebook {
     }
 }
 
-fn map_notes(notes: Vec<Note>) -> Vec<data::Note> {
+fn map_notes(notes: &[Note]) -> Vec<data::Note> {
     notes.iter().map(map_note).collect()
 }
 
 fn map_note(note: &Note) -> data::Note {
     let tags: Vec<String> = match &note.tags {
         None => vec![],
-        Some(tags) => tags.split(",").map(String::from).collect(),
+        Some(tags) => tags.split(',').map(String::from).collect(),
     };
 
     data::Note {
         id: note.id,
         title: note.title.to_owned(),
-        tags: tags,
+        tags,
         notebook_id: note.notebook_id,
         created_at: to_utc(note.created_at),
         updated_at: to_utc(note.updated_at),
@@ -136,10 +136,10 @@ pub fn content_blocks(
         .filter(system_updated_at.gt(since_revision.naive_utc()))
         .load::<ContentBlock>(connection)
         .map_err(|e| format!("{}", e))
-        .map(map_content_blocks)
+        .map(|c| map_content_blocks(&c))
 }
 
-fn map_content_blocks(content_blocks: Vec<ContentBlock>) -> Vec<data::ContentBlock> {
+fn map_content_blocks(content_blocks: &[ContentBlock]) -> Vec<data::ContentBlock> {
     content_blocks.iter().map(map_content_block).collect()
 }
 
@@ -158,15 +158,12 @@ fn map_content(content_block: &ContentBlock) -> data::Content {
     let content: Content = serde_json::from_str(&content_block.content).unwrap(); // FIXME
 
     match content {
-        Content::Text { text } => data::Content::Text { text: text },
-        Content::Code { language, code } => data::Content::Code {
-            language: language,
-            code: code,
-        },
+        Content::Text { text } => data::Content::Text { text },
+        Content::Code { language, code } => data::Content::Code { language, code },
     }
 }
 
-pub fn deletions(since_revision: DateTime<Utc>) -> Result<Vec<data::Deletion>, String> {
+pub fn deletions(_since_revision: DateTime<Utc>) -> Result<Vec<data::Deletion>, String> {
     Ok(vec![])
 }
 

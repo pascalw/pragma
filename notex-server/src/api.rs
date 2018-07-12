@@ -73,7 +73,7 @@ fn get_data(
         .and_then(move |res| match res {
             (Ok(notebooks), Ok(notes), Ok(content_blocks), Ok(deleted_records)) => {
                 let data_response =
-                    build_response(notebooks, notes, content_blocks, deleted_records);
+                    build_response(&notebooks, &notes, &content_blocks, &deleted_records);
                 Ok(HttpResponse::Ok().json(data_response))
             }
             _ => Ok(HttpResponse::InternalServerError().into()),
@@ -82,10 +82,10 @@ fn get_data(
 }
 
 fn build_response(
-    notebooks: Vec<Notebook>,
-    notes: Vec<Note>,
-    content_blocks: Vec<ContentBlock>,
-    deleted_records: Vec<Deletion>,
+    notebooks: &[Notebook],
+    notes: &[Note],
+    content_blocks: &[ContentBlock],
+    deleted_records: &[Deletion],
 ) -> DataResponse {
     let notebook_changes: Vec<DataChange> = notebooks
         .iter()
@@ -137,11 +137,15 @@ fn build_response(
     let iter3 = content_blocks.iter().map(|c| c.system_updated_at);
 
     // FIXME include deletions
-    let revision = iter1.chain(iter2).chain(iter3).max().unwrap_or(Utc::now());
+    let revision = iter1
+        .chain(iter2)
+        .chain(iter3)
+        .max()
+        .unwrap_or_else(Utc::now);
 
     DataResponse {
-        revision: revision,
-        deletions: deletions,
-        changes: changes,
+        revision,
+        deletions,
+        changes,
     }
 }

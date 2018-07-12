@@ -49,9 +49,9 @@ fn main() {
     let sys = actix::System::new("notex-server");
     init_repo();
 
-    server::HttpServer::new(|| build_actix_app())
+    server::HttpServer::new(build_actix_app)
         .bind(format!("127.0.0.1:{}", port))
-        .expect(&format!("Can not bind to port {}", port))
+        .unwrap_or_else(|_| panic!("Can not bind to port {}", port))
         .start();
 
     let _ = sys.run();
@@ -92,9 +92,9 @@ fn init_repo() {
 
 fn establish_repo_connection() -> SqliteConnection {
     let database_url = env::var("DATABASE_URL").expect("Missing required variable DATABASE_URL");
-    repo::establish_connection(database_url)
+    repo::establish_connection(&database_url)
 }
 
 fn port() -> String {
-    env::var("PORT").unwrap_or("8000".to_string())
+    env::var("PORT").unwrap_or_else(|_| "8000".to_string())
 }
