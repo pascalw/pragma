@@ -76,7 +76,7 @@ fn maybe_serve_embedded_assets(app: App<State>) -> App<State> {
 
 #[cfg(feature = "embedded_assets")]
 fn maybe_serve_embedded_assets(app: App<State>) -> App<State> {
-    app.route("/{path:.*}", http::Method::GET, assets::handler)
+    assets::mount(app)
 }
 
 fn configure_logger() {

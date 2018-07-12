@@ -2,14 +2,19 @@ extern crate mime_guess;
 
 use self::mime_guess::guess_mime_type;
 use actix_state::State;
+use actix_web::http::Method;
 use actix_web::http::{header, StatusCode};
-use actix_web::{Error, HttpRequest, HttpResponse};
+use actix_web::{App, Error, HttpRequest, HttpResponse};
 
 #[derive(RustEmbed)]
 #[folder = "assets/"]
 struct Asset;
 
-pub fn handler(req: HttpRequest<State>) -> Result<HttpResponse<State>, Error> {
+pub fn mount(app: App<State>) -> App<State> {
+    app.route("/{path:.*}", Method::GET, handler)
+}
+
+pub fn handler(req: HttpRequest<State>) -> Result<HttpResponse, Error> {
     let asset_path = asset_path(&req);
 
     match Asset::get(asset_path) {
@@ -23,7 +28,7 @@ pub fn handler(req: HttpRequest<State>) -> Result<HttpResponse<State>, Error> {
     }
 }
 
-fn asset_path<'a>(req: &'a HttpRequest) -> &'a str {
+fn asset_path<'a>(req: &'a HttpRequest<State>) -> &'a str {
     let path = req.match_info().get("path").unwrap_or("index.html");
 
     match path {
