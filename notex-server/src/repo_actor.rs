@@ -13,7 +13,7 @@ impl Actor for DbExecutor {
 // Start GetNoteBooks
 
 pub struct GetNoteBooksMessage {
-    pub since_revision: DateTime<Utc>,
+    pub since_revision: Option<DateTime<Utc>>,
 }
 
 impl Message for GetNoteBooksMessage {
@@ -34,7 +34,7 @@ impl Handler<GetNoteBooksMessage> for DbExecutor {
 // Start GetNotes
 
 pub struct GetNotesMessage {
-    pub since_revision: DateTime<Utc>,
+    pub since_revision: Option<DateTime<Utc>>,
 }
 
 impl Message for GetNotesMessage {
@@ -55,7 +55,7 @@ impl Handler<GetNotesMessage> for DbExecutor {
 // Start GetContentBlocks
 
 pub struct GetContentBlocksMessage {
-    pub since_revision: DateTime<Utc>,
+    pub since_revision: Option<DateTime<Utc>>,
 }
 
 impl Message for GetContentBlocksMessage {
@@ -76,7 +76,7 @@ impl Handler<GetContentBlocksMessage> for DbExecutor {
 // Start GetDeletions
 
 pub struct GetDeletionsMessage {
-    pub since_revision: DateTime<Utc>,
+    pub since_revision: Option<DateTime<Utc>>,
 }
 
 impl Message for GetDeletionsMessage {

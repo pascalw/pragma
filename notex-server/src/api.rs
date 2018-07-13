@@ -38,7 +38,7 @@ struct Resource {
 
 #[derive(Deserialize)]
 struct GetDataQuery {
-    since_revision: DateTime<Utc>,
+    since_revision: Option<DateTime<Utc>>,
 }
 
 pub fn mount(app: App<State>) -> App<State> {
