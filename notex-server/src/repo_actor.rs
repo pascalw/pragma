@@ -87,8 +87,8 @@ impl Handler<GetDeletionsMessage> for DbExecutor {
     type Result = Result<Vec<Deletion>, String>;
 
     fn handle(&mut self, msg: GetDeletionsMessage, _: &mut Self::Context) -> Self::Result {
-        // let connection = &self.0;
-        repo::deletions(msg.since_revision)
+        let connection = &self.0;
+        repo::deletions(msg.since_revision, &connection)
     }
 }
 

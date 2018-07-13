@@ -33,7 +33,7 @@ struct Resource {
     id: i32,
 
     #[serde(rename = "type")]
-    _type: String,
+    type_: String,
 }
 
 #[derive(Deserialize)]
@@ -93,7 +93,7 @@ fn build_response(
             data: json!(n),
             resource: Resource {
                 id: n.id,
-                _type: n.type_name().into(),
+                type_: n.type_name().into(),
             },
         })
         .collect();
@@ -104,7 +104,7 @@ fn build_response(
             data: json!(n),
             resource: Resource {
                 id: n.id,
-                _type: n.type_name().into(),
+                type_: n.type_name().into(),
             },
         })
         .collect();
@@ -115,7 +115,7 @@ fn build_response(
             data: json!(c),
             resource: Resource {
                 id: c.id,
-                _type: c.type_name().into(),
+                type_: c.type_name().into(),
             },
         })
         .collect();
@@ -128,7 +128,7 @@ fn build_response(
         .iter()
         .map(|d| Resource {
             id: d.id,
-            _type: d._type.clone(),
+            type_: d.type_.clone(),
         })
         .collect();
 

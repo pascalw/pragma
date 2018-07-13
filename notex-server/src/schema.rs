@@ -12,6 +12,16 @@ table! {
 }
 
 table! {
+    deletions (id) {
+        id -> Integer,
+        #[sql_name = "type"]
+        type_ -> Text,
+        resource_id -> Integer,
+        system_updated_at -> Timestamp,
+    }
+}
+
+table! {
     notebooks (id) {
         id -> Integer,
         name -> Text,
@@ -35,4 +45,4 @@ table! {
 joinable!(content_blocks -> notes (note_id));
 joinable!(notes -> notebooks (notebook_id));
 
-allow_tables_to_appear_in_same_query!(content_blocks, notebooks, notes,);
+allow_tables_to_appear_in_same_query!(content_blocks, deletions, notebooks, notes,);

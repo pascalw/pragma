@@ -46,8 +46,9 @@ pub enum Content {
 
 #[derive(Queryable)]
 struct Deletion {
-    _type: String,
     id: i32,
+    type_: String,
+    resource_id: i32,
     system_updated_at: NaiveDateTime,
 }
 
@@ -178,8 +179,35 @@ fn map_content(content_block: &ContentBlock) -> data::Content {
     }
 }
 
-pub fn deletions(_since_revision: Option<DateTime<Utc>>) -> Result<Vec<data::Deletion>, String> {
-    Ok(vec![])
+pub fn deletions(
+    since_revision: Option<DateTime<Utc>>,
+    connection: &SqliteConnection,
+) -> Result<Vec<data::Deletion>, String> {
+    use schema::deletions::dsl::*;
+
+    let query_result = match since_revision {
+        None => deletions.load::<Deletion>(connection),
+        Some(since_revision) => deletions
+            .filter(system_updated_at.gt(since_revision.naive_utc()))
+            .load::<Deletion>(connection),
+    };
+
+    query_result
+        .map_err(|e| format!("{}", e))
+        .map(|d| map_deletions(&d))
+}
+
+fn map_deletions(deletions: &[Deletion]) -> Vec<data::Deletion> {
+    deletions.iter().map(map_deletion).collect()
+}
+
+fn map_deletion(deletion: &Deletion) -> data::Deletion {
+    data::Deletion {
+        id: deletion.id,
+        type_: deletion.type_.to_owned(),
+        resource_id: deletion.resource_id,
+        system_updated_at: to_utc(deletion.system_updated_at),
+    }
 }
 
 // Convert to UTC DateTime. This is assuming that the

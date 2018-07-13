@@ -63,8 +63,10 @@ impl TypeIdentifiable for ContentBlock {
 #[derive(Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct Deletion {
-    pub _type: String,
     pub id: i32,
+    #[serde(rename = "type")]
+    pub type_: String,
+    pub resource_id: i32,
     pub system_updated_at: DateTime<Utc>,
 }
 
