@@ -1,4 +1,8 @@
+[@bs.module] external styles : Js.Dict.t(string) = "./index.scss";
+
 open Belt;
+
+let style = name => Js.Dict.get(styles, name) |. Option.getExn;
 
 type tag = string;
 type language = string;
@@ -108,12 +112,12 @@ module NotebooksListing = {
 
         <li
           key=(notebook.id |> string_of_int)
-          className=(isSelected ? "selected" : "")
+          className=(isSelected ? style("selected") : "")
           onClick=(_e => send(SelectNotebook(notebook)))>
-          <span className="notebooks__list_name">
+          <span className=style("notebooks__list_name")>
             (ReasonReact.string(notebook.name))
           </span>
-          <span className="notebooks__list__note-count">
+          <span className=style("notebooks__list__note-count")>
             (
               notebook.notes
               |> List.length
@@ -124,7 +128,7 @@ module NotebooksListing = {
         </li>;
       };
 
-      <div className="notebooks">
+      <div className=(style("notebooks"))>
         (
           switch (notebooks) {
           | None => <p> (ReasonReact.string("There are no notebooks.")) </p>
@@ -167,7 +171,7 @@ module NotesListing = {
 
         <li
           key=(note.id |> string_of_int)
-          className=(isSelected ? "selected" : "")
+          className=(isSelected ? style("selected") : "")
           onClick=(_e => send(SelectNote(note)))>
           (ReasonReact.string(note.title))
           <br />
@@ -175,7 +179,7 @@ module NotesListing = {
         </li>;
       };
 
-      <div className="notes">
+      <div className=style("notes")>
         (
           switch (notebook) {
           | None => <p> (ReasonReact.string("There are no notes.")) </p>
@@ -216,12 +220,12 @@ module NoteEditor = {
     render: _self =>
       switch (note) {
       | None =>
-        <div className="editor">
+        <div className=style("editor")>
           <p> (ReasonReact.string("No note selected")) </p>
         </div>
       | Some(note) =>
-        <div className="editor">
-          <h2 className="note-title"> (note.title |. ReasonReact.string) </h2>
+        <div className=style("editor")>
+          <h2 className=style("note-title")> (note.title |. ReasonReact.string) </h2>
           <div className="content">
             (renderContentBlocks(notebook, note, send))
           </div>
@@ -281,8 +285,8 @@ let make = _children => {
   },
   reducer,
   render: self =>
-    <main>
-      <div className="columns">
+    <main className=(style("main"))>
+      <div className=(style("columns"))>
         <NotebooksListing
           notebooks=self.state.notebooks
           selectedNotebook=self.state.selectedNotebook

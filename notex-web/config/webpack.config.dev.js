@@ -59,6 +59,11 @@ module.exports = {
             },
           },
           {
+            test: /\.css$/,
+            include: paths.appNodeModules,
+            use :["style-loader", "css-loader"]
+          },
+          {
             test: /\.s?css$/,
             use: [
               require.resolve('style-loader'),
@@ -66,6 +71,7 @@ module.exports = {
                 loader: require.resolve('css-loader'),
                 options: {
                   importLoaders: 1,
+                  modules: true
                 },
               },
               {

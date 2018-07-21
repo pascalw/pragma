@@ -91,6 +91,24 @@ module.exports = {
             },
           },
           {
+            test: /\.css$/,
+            include: paths.appNodeModules,
+            use: [
+              {
+                loader: MiniCssExtractPlugin.loader,
+                options: miniCssExtractluginOptions
+              },
+              {
+                loader: require.resolve('css-loader'),
+                options: {
+                  importLoaders: 1,
+                  minimize: true,
+                  sourceMap: shouldUseSourceMap,
+                }
+              }
+            ]
+          },
+          {
             test: /\.s?css$/,
             use: [
               {
@@ -102,6 +120,7 @@ module.exports = {
                 options: {
                   importLoaders: 1,
                   minimize: true,
+                  modules: true,
                   sourceMap: shouldUseSourceMap,
                 },
               },
