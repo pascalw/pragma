@@ -1,6 +1,6 @@
 {
   "name": "reason-scripts",
-  "sources": ["src"],
+  "sources": ["src", "src/components"],
   "bs-dependencies": ["reason-react", "@glennsl/bs-jest", "bs-date-fns", "bs-webapi"],
   "reason": {
     "react-jsx": 2

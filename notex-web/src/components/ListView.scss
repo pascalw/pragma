@@ -1,0 +1,50 @@
+.listView {
+  max-width: 10%;
+  min-width: 200px;
+
+  background: #fbfbfb;
+  border-right: 1px solid darken(#fbfbfb, 5%);
+
+  transition: min-width 250ms, max-width 250ms;
+
+  &.hidden {
+    max-width: 0;
+    min-width: 0;
+    border-right: 0;
+  }
+
+  li {
+    display: flex;
+    cursor: pointer;
+    padding: 0.25rem 0.75rem;
+    border-bottom: 1px solid darken(#fbfbfb, 5%);
+
+    &:hover {
+      background: darken(#fbfbfb, 2%);
+    }
+
+    &.selected {
+      background-color: rgb(91, 136, 239);
+      color: #fff;
+    }
+  }
+}
+
+.itemContentWrapper {
+  display: flex;
+  flex: 1;
+}
+
+.selected {
+    background-color: rgb(91, 136, 239);
+    color: #fff;
+}
+
+.title {
+    flex: 1;
+}
+
+.count {
+    align-self: flex-end;
+    flex: 0;
+}

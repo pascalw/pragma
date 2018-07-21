@@ -1,42 +1,10 @@
-[@bs.module] external styles : Js.Dict.t(string) = "./index.scss";
-
 open Belt;
 
+[@bs.module] external styles : Js.Dict.t(string) = "./index.scss";
 let style = name => Js.Dict.get(styles, name) |. Option.getExn;
 
-type tag = string;
-type language = string;
-
-type content =
-  | TextContent(string)
-  | CodeContent(string, language);
-
-type note = {
-  id: int,
-  title: string,
-  tags: list(tag),
-  contentBlocks: list(content),
-  createdAt: Js.Date.t,
-  updatedAt: Js.Date.t,
-};
-
-type notebook = {
-  id: int,
-  name: string,
-  notes: list(note),
-  createdAt: Js.Date.t,
-};
-
-type state = {
-  notebooks: option(list(notebook)),
-  selectedNotebook: option(notebook),
-  editingNote: option(note),
-};
-
-type action =
-  | SelectNotebook(notebook)
-  | SelectNote(note)
-  | UpdateNoteText(notebook, note, content, string);
+open Data;
+open State;
 
 let reducer = (action: action, state: state) =>
   switch (action) {
@@ -91,114 +59,6 @@ let reducer = (action: action, state: state) =>
     |. ReasonReact.Update;
   };
 
-module NotebooksListing = {
-  let component = ReasonReact.statelessComponent("NotebooksListing");
-
-  let make =
-      (
-        ~notebooks: option(list(notebook)),
-        ~selectedNotebook: option(notebook),
-        ~send,
-        _children,
-      ) => {
-    ...component,
-    render: _self => {
-      let renderNotebook = notebook => {
-        let isSelected =
-          switch (selectedNotebook) {
-          | None => false
-          | Some(selectedNotebook) => selectedNotebook.id == notebook.id
-          };
-
-        <li
-          key=(notebook.id |> string_of_int)
-          className=(isSelected ? style("selected") : "")
-          onClick=(_e => send(SelectNotebook(notebook)))>
-          <span className=style("notebooks__list_name")>
-            (ReasonReact.string(notebook.name))
-          </span>
-          <span className=style("notebooks__list__note-count")>
-            (
-              notebook.notes
-              |> List.length
-              |> string_of_int
-              |> ReasonReact.string
-            )
-          </span>
-        </li>;
-      };
-
-      <div className=(style("notebooks"))>
-        (
-          switch (notebooks) {
-          | None => <p> (ReasonReact.string("There are no notebooks.")) </p>
-          | Some(notebooks) =>
-            <ul>
-              (
-                notebooks
-                |. List.map(renderNotebook)
-                |. List.toArray
-                |. ReasonReact.array
-              )
-            </ul>
-          }
-        )
-      </div>;
-    },
-  };
-};
-
-module NotesListing = {
-  let component = ReasonReact.statelessComponent("NotesListing");
-
-  let formatDate = date => DateFns.format("D MMMM YYYY", date);
-
-  let make =
-      (
-        ~notebook: option(notebook),
-        ~selectedNote: option(note),
-        ~send,
-        _children,
-      ) => {
-    ...component,
-    render: _self => {
-      let renderNote = (note: note) => {
-        let isSelected =
-          switch (selectedNote) {
-          | None => false
-          | Some(selectedNote) => selectedNote.id == note.id
-          };
-
-        <li
-          key=(note.id |> string_of_int)
-          className=(isSelected ? style("selected") : "")
-          onClick=(_e => send(SelectNote(note)))>
-          (ReasonReact.string(note.title))
-          <br />
-          <small> (ReasonReact.string(note.updatedAt |> formatDate)) </small>
-        </li>;
-      };
-
-      <div className=style("notes")>
-        (
-          switch (notebook) {
-          | None => <p> (ReasonReact.string("There are no notes.")) </p>
-          | Some(notebook) =>
-            <ul>
-              (
-                notebook.notes
-                |. List.map(renderNote)
-                |. List.toArray
-                |. ReasonReact.array
-              )
-            </ul>
-          }
-        )
-      </div>;
-    },
-  };
-};
-
 module NoteEditor = {
   let component = ReasonReact.statelessComponent("NoteEditor");
 
@@ -220,12 +80,14 @@ module NoteEditor = {
     render: _self =>
       switch (note) {
       | None =>
-        <div className=style("editor")>
+        <div className=(style("editor"))>
           <p> (ReasonReact.string("No note selected")) </p>
         </div>
       | Some(note) =>
-        <div className=style("editor")>
-          <h2 className=style("note-title")> (note.title |. ReasonReact.string) </h2>
+        <div className=(style("editor"))>
+          <h2 className=(style("note-title"))>
+            (note.title |. ReasonReact.string)
+          </h2>
           <div className="content">
             (renderContentBlocks(notebook, note, send))
           </div>
@@ -273,6 +135,75 @@ let notebooks = [
 
 let component = ReasonReact.reducerComponent("App");
 
+let renderNotebooks =
+    (
+      notebooks: option(list(notebook)),
+      selectedNotebook: option(notebook),
+      send,
+    ) => {
+  let listItems =
+    switch (notebooks) {
+    | None => []
+    | Some(notebooks) =>
+      notebooks
+      |. List.map(notebook =>
+           (
+             {
+               id: notebook.id |> string_of_int,
+               title: notebook.name,
+               count: Some(notebook.notes |> List.length),
+               model: notebook,
+             }:
+               ListView.listItem(notebook)
+           )
+         )
+    };
+
+  <ListView
+    items=listItems
+    selectedId=(selectedNotebook |. Option.map(n => n.id |. string_of_int))
+    onItemSelected=(item => send(SelectNotebook(item.model)))
+  />;
+};
+
+let renderNotes =
+    (selectedNotebook: option(notebook), editingNote: option(note), send) => {
+  let listItems =
+    switch (selectedNotebook) {
+    | None => []
+    | Some(selectedNotebook) =>
+      selectedNotebook.notes
+      |. List.map(note =>
+           (
+             {
+               id: note.id |> string_of_int,
+               title: note.title,
+               count: None,
+               model: note,
+             }:
+               ListView.listItem(note)
+           )
+         )
+    };
+
+  let formatDate = date => DateFns.format("D MMMM YYYY", date);
+  let renderNoteListItemContent = (item: ListView.listItem(note)) =>
+    <p>
+      (ReasonReact.string(item.model.title))
+      <br />
+      <small>
+        (ReasonReact.string(item.model.updatedAt |> formatDate))
+      </small>
+    </p>;
+
+  <ListView
+    items=listItems
+    selectedId=(editingNote |. Option.map(n => n.id |. string_of_int))
+    onItemSelected=(item => send(SelectNote(item.model)))
+    renderItemContent=renderNoteListItemContent
+  />;
+};
+
 let make = _children => {
   ...component,
   initialState: () => {
@@ -287,16 +218,20 @@ let make = _children => {
   render: self =>
     <main className=(style("main"))>
       <div className=(style("columns"))>
-        <NotebooksListing
-          notebooks=self.state.notebooks
-          selectedNotebook=self.state.selectedNotebook
-          send=self.send
-        />
-        <NotesListing
-          notebook=self.state.selectedNotebook
-          selectedNote=self.state.editingNote
-          send=self.send
-        />
+        (
+          renderNotebooks(
+            self.state.notebooks,
+            self.state.selectedNotebook,
+            self.send,
+          )
+        )
+        (
+          renderNotes(
+            self.state.selectedNotebook,
+            self.state.editingNote,
+            self.send,
+          )
+        )
         <NoteEditor
           notebook=(self.state.selectedNotebook |> Option.getExn)
           note=self.state.editingNote
