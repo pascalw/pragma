@@ -1,9 +1,10 @@
-#!/usr/bin/env node
 'use strict';
 
 // Do this as the first thing so that any code reading it knows the right env.
-process.env.NODE_ENV = process.env.NODE_ENV || 'production';
-process.env.BABEL_ENV = process.env.BABEL_ENV || process.env.NODE_ENV;
+process.env.BABEL_ENV = 'production';
+process.env.NODE_ENV = 'production';
+
+require("child_process").spawnSync("bsb", ["-make-world"], { stdio: "inherit" });
 
 // Makes the script crash on unhandled rejections instead of silently
 // ignoring them. In the future, promise rejections that are not handled will
@@ -12,30 +13,33 @@ process.on('unhandledRejection', err => {
   throw err;
 });
 
+process.on('warning', (warning) => {
+  console.log(warning.stack);
+});
+
 // Ensure environment variables are read.
 require('../config/env');
 
-const fs = require('fs-extra');
 const chalk = require('chalk');
+const fs = require('fs-extra');
 const webpack = require('webpack');
 const config = require('../config/webpack.config.prod');
 const paths = require('../config/paths');
 const checkRequiredFiles = require('react-dev-utils/checkRequiredFiles');
 const formatWebpackMessages = require('react-dev-utils/formatWebpackMessages');
 const FileSizeReporter = require('react-dev-utils/FileSizeReporter');
-const formatElmCompilerErrors = require('./utils/formatElmCompilerErrors');
+const printBuildError = require('react-dev-utils/printBuildError');
 
 const measureFileSizesBeforeBuild =
   FileSizeReporter.measureFileSizesBeforeBuild;
 const printFileSizesAfterBuild = FileSizeReporter.printFileSizesAfterBuild;
 
-if (fs.existsSync('elm-package.json') === false) {
-  console.log('Please, run the build script from project root directory');
-  process.exit(1);
-}
+// These sizes are pretty large. We'll warn for bundles exceeding them.
+const WARN_AFTER_BUNDLE_GZIP_SIZE = 512 * 1024;
+const WARN_AFTER_CHUNK_GZIP_SIZE = 1024 * 1024;
 
 // Warn and crash if required files are missing
-if (!checkRequiredFiles([paths.appIndexJs, paths.appHtml])) {
+if (!checkRequiredFiles([paths.appHtml, paths.appIndexJs])) {
   process.exit(1);
 }
 
@@ -71,33 +75,47 @@ measureFileSizesBeforeBuild(paths.appBuild)
       }
 
       console.log('File sizes after gzip:\n');
-      printFileSizesAfterBuild(stats, previousFileSizes, paths.appBuild);
+      printFileSizesAfterBuild(
+        stats,
+        previousFileSizes,
+        paths.appBuild,
+        WARN_AFTER_BUNDLE_GZIP_SIZE,
+        WARN_AFTER_CHUNK_GZIP_SIZE
+      );
       console.log();
     },
     err => {
       console.log(chalk.red('Failed to compile.\n'));
-      console.log((err.message || err) + '\n');
+      printBuildError(err);
       process.exit(1);
     }
   );
 
 // Create the production build and print the deployment instructions.
 function build(previousFileSizes) {
-  console.log(`Creating an optimized ${process.env.NODE_ENV} build...`);
+  console.log('Creating an optimized production build...');
 
-  const compiler = webpack(config);
+  let compiler = webpack(config);
   return new Promise((resolve, reject) => {
     compiler.run((err, stats) => {
       if (err) {
         return reject(err);
       }
-      const messages = formatElmCompilerErrors(
-        formatWebpackMessages(stats.toJson({}, true))
-      );
+      const messages = formatWebpackMessages(stats.toJson({}, true));
       if (messages.errors.length) {
+        // Only keep the first error. Others are often indicative
+        // of the same problem, but confuse the reader with noise.
+        if (messages.errors.length > 1) {
+          messages.errors.length = 1;
+        }
         return reject(new Error(messages.errors.join('\n\n')));
       }
-      if (process.env.CI && messages.warnings.length) {
+      if (
+        process.env.CI &&
+        (typeof process.env.CI !== 'string' ||
+          process.env.CI.toLowerCase() !== 'false') &&
+        messages.warnings.length
+      ) {
         console.log(
           chalk.yellow(
             '\nTreating warnings as errors because process.env.CI = true.\n' +
@@ -109,7 +127,7 @@ function build(previousFileSizes) {
       return resolve({
         stats,
         previousFileSizes,
-        warnings: messages.warnings
+        warnings: messages.warnings,
       });
     });
   });
@@ -118,6 +136,6 @@ function build(previousFileSizes) {
 function copyPublicFolder() {
   fs.copySync(paths.appPublic, paths.appBuild, {
     dereference: true,
-    filter: file => file !== paths.appHtml
+    filter: file => file !== paths.appHtml,
   });
 }
