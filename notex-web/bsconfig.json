@@ -1,7 +1,15 @@
 {
   "name": "reason-scripts",
   "sources": ["src", "src/components"],
-  "bs-dependencies": ["reason-react", "@glennsl/bs-jest", "bs-date-fns", "bs-webapi"],
+  "bs-dependencies": [
+    "reason-react",
+    "@glennsl/bs-jest",
+    "bs-date-fns",
+    "bs-webapi",
+    "bs-fetch",
+    "@glennsl/bs-json",
+    "reason-future"
+  ],
   "reason": {
     "react-jsx": 2
   },

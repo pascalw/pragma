@@ -3,17 +3,22 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
+    "@glennsl/bs-json": "^3.0.0",
     "bs-date-fns": "rodan-lewarx/bs-date-fns#1fc2fe178ae40232e82b260047f0e74d3b151ef0",
+    "bs-fetch": "^0.3.0",
     "bs-webapi": "^0.10.0",
     "bulma": "^0.7.1",
     "promise": "8.0.1",
     "react": "^16.4.1",
     "react-dom": "^16.4.1",
+    "reason-future": "^2.3.1",
     "trix": "^0.11.4"
   },
   "scripts": {
     "start": "node scripts/start.js",
     "build": "node scripts/build.js",
+    "compile": "bsb -make-world",
+    "compile:watch": "bsb -make-world -w",
     "test": "node scripts/test.js --env=jsdom",
     "prepare": "npm link bs-platform"
   },
@@ -39,7 +44,7 @@
     "postcss-flexbugs-fixes": "3.2.0",
     "postcss-loader": "^2.1.6",
     "react-dev-utils": "6.0.0-next.3e165448",
-    "reason-react": "^0.4.2",
+    "reason-react": "^0.5.3",
     "sass-loader": "^7.0.3",
     "style-loader": "^0.21.0",
     "sw-precache-webpack-plugin": "0.11.5",

@@ -1,0 +1,10 @@
+.editor {
+  flex: 2;
+  padding: 0 0.75rem;
+
+  .note-title {
+    margin: 0.5em 0;
+    padding-bottom: 0.25em;
+    border-bottom: 1px solid darken(#fbfbfb, 5%);
+  }
+}

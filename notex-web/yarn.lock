@@ -168,6 +168,10 @@
   dependencies:
     jest "^22.0.4"
 
+"@glennsl/bs-json@^3.0.0":
+  version "3.0.0"
+  resolved "https://registry.yarnpkg.com/@glennsl/bs-json/-/bs-json-3.0.0.tgz#b4e1cf6612270a8dd7287a8a71ebe17e8f0fb683"
+
 "@mrmlnc/readdir-enhanced@^2.2.1":
   version "2.2.1"
   resolved "https://registry.yarnpkg.com/@mrmlnc/readdir-enhanced/-/readdir-enhanced-2.2.1.tgz#524af240d1a360527b730475ecfa1344aa540dde"
@@ -1548,6 +1552,10 @@ bs-date-fns@rodan-lewarx/bs-date-fns#1fc2fe178ae40232e82b260047f0e74d3b151ef0:
   resolved "https://codeload.github.com/rodan-lewarx/bs-date-fns/tar.gz/1fc2fe178ae40232e82b260047f0e74d3b151ef0"
   dependencies:
     date-fns "^1.29.0"
+
+bs-fetch@^0.3.0:
+  version "0.3.0"
+  resolved "https://registry.yarnpkg.com/bs-fetch/-/bs-fetch-0.3.0.tgz#60c64457359d0c7e0798d5a04db8987d16c4f8f3"
 
 bs-loader@^2.0.3:
   version "2.0.5"
@@ -6645,9 +6653,13 @@ realpath-native@^1.0.0:
   dependencies:
     util.promisify "^1.0.0"
 
-reason-react@^0.4.2:
-  version "0.4.2"
-  resolved "https://registry.yarnpkg.com/reason-react/-/reason-react-0.4.2.tgz#690d34e3e91a2585cdc5f58384b6c8ff653c32c1"
+reason-future@^2.3.1:
+  version "2.3.1"
+  resolved "https://registry.yarnpkg.com/reason-future/-/reason-future-2.3.1.tgz#e86a5b835e542caa7c140ba2379be6d06ff0d2d0"
+
+reason-react@^0.5.3:
+  version "0.5.3"
+  resolved "https://registry.yarnpkg.com/reason-react/-/reason-react-0.5.3.tgz#10601809742fd991109ec9d69ad4baf2c3f17540"
   dependencies:
     react ">=15.0.0 || >=16.0.0"
     react-dom ">=15.0.0 || >=16.0.0"

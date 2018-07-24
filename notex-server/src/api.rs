@@ -3,12 +3,10 @@ extern crate futures;
 use actix_web::http::Method;
 use actix_web::{App, AsyncResponder, Error, HttpRequest, HttpResponse, Query};
 use chrono::prelude::*;
-use serde_json::Value;
 
 use self::futures::Future;
 use actix_state::State;
 use build_info;
-use data::TypeIdentifiable;
 use data::*;
 use repo_actor::*;
 
@@ -17,14 +15,15 @@ use repo_actor::*;
 struct DataResponse {
     revision: DateTime<Utc>,
     deletions: Vec<Resource>,
-    changes: Vec<DataChange>,
+    changes: Changes,
 }
 
 #[derive(Serialize)]
 #[serde(rename_all = "camelCase")]
-struct DataChange {
-    resource: Resource,
-    data: Value,
+struct Changes {
+    notebooks: Vec<Notebook>,
+    notes: Vec<Note>,
+    content_blocks: Vec<ContentBlock>
 }
 
 #[derive(Serialize)]
@@ -73,7 +72,7 @@ fn get_data(
         .and_then(move |res| match res {
             (Ok(notebooks), Ok(notes), Ok(content_blocks), Ok(deleted_records)) => {
                 let data_response =
-                    build_response(&notebooks, &notes, &content_blocks, &deleted_records);
+                    build_response(notebooks, notes, content_blocks, &deleted_records);
                 Ok(HttpResponse::Ok().json(data_response))
             }
             _ => Ok(HttpResponse::InternalServerError().into()),
@@ -82,48 +81,11 @@ fn get_data(
 }
 
 fn build_response(
-    notebooks: &[Notebook],
-    notes: &[Note],
-    content_blocks: &[ContentBlock],
+    notebooks: Vec<Notebook>,
+    notes: Vec<Note>,
+    content_blocks: Vec<ContentBlock>,
     deleted_records: &[Deletion],
 ) -> DataResponse {
-    let notebook_changes: Vec<DataChange> = notebooks
-        .iter()
-        .map(|n| DataChange {
-            data: json!(n),
-            resource: Resource {
-                id: n.id,
-                type_: n.type_name().into(),
-            },
-        })
-        .collect();
-
-    let mut note_changes: Vec<DataChange> = notes
-        .iter()
-        .map(|n| DataChange {
-            data: json!(n),
-            resource: Resource {
-                id: n.id,
-                type_: n.type_name().into(),
-            },
-        })
-        .collect();
-
-    let mut content_changes: Vec<DataChange> = content_blocks
-        .iter()
-        .map(|c| DataChange {
-            data: json!(c),
-            resource: Resource {
-                id: c.id,
-                type_: c.type_name().into(),
-            },
-        })
-        .collect();
-
-    let mut changes = notebook_changes;
-    changes.append(&mut note_changes);
-    changes.append(&mut content_changes);
-
     let deletions: Vec<Resource> = deleted_records
         .iter()
         .map(|d| Resource {
@@ -132,20 +94,27 @@ fn build_response(
         })
         .collect();
 
-    let iter1 = notebooks.iter().map(|n| n.system_updated_at);
-    let iter2 = notes.iter().map(|n| n.system_updated_at);
-    let iter3 = content_blocks.iter().map(|c| c.system_updated_at);
-
-    // FIXME include deletions
-    let revision = iter1
-        .chain(iter2)
-        .chain(iter3)
-        .max()
-        .unwrap_or_else(Utc::now);
+    let revision = revision(&notebooks, &notes, &content_blocks);
 
     DataResponse {
         revision,
         deletions,
-        changes,
+        changes: Changes {
+            notebooks,
+            notes,
+            content_blocks
+        }
     }
+}
+
+fn revision(notebooks: &[Notebook], notes: &[Note], content_blocks: &[ContentBlock]) -> DateTime<Utc> {
+    let iter1 = notebooks.iter().map(|n| n.system_updated_at);
+    let iter2 = notes.iter().map(|n| n.system_updated_at);
+    let iter3 = content_blocks.iter().map(|c| c.system_updated_at);
+
+    iter1
+        .chain(iter2)
+        .chain(iter3)
+        .max()
+        .unwrap_or_else(Utc::now)
 }
