@@ -15,6 +15,9 @@ CHANGED_REASON_FILES=$(git diff --cached --name-only --diff-filter=ACM "*.re" | 
 }
 
 [ ! -z "$CHANGED_REASON_FILES" ] && {
+  echo "Compiling..."
+  (cd notex-web && bsb -clean -make-world) || exit 1
+
   echo "Running refmt..."
   echo "$CHANGED_REASON_FILES" | xargs -L1 refmt --in-place
 
