@@ -116,7 +116,8 @@ module Decode = {
 
 let fetchUrl = (revision: option(Js.Date.t)) =>
   switch (revision) {
-  | Some(revision) => "/api/data?since_revision=" ++ Js.Date.toJSON(revision)
+  | Some(revision) =>
+    "/api/data?since_revision=" ++ Js.Date.toISOString(revision)
   | None => "/api/data"
   };
 
