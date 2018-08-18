@@ -12,3 +12,5 @@ if (Utils.hot) {
 };
 
 register_service_worker();
+
+DbSync.run();
