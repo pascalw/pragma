@@ -222,7 +222,7 @@ let saveStateAndNotify = newState => {
   };
 
   state := newState;
-  listeners^ |. Belt.List.forEach(l => l());
+  Belt.List.forEach(listeners^, l => l());
 };
 
 let clear = () => saveStateAndNotify(None);
@@ -230,60 +230,65 @@ let clear = () => saveStateAndNotify(None);
 let subscribe = listener => listeners := [listener, ...listeners^];
 
 let getNotes_ = (state, notebookId) =>
-  state.notes |. Belt.List.keep(note => note.notebookId == notebookId);
+  Belt.List.keep(state.notes, note => note.notebookId == notebookId);
 
 let getNotes = notebookId =>
-  getState() |. Future.map(state => getNotes_(state, notebookId));
+  Future.map(getState(), state => getNotes_(state, notebookId));
 
 let getNotebooks = () =>
-  getState()
-  |. Future.map(state =>
-       state.notebooks
-       |> List.map(n => (n, getNotes_(state, n.id) |. List.length))
-     );
+  Future.map(getState(), state =>
+    state.notebooks
+    |> List.map(n => (n, getNotes_(state, n.id)->List.length))
+  );
 
 let getContentBlocks = noteId =>
-  getState()
-  |. Future.map(state =>
-       state.contentBlocks |. Belt.List.keep(cb => cb.noteId == noteId)
-     );
+  Future.map(getState(), state =>
+    state.contentBlocks->(Belt.List.keep(cb => cb.noteId == noteId))
+  );
 
 let addNotebooks = notebooks =>
-  getState()
-  |. Future.map(state => {
-       let newState = {
-         ...state,
-         notebooks: state.notebooks |. Belt.List.concat(notebooks),
-       };
-       saveStateAndNotify(Some(newState));
-     });
+  Future.map(
+    getState(),
+    state => {
+      let newState = {
+        ...state,
+        notebooks: state.notebooks->(Belt.List.concat(notebooks)),
+      };
+      saveStateAndNotify(Some(newState));
+    },
+  );
 
 let addNotes = notes =>
-  getState()
-  |. Future.map(state => {
-       let newState = {
-         ...state,
-         notes: state.notes |. Belt.List.concat(notes),
-       };
-       saveStateAndNotify(Some(newState));
-     });
+  Future.map(
+    getState(),
+    state => {
+      let newState = {
+        ...state,
+        notes: state.notes->(Belt.List.concat(notes)),
+      };
+      saveStateAndNotify(Some(newState));
+    },
+  );
 
 let addContentBlocks = contentBlocks =>
-  getState()
-  |. Future.map(state => {
-       let newState = {
-         ...state,
-         contentBlocks:
-           state.contentBlocks |. Belt.List.concat(contentBlocks),
-       };
-       saveStateAndNotify(Some(newState));
-     });
+  Future.map(
+    getState(),
+    state => {
+      let newState = {
+        ...state,
+        contentBlocks: state.contentBlocks->(Belt.List.concat(contentBlocks)),
+      };
+      saveStateAndNotify(Some(newState));
+    },
+  );
 
 let insertRevision = (revision: Js.Date.t) =>
-  getState()
-  |. Future.map(state => {
-       let newState = {...state, revision: Some(revision)};
-       saveStateAndNotify(Some(newState));
-     });
+  Future.map(
+    getState(),
+    state => {
+      let newState = {...state, revision: Some(revision)};
+      saveStateAndNotify(Some(newState));
+    },
+  );
 
-let getRevision = () => getState() |. Future.map(state => state.revision);
+let getRevision = () => Future.map(getState(), state => state.revision);

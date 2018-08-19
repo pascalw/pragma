@@ -1,7 +1,7 @@
 open Belt;
 
-[@bs.module] external styles : Js.Dict.t(string) = "./index.scss";
-let style = name => Js.Dict.get(styles, name) |. Option.getExn;
+[@bs.module] external styles: Js.Dict.t(string) = "./index.scss";
+let style = name => Js.Dict.get(styles, name)->Option.getExn;
 
 open Data;
 
@@ -27,7 +27,7 @@ let mapDbNotebook = ((notebook: Db.notebook, noteCount)) => {
   noteCount,
 };
 
-let mapDbNote = (dbNote: Db.note) : note => {
+let mapDbNote = (dbNote: Db.note): note => {
   id: dbNote.id,
   title: dbNote.title,
   tags: dbNote.tags,
@@ -35,7 +35,7 @@ let mapDbNote = (dbNote: Db.note) : note => {
   updatedAt: dbNote.updatedAt,
 };
 
-let mapDbContentBlock = (dbContentBlock: Db.contentBlock) : contentBlock => {
+let mapDbContentBlock = (dbContentBlock: Db.contentBlock): contentBlock => {
   id: dbContentBlock.id,
   content:
     switch (dbContentBlock.content) {
@@ -52,26 +52,26 @@ module MainUI = {
         send,
       ) => {
     let listItems =
-      notebooks
-      |. List.map(notebook =>
-           (
-             {
-               id: notebook.id |> string_of_int,
-               title: notebook.name,
-               count: Some(notebook.noteCount),
-               model: notebook,
-             }:
-               ListView.listItem(notebook)
-           )
-         );
+      List.map(notebooks, notebook =>
+        (
+          {
+            id: notebook.id |> string_of_int,
+            title: notebook.name,
+            count: Some(notebook.noteCount),
+            model: notebook,
+          }:
+            ListView.listItem(notebook)
+        )
+      );
 
     <ListView
       items=listItems
-      selectedId=(
-        selectedNotebook
-        |. Option.map(selected => selected.notebook.id |. string_of_int)
-      )
-      onItemSelected=(item => send(LoadNotebook(item.model)))
+      selectedId={
+        Option.map(selectedNotebook, selected =>
+          selected.notebook.id->string_of_int
+        )
+      }
+      onItemSelected={item => send(LoadNotebook(item.model))}
     />;
   };
 
@@ -85,37 +85,37 @@ module MainUI = {
       switch (selectedNotebook) {
       | None => []
       | Some(selected) =>
-        selected.notes
-        |. List.map(note =>
-             (
-               {
-                 id: note.id |> string_of_int,
-                 title: note.title,
-                 count: None,
-                 model: note,
-               }:
-                 ListView.listItem(note)
-             )
-           )
+        List.map(selected.notes, note =>
+          (
+            {
+              id: note.id |> string_of_int,
+              title: note.title,
+              count: None,
+              model: note,
+            }:
+              ListView.listItem(note)
+          )
+        )
       };
 
     let formatDate = date => DateFns.format("D MMMM YYYY", date);
     let renderNoteListItemContent = (item: ListView.listItem(note)) =>
       <p>
-        (ReasonReact.string(item.model.title))
+        {ReasonReact.string(item.model.title)}
         <br />
         <small>
-          (ReasonReact.string(item.model.updatedAt |> formatDate))
+          {ReasonReact.string(item.model.updatedAt |> formatDate)}
         </small>
       </p>;
 
     <ListView
       items=listItems
-      selectedId=(
-        editingNote
-        |. Option.map(selectedNote => selectedNote.note.id |. string_of_int)
-      )
-      onItemSelected=(item => send(LoadNote(item.model)))
+      selectedId={
+        Option.map(editingNote, selectedNote =>
+          selectedNote.note.id->string_of_int
+        )
+      }
+      onItemSelected={item => send(LoadNote(item.model))}
       renderItemContent=renderNoteListItemContent
     />;
   };
@@ -124,13 +124,13 @@ module MainUI = {
   let make = (~notebooks, ~selectedNotebook, ~editingNote, ~send, _children) => {
     ...component,
     render: _self =>
-      <main className=(style("main"))>
-        <div className=(style("columns"))>
-          (renderNotebooks(notebooks, selectedNotebook, send))
-          (renderNotes(selectedNotebook, editingNote, send))
+      <main className={style("main")}>
+        <div className={style("columns")}>
+          {renderNotebooks(notebooks, selectedNotebook, send)}
+          {renderNotes(selectedNotebook, editingNote, send)}
           <NoteEditor
             note=editingNote
-            onChange=((_, _, _) => Js.log("TODO"))
+            onChange={(_, _, _) => Js.log("TODO")}
           />
         </div>
       </main>,
@@ -144,10 +144,12 @@ let reducer = (action: action, state: state) =>
       (
         self =>
           Db.getNotebooks()
-          |. Future.get(notebooks => {
-               let notebooks = notebooks |. List.map(mapDbNotebook);
-               self.send(LoadNotebooks(notebooks));
-             })
+          ->(
+              Future.get(notebooks => {
+                let notebooks = notebooks->(List.map(mapDbNotebook));
+                self.send(LoadNotebooks(notebooks));
+              })
+            )
       ),
     )
 
@@ -158,7 +160,7 @@ let reducer = (action: action, state: state) =>
       newState,
       (
         self => {
-          let firstNotebook = notebooks |. List.head;
+          let firstNotebook = notebooks->List.head;
 
           switch (firstNotebook) {
           | None => ()
@@ -172,16 +174,18 @@ let reducer = (action: action, state: state) =>
       (
         self =>
           Db.getNotes(notebook.id)
-          |. Future.get(notes => {
-               let notes = notes |. List.map(mapDbNote);
+          ->(
+              Future.get(notes => {
+                let notes = List.map(notes, mapDbNote);
 
-               self.send(SelectNotebook({notebook, notes}));
+                self.send(SelectNotebook({notebook, notes}));
 
-               switch (notes |. List.head) {
-               | None => ()
-               | Some(note) => self.send(LoadNote(note))
-               };
-             })
+                switch (notes->List.head) {
+                | None => ()
+                | Some(note) => self.send(LoadNote(note))
+                };
+              })
+            )
       ),
     )
   | LoadNote(note) =>
@@ -189,21 +193,22 @@ let reducer = (action: action, state: state) =>
       (
         self =>
           Db.getContentBlocks(note.id)
-          |. Future.get(dbContentBlocks => {
-               let contentBlocks =
-                 List.map(dbContentBlocks, mapDbContentBlock);
+          ->(
+              Future.get(dbContentBlocks => {
+                let contentBlocks =
+                  List.map(dbContentBlocks, mapDbContentBlock);
 
-               {note, content: contentBlocks} |. SelectNote |. self.send;
-             })
+                {note, content: contentBlocks}->SelectNote->(self.send);
+              })
+            )
       ),
     )
 
   | SelectNotebook(selectedNotebook) =>
-    {...state, selectedNotebook: Some(selectedNotebook)}
-    |. ReasonReact.Update
+    {...state, selectedNotebook: Some(selectedNotebook)}->ReasonReact.Update
 
   | SelectNote(selectedNote) =>
-    {...state, selectedNote: Some(selectedNote)} |. ReasonReact.Update
+    {...state, selectedNote: Some(selectedNote)}->ReasonReact.Update
 
   | UpdateNoteText(_note, _content, _text) => ReasonReact.NoUpdate
   };
@@ -224,13 +229,13 @@ let make = _children => {
   },
   render: self =>
     switch (self.state.notebooks) {
-    | None => <div> (ReasonReact.string("Loading...")) </div>
+    | None => <div> {ReasonReact.string("Loading...")} </div>
     | Some(_notebooks) =>
       <MainUI
-        notebooks=(self.state.notebooks |. Option.getExn)
-        selectedNotebook=self.state.selectedNotebook
-        editingNote=self.state.selectedNote
-        send=self.send
+        notebooks=self.state.notebooks->Option.getExn
+        selectedNotebook={self.state.selectedNotebook}
+        editingNote={self.state.selectedNote}
+        send={self.send}
       />
     },
 };

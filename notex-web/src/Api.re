@@ -82,7 +82,7 @@ module Decode = {
     switch (type_) {
     | "text" => json |> Json.Decode.field("data", textContent)
     | "code" => json |> Json.Decode.field("data", codeContent)
-    | other => UnknownContentType(other) |. raise
+    | other => UnknownContentType(other)->raise
     };
   };
 
@@ -122,8 +122,8 @@ let fetchUrl = (revision: option(Js.Date.t)) =>
   };
 
 let fetchChanges = (revision: option(Js.Date.t)) =>
-  fetchUrl(revision)
-  |> Fetch.fetch
-  |> Js.Promise.then_(Fetch.Response.json)
-  |. FutureJs.fromPromise(Js.String.make)  /* FIXME */
-  |. Future.mapOk(json => json |. Decode.apiResponse);
+  (
+    fetchUrl(revision) |> Fetch.fetch |> Js.Promise.then_(Fetch.Response.json)
+  )
+  ->(FutureJs.fromPromise(Js.String.make)) /* FIXME */
+  ->(Future.mapOk(Decode.apiResponse));

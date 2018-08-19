@@ -14,7 +14,7 @@ let updateTrixEditorValue = (editor, text) => {
   let domNode = ReactDOMRe.domElementToObj(editor);
 
   if (domNode##value != text) {
-    domNode##value#=text;
+    domNode##value #= text;
   };
 };
 
@@ -77,12 +77,12 @@ let make = (~text: string, ~onChange, _children) => {
     ),
   render: self =>
     <div>
-      (
+      {
         ReasonReact.cloneElement(
           ReactDOMRe.createElement("trix-editor", [||]),
           ~props={"class": "trix-content", "ref": self.handle(setEditorRef)},
           [||],
         )
-      )
+      }
     </div>,
 };
