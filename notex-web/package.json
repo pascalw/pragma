@@ -6,6 +6,7 @@
     "@glennsl/bs-json": "^3.0.0",
     "bs-date-fns": "rodan-lewarx/bs-date-fns#1fc2fe178ae40232e82b260047f0e74d3b151ef0",
     "bs-fetch": "^0.3.0",
+    "bs-platform": "^4.0.5",
     "bs-webapi": "^0.10.0",
     "bulma": "^0.7.1",
     "promise": "8.0.1",
@@ -20,7 +21,7 @@
     "compile": "bsb -make-world",
     "compile:watch": "bsb -make-world -w",
     "test": "node scripts/test.js --env=jsdom",
-    "prepare": "npm link bs-platform"
+    "format": "bsrefmt"
   },
   "devDependencies": {
     "@glennsl/bs-jest": "^0.4.2",
