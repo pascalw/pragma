@@ -19,7 +19,7 @@ CHANGED_REASON_FILES=$(git diff --cached --name-only --diff-filter=ACM "*.re" | 
   (cd notex-web && yarn compile) || exit 1
 
   echo "Running refmt..."
-  echo "$CHANGED_REASON_FILES" | xargs -L1 yarn format --in-place
+  yarn format --in-place "$CHANGED_REASON_FILES"
 
   echo "$CHANGED_REASON_FILES" | xargs git add
 } || exit 0
