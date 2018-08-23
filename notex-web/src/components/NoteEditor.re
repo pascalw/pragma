@@ -8,11 +8,11 @@ let component = ReasonReact.statelessComponent("NoteEditor");
 
 let renderContentBlocks = (selectedNote: selectedNote, onChange) =>
   switch (selectedNote.content |> List.head) {
-  | Some({id: _, content: TextContent(text) as content}) =>
+  | Some({id: _, content: TextContent(text)} as contentBlock) =>
     <TrixEditor
       key={selectedNote.note.id |> string_of_int}
       text
-      onChange=(value => onChange(selectedNote.note, content, value))
+      onChange=(value => onChange(contentBlock, value))
     />
   | _ => <p> {ReasonReact.string("FIXME: unsupported content type.")} </p>
   };

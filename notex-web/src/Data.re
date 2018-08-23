@@ -7,6 +7,7 @@ type content =
 
 type contentBlock = {
   id: int,
+  noteId: int,
   content,
 };
 

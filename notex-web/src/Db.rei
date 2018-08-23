@@ -27,11 +27,13 @@ type listener = unit => unit;
 let subscribe: listener => unit;
 let addNotebooks: list(notebook) => Future.t(unit);
 let addNotes: list(note) => Future.t(unit);
-let addContentBlocks: list(contentBlock) => Future.t(unit);
 
 let getNotes: int => Future.t(list(note));
 let getNotebooks: unit => Future.t(list((notebook, int)));
+
 let getContentBlocks: int => Future.t(list(contentBlock));
+let addContentBlocks: list(contentBlock) => Future.t(unit);
+let updateContentBlock: contentBlock => Future.t(unit);
 
 let clear: unit => unit;
 

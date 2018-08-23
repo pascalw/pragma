@@ -282,6 +282,25 @@ let addContentBlocks = contentBlocks =>
     },
   );
 
+let updateContentBlock = (contentBlock: contentBlock) =>
+  Future.map(
+    getState(),
+    state => {
+      let updatedContentBlocks: list(contentBlock) =
+        Belt.List.map(state.contentBlocks, block =>
+          if (block.id == contentBlock.id) {
+            contentBlock;
+          } else {
+            block;
+          }
+        );
+
+      let newState = {...state, contentBlocks: updatedContentBlocks};
+
+      saveStateAndNotify(Some(newState));
+    },
+  );
+
 let insertRevision = (revision: Js.Date.t) =>
   Future.map(
     getState(),

@@ -12,13 +12,13 @@ type state = {
 };
 
 type action =
-  | LoadInitialState
+  | ReloadDbState
   | LoadNotebooks(list(notebook))
   | LoadNotebook(notebook)
   | LoadNote(note)
   | SelectNotebook(selectedNotebook)
   | SelectNote(selectedNote)
-  | UpdateNoteText(note, content, string);
+  | UpdateNoteText(contentBlock, string);
 
 let mapDbNotebook = ((notebook: Db.notebook, noteCount)) => {
   id: notebook.id,
@@ -37,6 +37,7 @@ let mapDbNote = (dbNote: Db.note): note => {
 
 let mapDbContentBlock = (dbContentBlock: Db.contentBlock): contentBlock => {
   id: dbContentBlock.id,
+  noteId: dbContentBlock.noteId,
   content:
     switch (dbContentBlock.content) {
     | Db.TextContent(text) => TextContent(text)
@@ -130,7 +131,10 @@ module MainUI = {
           {renderNotes(selectedNotebook, editingNote, send)}
           <NoteEditor
             note=editingNote
-            onChange={(_, _, _) => Js.log("TODO")}
+            onChange={
+              (contentBlock, value) =>
+                send(UpdateNoteText(contentBlock, value))
+            }
           />
         </div>
       </main>,
@@ -139,7 +143,7 @@ module MainUI = {
 
 let reducer = (action: action, state: state) =>
   switch (action) {
-  | LoadInitialState =>
+  | ReloadDbState =>
     ReasonReact.SideEffects(
       (
         self =>
@@ -152,7 +156,6 @@ let reducer = (action: action, state: state) =>
             )
       ),
     )
-
   | LoadNotebooks(notebooks) =>
     let newState = {...state, notebooks: Some(notebooks)};
 
@@ -160,9 +163,16 @@ let reducer = (action: action, state: state) =>
       newState,
       (
         self => {
-          let firstNotebook = notebooks->List.head;
+          let selectedNotebook =
+            if (Option.isSome(state.selectedNotebook)) {
+              Option.map(state.selectedNotebook, selectedNotebook =>
+                selectedNotebook.notebook
+              );
+            } else {
+              notebooks->List.head;
+            };
 
-          switch (firstNotebook) {
+          switch (selectedNotebook) {
           | None => ()
           | Some(notebook) => self.send(LoadNotebook(notebook))
           };
@@ -177,10 +187,25 @@ let reducer = (action: action, state: state) =>
           ->(
               Future.get(notes => {
                 let notes = List.map(notes, mapDbNote);
-
                 self.send(SelectNotebook({notebook, notes}));
 
-                switch (notes->List.head) {
+                let isDifferentNotebook =
+                  switch (state.selectedNotebook) {
+                  | Some(selectedNotebook) =>
+                    selectedNotebook.notebook.id != notebook.id
+                  | None => true
+                  };
+
+                let selectedNote =
+                  if (isDifferentNotebook || Option.isNone(state.selectedNote)) {
+                    List.head(notes);
+                  } else {
+                    Option.map(state.selectedNote, selectedNote =>
+                      selectedNote.note
+                    );
+                  };
+
+                switch (selectedNote) {
                 | None => ()
                 | Some(note) => self.send(LoadNote(note))
                 };
@@ -210,7 +235,28 @@ let reducer = (action: action, state: state) =>
   | SelectNote(selectedNote) =>
     {...state, selectedNote: Some(selectedNote)}->ReasonReact.Update
 
-  | UpdateNoteText(_note, _content, _text) => ReasonReact.NoUpdate
+  | UpdateNoteText(contentBlock, text) =>
+    let updatedContentBlock =
+      switch (contentBlock.content) {
+      | TextContent(_) => {...contentBlock, content: TextContent(text)}
+      | _ => Js.Exn.raiseError("TODO")
+      };
+
+    ReasonReact.SideEffects(
+      (
+        _self =>
+          Db.updateContentBlock({
+            id: updatedContentBlock.id,
+            noteId: updatedContentBlock.noteId,
+            content:
+              switch (updatedContentBlock.content) {
+              | TextContent(text) => Db.TextContent(text)
+              | _ => Js.Exn.raiseError("TODO")
+              },
+          })
+          |> ignore
+      ),
+    );
   };
 
 let component = ReasonReact.reducerComponent("App");
@@ -223,9 +269,9 @@ let make = _children => {
   },
   reducer,
   didMount: self => {
-    Db.subscribe(() => self.send(LoadInitialState));
+    Db.subscribe(() => self.send(ReloadDbState));
 
-    self.send(LoadInitialState);
+    self.send(ReloadDbState);
   },
   render: self =>
     switch (self.state.notebooks) {
