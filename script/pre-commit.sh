@@ -4,7 +4,8 @@ CHANGED_REASON_FILES=$(git diff --cached --name-only --diff-filter=ACM "*.re" | 
 
 [ ! -z "$CHANGED_RUST_FILES" ] && {
   echo "Running rustfmt..."
-  rustfmt --write-mode=overwrite "$CHANGED_RUST_FILES"
+
+  echo "$CHANGED_RUST_FILES" | xargs rustfmt --write-mode=overwrite
 
   echo "Running cargo check..."
   (cd notex-server && cargo check >/dev/null 2>&1) || exit 1
