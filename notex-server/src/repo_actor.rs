@@ -31,6 +31,49 @@ impl Handler<GetNoteBooksMessage> for DbExecutor {
 
 // End GetNoteBooks
 
+// Start CreateNotebook
+
+pub struct CreateNotebookMessage {
+    pub new_notebook: NewNotebook,
+}
+
+impl Message for CreateNotebookMessage {
+    type Result = Result<Notebook, String>;
+}
+
+impl Handler<CreateNotebookMessage> for DbExecutor {
+    type Result = Result<Notebook, String>;
+
+    fn handle(&mut self, msg: CreateNotebookMessage, _: &mut Self::Context) -> Self::Result {
+        let connection = &self.0;
+        repo::create_notebook(msg.new_notebook, connection)
+    }
+}
+
+// End CreateNotebook
+
+// Start UpdateNotebook
+
+pub struct UpdateNotebookMessage {
+    pub id: i32,
+    pub update: NotebookUpdate,
+}
+
+impl Message for UpdateNotebookMessage {
+    type Result = Result<(), String>;
+}
+
+impl Handler<UpdateNotebookMessage> for DbExecutor {
+    type Result = Result<(), String>;
+
+    fn handle(&mut self, msg: UpdateNotebookMessage, _: &mut Self::Context) -> Self::Result {
+        let connection = &self.0;
+        repo::update_notebook(msg.id, msg.update, connection)
+    }
+}
+
+// End UpdateNotebook
+
 // Start GetNotes
 
 pub struct GetNotesMessage {
@@ -51,6 +94,92 @@ impl Handler<GetNotesMessage> for DbExecutor {
 }
 
 // End GetNotes
+
+// Start CreateNote
+
+pub struct CreateNoteMessage {
+    pub new_note: NewNote,
+}
+
+impl Message for CreateNoteMessage {
+    type Result = Result<Note, String>;
+}
+
+impl Handler<CreateNoteMessage> for DbExecutor {
+    type Result = Result<Note, String>;
+
+    fn handle(&mut self, msg: CreateNoteMessage, _: &mut Self::Context) -> Self::Result {
+        let connection = &self.0;
+        repo::create_note(msg.new_note, connection)
+    }
+}
+
+// End CreateNote
+
+// Start UpdateNote
+
+pub struct UpdateNoteMessage {
+    pub id: i32,
+    pub update: NoteUpdate,
+}
+
+impl Message for UpdateNoteMessage {
+    type Result = Result<(), String>;
+}
+
+impl Handler<UpdateNoteMessage> for DbExecutor {
+    type Result = Result<(), String>;
+
+    fn handle(&mut self, msg: UpdateNoteMessage, _: &mut Self::Context) -> Self::Result {
+        let connection = &self.0;
+        repo::update_note(msg.id, msg.update, connection)
+    }
+}
+
+// End UpdateNote
+
+// Start CreateContentBlocks
+
+pub struct CreateContentBlockMessage {
+    pub new_content_block: NewContentBlock,
+}
+
+impl Message for CreateContentBlockMessage {
+    type Result = Result<ContentBlock, String>;
+}
+
+impl Handler<CreateContentBlockMessage> for DbExecutor {
+    type Result = Result<ContentBlock, String>;
+
+    fn handle(&mut self, msg: CreateContentBlockMessage, _: &mut Self::Context) -> Self::Result {
+        let connection = &self.0;
+        repo::create_content_block(msg.new_content_block, connection)
+    }
+}
+
+// End CreateContentBlocks
+
+// Start UpdateContentBlock
+
+pub struct UpdateContentBlockMessage {
+    pub id: i32,
+    pub update: ContentBlockUpdate,
+}
+
+impl Message for UpdateContentBlockMessage {
+    type Result = Result<(), String>;
+}
+
+impl Handler<UpdateContentBlockMessage> for DbExecutor {
+    type Result = Result<(), String>;
+
+    fn handle(&mut self, msg: UpdateContentBlockMessage, _: &mut Self::Context) -> Self::Result {
+        let connection = &self.0;
+        repo::update_content_block(msg.id, msg.update, connection)
+    }
+}
+
+// End UpdateContentBlock
 
 // Start GetContentBlocks
 

@@ -1,10 +1,10 @@
 extern crate futures;
 
 use actix_web::http::Method;
-use actix_web::{App, AsyncResponder, Error, HttpRequest, HttpResponse, Query};
+use actix_web::{App, AsyncResponder, Error, HttpRequest, HttpResponse, Json, Path, Query};
 use chrono::prelude::*;
 
-use self::futures::Future;
+use self::futures::future::Future;
 use actix_state::State;
 use build_info;
 use data::*;
@@ -23,7 +23,7 @@ struct DataResponse {
 struct Changes {
     notebooks: Vec<Notebook>,
     notes: Vec<Note>,
-    content_blocks: Vec<ContentBlock>
+    content_blocks: Vec<ContentBlock>,
 }
 
 #[derive(Serialize)]
@@ -43,9 +43,114 @@ struct GetDataQuery {
 pub fn mount(app: App<State>) -> App<State> {
     #[cfg_attr(rustfmt, rustfmt_skip)]
     app.route("/api/data", Method::GET, get_data)
+       .route("/api/notes", Method::POST, create_note)
+       .route("/api/notes/{id}", Method::PUT, update_note)
+       .route("/api/notebooks", Method::POST, create_notebook)
+       .route("/api/notebooks/{id}", Method::PUT, update_notebook)
+       .route("/api/content_blocks", Method::POST, create_content_block)
+       .route("/api/content_blocks/{id}", Method::PUT, update_content_block)
        .route("/version", Method::GET, |_: HttpRequest<State>|
            build_info::build_version()
        )
+}
+
+fn create_notebook(
+    (req, new_notebook): (HttpRequest<State>, Json<NewNotebook>),
+) -> Box<Future<Item = HttpResponse, Error = Error>> {
+    let db = &req.state().db;
+
+    db.send(CreateNotebookMessage {
+        new_notebook: new_notebook.into_inner(),
+    }).from_err()
+        .and_then(move |res| match res {
+            Ok(notebook) => Ok(HttpResponse::Ok().json(notebook)),
+            Err(reason) => Ok(HttpResponse::InternalServerError().body(reason)),
+        })
+        .responder()
+}
+
+fn create_note(
+    (req, new_note): (HttpRequest<State>, Json<NewNote>),
+) -> Box<Future<Item = HttpResponse, Error = Error>> {
+    let db = &req.state().db;
+
+    db.send(CreateNoteMessage {
+        new_note: new_note.into_inner(),
+    }).from_err()
+        .and_then(move |res| match res {
+            Ok(note) => Ok(HttpResponse::Ok().json(note)),
+            Err(reason) => Ok(HttpResponse::InternalServerError().body(reason)),
+        })
+        .responder()
+}
+
+fn create_content_block(
+    (req, new_content_block): (HttpRequest<State>, Json<NewContentBlock>),
+) -> Box<Future<Item = HttpResponse, Error = Error>> {
+    let db = &req.state().db;
+
+    db.send(CreateContentBlockMessage {
+        new_content_block: new_content_block.into_inner(),
+    }).from_err()
+        .and_then(move |res| match res {
+            Ok(content_block) => Ok(HttpResponse::Ok().json(content_block)),
+            Err(reason) => Ok(HttpResponse::InternalServerError().body(reason)),
+        })
+        .responder()
+}
+
+fn update_content_block(
+    (req, params, content_block_update): (HttpRequest<State>, Path<i32>, Json<ContentBlockUpdate>),
+) -> Box<Future<Item = HttpResponse, Error = Error>> {
+    let id = params.into_inner();
+
+    let db = &req.state().db;
+
+    db.send(UpdateContentBlockMessage {
+        id,
+        update: content_block_update.into_inner(),
+    }).from_err()
+        .and_then(move |res| match res {
+            Ok(_) => Ok(HttpResponse::Ok().finish()),
+            Err(reason) => Ok(HttpResponse::InternalServerError().body(reason)),
+        })
+        .responder()
+}
+
+fn update_note(
+    (req, params, note_update): (HttpRequest<State>, Path<i32>, Json<NoteUpdate>),
+) -> Box<Future<Item = HttpResponse, Error = Error>> {
+    let id = params.into_inner();
+
+    let db = &req.state().db;
+
+    db.send(UpdateNoteMessage {
+        id,
+        update: note_update.into_inner(),
+    }).from_err()
+        .and_then(move |res| match res {
+            Ok(_) => Ok(HttpResponse::Ok().finish()),
+            Err(reason) => Ok(HttpResponse::InternalServerError().body(reason)),
+        })
+        .responder()
+}
+
+fn update_notebook(
+    (req, params, notebook_update): (HttpRequest<State>, Path<i32>, Json<NotebookUpdate>),
+) -> Box<Future<Item = HttpResponse, Error = Error>> {
+    let id = params.into_inner();
+
+    let db = &req.state().db;
+
+    db.send(UpdateNotebookMessage {
+        id,
+        update: notebook_update.into_inner(),
+    }).from_err()
+        .and_then(move |res| match res {
+            Ok(_) => Ok(HttpResponse::Ok().finish()),
+            Err(reason) => Ok(HttpResponse::InternalServerError().body(reason)),
+        })
+        .responder()
 }
 
 fn get_data(
@@ -102,12 +207,16 @@ fn build_response(
         changes: Changes {
             notebooks,
             notes,
-            content_blocks
-        }
+            content_blocks,
+        },
     }
 }
 
-fn revision(notebooks: &[Notebook], notes: &[Note], content_blocks: &[ContentBlock]) -> DateTime<Utc> {
+fn revision(
+    notebooks: &[Notebook],
+    notes: &[Note],
+    content_blocks: &[ContentBlock],
+) -> DateTime<Utc> {
     let iter1 = notebooks.iter().map(|n| n.system_updated_at);
     let iter2 = notes.iter().map(|n| n.system_updated_at);
     let iter3 = content_blocks.iter().map(|c| c.system_updated_at);

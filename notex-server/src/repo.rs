@@ -1,8 +1,13 @@
 use chrono::prelude::*;
 use data;
+use diesel;
 use diesel::prelude::*;
 use serde_json;
 use std;
+
+use schema::content_blocks;
+use schema::notebooks;
+use schema::notes;
 
 embed_migrations!("./migrations");
 
@@ -14,9 +19,28 @@ struct Notebook {
     system_updated_at: NaiveDateTime,
 }
 
-#[derive(Queryable)]
+#[derive(Insertable)]
+#[table_name = "notebooks"]
+struct NewNotebook {
+    name: String,
+    created_at: NaiveDateTime,
+    system_updated_at: NaiveDateTime,
+}
+
+#[derive(Queryable, AsChangeset)]
 struct Note {
     id: i32,
+    title: String,
+    tags: Option<String>,
+    notebook_id: i32,
+    created_at: NaiveDateTime,
+    updated_at: NaiveDateTime,
+    system_updated_at: NaiveDateTime,
+}
+
+#[derive(Insertable)]
+#[table_name = "notes"]
+struct NewNote {
     title: String,
     tags: Option<String>,
     notebook_id: i32,
@@ -35,6 +59,17 @@ struct ContentBlock {
     created_at: NaiveDateTime,
     updated_at: NaiveDateTime,
     system_updated_at: NaiveDateTime,
+}
+
+#[derive(Insertable)]
+#[table_name = "content_blocks"]
+struct NewContentBlock {
+    type_: String,
+    content: String,
+    created_at: NaiveDateTime,
+    updated_at: NaiveDateTime,
+    system_updated_at: NaiveDateTime,
+    note_id: i32,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -123,7 +158,7 @@ fn map_notes(notes: &[Note]) -> Vec<data::Note> {
 fn map_note(note: &Note) -> data::Note {
     let tags: Vec<String> = match &note.tags {
         None => vec![],
-        Some(tags) => tags.split(',').map(String::from).collect(),
+        Some(tags) => tags_from_string(tags),
     };
 
     data::Note {
@@ -208,6 +243,180 @@ fn map_deletion(deletion: &Deletion) -> data::Deletion {
         resource_id: deletion.resource_id,
         system_updated_at: to_utc(deletion.system_updated_at),
     }
+}
+
+pub fn create_notebook(
+    notebook: data::NewNotebook,
+    conn: &SqliteConnection,
+) -> Result<data::Notebook, String> {
+    use schema::notebooks::dsl::*;
+
+    let now = Utc::now();
+
+    let new_notebook = NewNotebook {
+        name: notebook.name,
+        created_at: to_naive(notebook.created_at),
+        system_updated_at: to_naive(now),
+    };
+
+    let result = conn.transaction::<Notebook, _, _>(|| {
+        diesel::insert_into(notebooks)
+            .values(&new_notebook)
+            .execute(conn)?;
+
+        notebooks.order(id.desc()).first(conn)
+    });
+
+    match result {
+        Ok(notebook) => Ok(map_notebook(&notebook)),
+        Err(err) => Err(format!("{}", err)),
+    }
+}
+
+pub fn update_notebook(
+    notebook_id: i32,
+    update: data::NotebookUpdate,
+    connection: &SqliteConnection,
+) -> Result<(), String> {
+    use schema::notebooks::dsl::*;
+
+    let result = diesel::update(notebooks.filter(id.eq(notebook_id)))
+        .set((
+            name.eq(update.name),
+            system_updated_at.eq(to_naive(Utc::now())),
+        ))
+        .execute(connection);
+
+    match result {
+        Ok(_num_rows) => Ok(()),
+        Err(err) => Err(format!("{}", err)),
+    }
+}
+
+pub fn create_note(note: data::NewNote, conn: &SqliteConnection) -> Result<data::Note, String> {
+    use schema::notes::dsl::*;
+
+    let now = Utc::now();
+
+    let new_note = NewNote {
+        title: note.title,
+        tags: Some(tags_to_string(&note.tags)),
+        notebook_id: note.notebook_id,
+        created_at: to_naive(note.created_at),
+        updated_at: to_naive(note.created_at),
+        system_updated_at: to_naive(now),
+    };
+
+    let result = conn.transaction::<Note, _, _>(|| {
+        diesel::insert_into(notes).values(&new_note).execute(conn)?;
+
+        notes.order(id.desc()).first(conn)
+    });
+
+    match result {
+        Ok(note) => Ok(map_note(&note)),
+        Err(err) => Err(format!("{}", err)),
+    }
+}
+
+pub fn update_note(
+    note_id: i32,
+    update: data::NoteUpdate,
+    connection: &SqliteConnection,
+) -> Result<(), String> {
+    use schema::notes::dsl::*;
+
+    let result = diesel::update(notes.filter(id.eq(note_id)))
+        .set((
+            title.eq(update.title),
+            tags.eq(tags_to_string(&update.tags)),
+            updated_at.eq(to_naive(update.updated_at)),
+            system_updated_at.eq(to_naive(Utc::now())),
+        ))
+        .execute(connection);
+
+    match result {
+        Ok(_num_rows) => Ok(()),
+        Err(err) => Err(format!("{}", err)),
+    }
+}
+
+pub fn create_content_block(
+    content_block: data::NewContentBlock,
+    conn: &SqliteConnection,
+) -> Result<data::ContentBlock, String> {
+    use schema::content_blocks::dsl::*;
+
+    let now = Utc::now();
+
+    let (content_string, content_type) = content_to_string(content_block.content);
+
+    let new_content_block = NewContentBlock {
+        type_: content_type,
+        content: content_string,
+        created_at: to_naive(content_block.created_at),
+        updated_at: to_naive(content_block.created_at),
+        system_updated_at: to_naive(now),
+        note_id: content_block.note_id,
+    };
+
+    let result = conn.transaction::<ContentBlock, _, _>(|| {
+        diesel::insert_into(content_blocks)
+            .values(&new_content_block)
+            .execute(conn)?;
+
+        content_blocks.order(id.desc()).first(conn)
+    });
+
+    match result {
+        Ok(content_block) => Ok(map_content_block(&content_block)),
+        Err(err) => Err(format!("{}", err)),
+    }
+}
+
+pub fn update_content_block(
+    content_block_id: i32,
+    update: data::ContentBlockUpdate,
+    connection: &SqliteConnection,
+) -> Result<(), String> {
+    use schema::content_blocks::dsl::*;
+
+    let (content_string, content_type) = content_to_string(update.content);
+
+    let result = diesel::update(content_blocks.filter(id.eq(content_block_id)))
+        .set((
+            content.eq(content_string),
+            type_.eq(content_type.to_string()),
+            system_updated_at.eq(to_naive(Utc::now())),
+        ))
+        .execute(connection);
+
+    match result {
+        Ok(_num_rows) => Ok(()),
+        Err(err) => Err(format!("{}", err)),
+    }
+}
+
+fn content_to_string(content: data::Content) -> (String, String) {
+    let (content_, content_type) = match content {
+        data::Content::Text { text } => (Content::Text { text }, "text"),
+        data::Content::Code { language, code } => (Content::Code { language, code }, "code"),
+    };
+    let content_string = serde_json::to_string(&content_).unwrap(); // FIXME
+
+    (content_string, content_type.to_string())
+}
+
+fn tags_to_string(tags: &[data::Tag]) -> String {
+    tags.join(",")
+}
+
+fn tags_from_string(tags: &str) -> Vec<data::Tag> {
+    tags.split(',').map(String::from).collect()
+}
+
+fn to_naive(date_time: DateTime<Utc>) -> NaiveDateTime {
+    date_time.naive_utc()
 }
 
 // Convert to UTC DateTime. This is assuming that the
