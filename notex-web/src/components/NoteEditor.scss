@@ -7,4 +7,8 @@
     padding-bottom: 0.25em;
     border-bottom: 1px solid darken(#fbfbfb, 5%);
   }
+
+  :global(.content) ul {
+    margin: 0;
+  }
 }
