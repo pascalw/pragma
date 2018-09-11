@@ -33,6 +33,7 @@ let make =
       ~items: list(listItem('a)),
       ~selectedId: option(string),
       ~onItemSelected: listItem('a) => unit,
+      ~minWidth=?,
       ~renderItemContent=?,
       _children,
     ) => {
@@ -58,7 +59,14 @@ let make =
       </li>;
     };
 
-    <div className={style("listView")}>
+    let inlineStyle =
+      if (Option.isSome(minWidth)) {
+        ReactDOMRe.Style.make(~minWidth=minWidth->Option.getExn, ());
+      } else {
+        ReactDOMRe.Style.make();
+      };
+
+    <div className={style("listView")} style=inlineStyle>
       <ul>
         {List.map(items, renderItem) |> List.toArray |> ReasonReact.array}
       </ul>

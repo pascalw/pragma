@@ -110,6 +110,7 @@ module MainUI = {
       </p>;
 
     <ListView
+      minWidth="250px"
       items=listItems
       selectedId={
         Option.map(editingNote, selectedNote =>

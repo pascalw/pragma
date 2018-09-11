@@ -19,6 +19,12 @@
     padding: 0.25rem 0.75rem;
     border-bottom: 1px solid darken(#fbfbfb, 5%);
 
+    & > * {
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      overflow: hidden;
+    }
+
     &:hover {
       background: darken(#fbfbfb, 2%);
     }
@@ -42,6 +48,10 @@
 
 .title {
     flex: 1;
+
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    overflow: hidden;
 }
 
 .count {
