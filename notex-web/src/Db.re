@@ -1,60 +1,34 @@
-type tag = string;
-type language = string;
-
-type content =
-  | TextContent(string)
-  | CodeContent(string, language);
-
-type contentBlock = {
-  id: int,
-  noteId: int,
-  content,
-};
-
-type note = {
-  id: int,
-  notebookId: int,
-  title: string,
-  tags: list(tag),
-  createdAt: Js.Date.t,
-  updatedAt: Js.Date.t,
-};
-
-type notebook = {
-  id: int,
-  name: string,
-  createdAt: Js.Date.t,
-};
-
 type state = {
   revision: option(string),
-  notebooks: list(notebook),
-  notes: list(note),
-  contentBlocks: list(contentBlock),
+  notebooks: list(Data.notebook),
+  notes: list(Data.note),
+  contentBlocks: list(Data.contentBlock),
 };
 
 type listener = unit => unit;
 
 module JsonCoders = {
   /* Notebooks */
-  let decodeNotebook = json =>
+  let decodeNotebook = json: Data.notebook =>
     Json.Decode.{
       id: json |> field("id", int),
       name: json |> field("name", string),
       createdAt: json |> field("createdAt", date),
+      systemUpdatedAt: json |> field("systemUpdatedAt", date),
     };
 
-  let encodeNotebook = notebook =>
+  let encodeNotebook = (notebook: Data.notebook) =>
     Json.Encode.(
       object_([
         ("id", int(notebook.id)),
         ("name", string(notebook.name)),
         ("createdAt", date(notebook.createdAt)),
+        ("systemUpdatedAt", date(notebook.systemUpdatedAt)),
       ])
     );
 
   /* Notes */
-  let decodeNote = json =>
+  let decodeNote = json: Data.note =>
     Json.Decode.{
       id: json |> field("id", int),
       notebookId: json |> field("notebookId", int),
@@ -62,9 +36,10 @@ module JsonCoders = {
       tags: json |> field("tags", list(string)),
       createdAt: json |> field("createdAt", date),
       updatedAt: json |> field("updatedAt", date),
+      systemUpdatedAt: json |> field("systemUpdatedAt", date),
     };
 
-  let encodeNote = (note: note) =>
+  let encodeNote = (note: Data.note) =>
     Json.Encode.(
       object_([
         ("id", int(note.id)),
@@ -73,14 +48,15 @@ module JsonCoders = {
         ("tags", jsonArray(note.tags |> List.map(string) |> Array.of_list)),
         ("createdAt", date(note.createdAt)),
         ("updatedAt", date(note.updatedAt)),
+        ("systemUpdatedAt", date(note.systemUpdatedAt)),
       ])
     );
 
   /* ContentBlocks */
-  let decodeContentBlock = json => {
+  let decodeContentBlock = json: Data.contentBlock => {
     let textContent = json => {
       let text = json |> Json.Decode.field("text", Json.Decode.string);
-      TextContent(text);
+      Data.TextContent(text);
     };
 
     let codeContent = json => {
@@ -88,7 +64,7 @@ module JsonCoders = {
       let language =
         json |> Json.Decode.field("language", Json.Decode.string);
 
-      CodeContent(code, language);
+      Data.CodeContent(code, language);
     };
 
     let content = json => {
@@ -108,18 +84,18 @@ module JsonCoders = {
     };
   };
 
-  let encodeContentBlock = (contentBlock: contentBlock) => {
+  let encodeContentBlock = (contentBlock: Data.contentBlock) => {
     let type_ = content =>
       switch (content) {
-      | TextContent(_text) => "text"
-      | CodeContent(_code, _language) => "code"
+      | Data.TextContent(_text) => "text"
+      | Data.CodeContent(_code, _language) => "code"
       };
 
     let data = content =>
       switch (content) {
-      | TextContent(text) =>
+      | Data.TextContent(text) =>
         Json.Encode.(object_([("text", string(text))]))
-      | CodeContent(code, language) =>
+      | Data.CodeContent(code, language) =>
         Json.Encode.(
           object_([
             ("code", string(code)),
@@ -239,7 +215,9 @@ let getNotes = notebookId =>
 let getNotebooks = () =>
   Future.map(getState(), state =>
     state.notebooks
-    |> List.map(n => (n, getNotes_(state, n.id)->List.length))
+    |> List.map((n: Data.notebook) =>
+         (n, getNotes_(state, n.id)->List.length)
+       )
   );
 
 let getContentBlocks = noteId =>
@@ -290,23 +268,13 @@ let addContentBlocks = contentBlocks =>
     },
   );
 
-let mapContentBlock = (contentBlock: Data.contentBlock): contentBlock => {
-  id: contentBlock.id,
-  noteId: contentBlock.noteId,
-  content:
-    switch (contentBlock.content) {
-    | Data.TextContent(text) => TextContent(text)
-    | _ => Js.Exn.raiseError("TODO")
-    },
-};
-
 let updateContentBlock = (contentBlock: Data.contentBlock, ~sync=true, ()) =>
   getState()
   ->Future.map(state => {
-      let updatedContentBlocks: list(contentBlock) =
+      let updatedContentBlocks: list(Data.contentBlock) =
         Belt.List.map(state.contentBlocks, block =>
           if (block.id == contentBlock.id) {
-            mapContentBlock(contentBlock);
+            contentBlock;
           } else {
             block;
           }

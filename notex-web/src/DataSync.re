@@ -23,9 +23,7 @@ let unsafeDeleteKey: (Js.Dict.t(change), string) => unit = [%bs.raw
 
 let start = () =>
   setInterval(
-    () => {
-      Js.log2("Syncing changes:", pendingChanges);
-
+    () =>
       Js.Dict.values(pendingChanges)
       ->Belt.List.fromArray
       ->Belt.List.forEach(change =>
@@ -38,8 +36,7 @@ let start = () =>
                 }
               )
           }
-        );
-    },
+        ),
     5 * 1000,
   );
 

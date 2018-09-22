@@ -5,60 +5,38 @@ let style = name => Js.Dict.get(styles, name)->Option.getExn;
 
 open Data;
 
+type noteCount = int;
+type notebookWithCount = (notebook, noteCount);
+
 type state = {
-  notebooks: option(list(notebook)),
+  notebooks: option(list(notebookWithCount)),
   selectedNotebook: option(selectedNotebook),
   selectedNote: option(selectedNote),
 };
 
 type action =
   | ReloadDbState
-  | LoadNotebooks(list(notebook))
+  | LoadNotebooks(list(notebookWithCount))
   | LoadNotebook(notebook)
   | LoadNote(note)
   | SelectNotebook(selectedNotebook)
   | SelectNote(selectedNote)
   | UpdateNoteText(contentBlock, string);
 
-let mapDbNotebook = ((notebook: Db.notebook, noteCount)) => {
-  id: notebook.id,
-  name: notebook.name,
-  createdAt: notebook.createdAt,
-  noteCount,
-};
-
-let mapDbNote = (dbNote: Db.note): note => {
-  id: dbNote.id,
-  title: dbNote.title,
-  tags: dbNote.tags,
-  createdAt: dbNote.createdAt,
-  updatedAt: dbNote.updatedAt,
-};
-
-let mapDbContentBlock = (dbContentBlock: Db.contentBlock): contentBlock => {
-  id: dbContentBlock.id,
-  noteId: dbContentBlock.noteId,
-  content:
-    switch (dbContentBlock.content) {
-    | Db.TextContent(text) => TextContent(text)
-    | Db.CodeContent(code, language) => CodeContent(code, language)
-    },
-};
-
 module MainUI = {
   let renderNotebooks =
       (
-        notebooks: list(notebook),
+        notebooks: list(notebookWithCount),
         selectedNotebook: option(selectedNotebook),
         send,
       ) => {
     let listItems =
-      List.map(notebooks, notebook =>
+      List.map(notebooks, ((notebook, noteCount)) =>
         (
           {
             id: notebook.id |> string_of_int,
             title: notebook.name,
-            count: Some(notebook.noteCount),
+            count: Some(noteCount),
             model: notebook,
           }:
             ListView.listItem(notebook)
@@ -149,12 +127,7 @@ let reducer = (action: action, state: state) =>
       (
         self =>
           Db.getNotebooks()
-          ->(
-              Future.get(notebooks => {
-                let notebooks = notebooks->(List.map(mapDbNotebook));
-                self.send(LoadNotebooks(notebooks));
-              })
-            )
+          ->(Future.get(notebooks => self.send(LoadNotebooks(notebooks))))
       ),
     )
   | LoadNotebooks(notebooks) =>
@@ -170,7 +143,9 @@ let reducer = (action: action, state: state) =>
                 selectedNotebook.notebook
               );
             } else {
-              notebooks->List.head;
+              notebooks
+              ->List.head
+              ->Belt.Option.map(((notebook, _)) => notebook);
             };
 
           switch (selectedNotebook) {
@@ -187,7 +162,6 @@ let reducer = (action: action, state: state) =>
           Db.getNotes(notebook.id)
           ->(
               Future.get(notes => {
-                let notes = List.map(notes, mapDbNote);
                 self.send(SelectNotebook({notebook, notes}));
 
                 let isDifferentNotebook =
@@ -220,12 +194,9 @@ let reducer = (action: action, state: state) =>
         self =>
           Db.getContentBlocks(note.id)
           ->(
-              Future.get(dbContentBlocks => {
-                let contentBlocks =
-                  List.map(dbContentBlocks, mapDbContentBlock);
-
-                {note, content: contentBlocks}->SelectNote->(self.send);
-              })
+              Future.get(contentBlocks =>
+                {note, content: contentBlocks}->SelectNote->(self.send)
+              )
             )
       ),
     )

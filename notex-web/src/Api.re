@@ -5,37 +5,10 @@ type resource = {
   type_: string,
 };
 
-type notebook = {
-  id: int,
-  name: string,
-  createdAt: Js.Date.t,
-  systemUpdatedAt: Js.Date.t,
-};
-
-type note = {
-  id: int,
-  notebookId: int,
-  title: string,
-  tags: list(string),
-  createdAt: Js.Date.t,
-  updatedAt: Js.Date.t,
-  systemUpdatedAt: Js.Date.t,
-};
-
-type content =
-  | TextContent(string)
-  | CodeContent(string, string);
-
-type contentBlock = {
-  id: int,
-  noteId: int,
-  content,
-};
-
 type changes = {
-  notebooks: list(notebook),
-  notes: list(note),
-  contentBlocks: list(contentBlock),
+  notebooks: list(Data.notebook),
+  notes: list(Data.note),
+  contentBlocks: list(Data.contentBlock),
 };
 
 type apiResponse = {
@@ -45,7 +18,7 @@ type apiResponse = {
 };
 
 module JsonCoders = {
-  let decodeNotebook = json =>
+  let decodeNotebook = json: Data.notebook =>
     Json.Decode.{
       id: json |> field("id", int),
       name: json |> field("name", string),
@@ -53,7 +26,7 @@ module JsonCoders = {
       systemUpdatedAt: json |> field("systemUpdatedAt", date),
     };
 
-  let decodeNote = json =>
+  let decodeNote = json: Data.note =>
     Json.Decode.{
       id: json |> field("id", int),
       notebookId: json |> field("notebookId", int),
@@ -66,14 +39,14 @@ module JsonCoders = {
 
   let textContent = json => {
     let text = json |> Json.Decode.field("text", Json.Decode.string);
-    TextContent(text);
+    Data.TextContent(text);
   };
 
   let codeContent = json => {
     let code = json |> Json.Decode.field("code", Json.Decode.string);
     let language = json |> Json.Decode.field("language", Json.Decode.string);
 
-    CodeContent(code, language);
+    Data.CodeContent(code, language);
   };
 
   let decodeContent = json => {
@@ -86,7 +59,7 @@ module JsonCoders = {
     };
   };
 
-  let decodeContentBlock = json =>
+  let decodeContentBlock = json: Data.contentBlock =>
     Json.Decode.{
       id: json |> field("id", int),
       noteId: json |> field("noteId", int),

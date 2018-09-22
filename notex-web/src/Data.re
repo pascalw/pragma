@@ -13,10 +13,12 @@ type contentBlock = {
 
 type note = {
   id: int,
+  notebookId: int,
   title: string,
   tags: list(tag),
   createdAt: Js.Date.t,
   updatedAt: Js.Date.t,
+  systemUpdatedAt: Js.Date.t,
 };
 
 type selectedNote = {
@@ -28,7 +30,7 @@ type notebook = {
   id: int,
   name: string,
   createdAt: Js.Date.t,
-  noteCount: int,
+  systemUpdatedAt: Js.Date.t,
 };
 
 type selectedNotebook = {
