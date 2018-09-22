@@ -21,10 +21,7 @@ let make = (~note, ~onChange, _children) => {
   ...component,
   render: _self =>
     switch (note) {
-    | None =>
-      <div className={style("editor")}>
-        <p> {ReasonReact.string("No note selected")} </p>
-      </div>
+    | None => <div className={style("editor")} />
     | Some(selectedNote) =>
       <div className={style("editor")}>
         <h2 className={style("note-title")}>
