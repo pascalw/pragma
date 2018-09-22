@@ -32,10 +32,11 @@ let getNotes: int => Future.t(list(note));
 let getNotebooks: unit => Future.t(list((notebook, int)));
 
 let getContentBlocks: int => Future.t(list(contentBlock));
+let getContentBlock: int => Future.t(option(contentBlock));
 let addContentBlocks: list(contentBlock) => Future.t(unit);
-let updateContentBlock: contentBlock => Future.t(unit);
+let updateContentBlock: (Data.contentBlock, ~sync: bool=?, unit) => Future.t(unit);
 
 let clear: unit => unit;
 
-let insertRevision: Js.Date.t => Future.t(unit);
-let getRevision: unit => Future.t(option(Js.Date.t));
+let insertRevision: string => Future.t(unit);
+let getRevision: unit => Future.t(option(string));

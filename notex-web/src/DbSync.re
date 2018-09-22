@@ -1,3 +1,40 @@
+let insertOrUpdateContentBlock = (contentBlock: Api.contentBlock) =>
+  Db.getContentBlock(contentBlock.id)
+  ->Future.get(storedContentBlock =>
+      switch (storedContentBlock) {
+      | None =>
+        Db.addContentBlocks([
+          {
+            id: contentBlock.id,
+            noteId: contentBlock.noteId,
+            content:
+              switch (contentBlock.content) {
+              | Api.TextContent(text) => TextContent(text)
+              | Api.CodeContent(code, language) =>
+                CodeContent(code, language)
+              },
+          },
+        ])
+        |> ignore
+      | Some(_contentBlock) =>
+        Db.updateContentBlock(
+          {
+            id: contentBlock.id,
+            noteId: contentBlock.noteId,
+            content:
+              switch (contentBlock.content) {
+              | Api.TextContent(text) => TextContent(text)
+              | Api.CodeContent(code, language) =>
+                CodeContent(code, language)
+              },
+          },
+          ~sync=false,
+          (),
+        )
+        |> ignore
+      }
+    );
+
 let run = () =>
   Db.getRevision()
   ->(Future.flatMap(Api.fetchChanges))
@@ -37,21 +74,6 @@ let run = () =>
           );
 
         apiResult.changes.contentBlocks
-        ->(
-            Belt.List.forEach(contentBlock =>
-              Db.addContentBlocks([
-                {
-                  id: contentBlock.id,
-                  noteId: contentBlock.noteId,
-                  content:
-                    switch (contentBlock.content) {
-                    | Api.TextContent(text) => TextContent(text)
-                    | Api.CodeContent(code, language) =>
-                      CodeContent(code, language)
-                    },
-                },
-              ])
-            )
-          );
+        ->Belt.List.forEach(insertOrUpdateContentBlock);
       })
     );

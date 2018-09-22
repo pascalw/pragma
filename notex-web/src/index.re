@@ -3,7 +3,7 @@
 [%bs.raw {|require('./globals.scss')|}];
 
 [@bs.module "./registerServiceWorker"]
-external register_service_worker: unit => unit = "default";
+external registerServiceWorker: unit => unit = "default";
 
 ReactDOMRe.renderToElementWithId(<App />, "root");
 
@@ -11,6 +11,7 @@ if (Utils.hot) {
   Utils.accept();
 };
 
-register_service_worker();
+registerServiceWorker();
 
 DbSync.run();
+DataSync.start();

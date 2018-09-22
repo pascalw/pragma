@@ -34,7 +34,7 @@ $editor-padding: 0.75rem;
     overflow-y: scroll;
     border: 1px solid transparent;
     margin: 0 $editor-padding $editor-padding;
-    min-height: 0;
+    min-height: 2em;
 
     &:focus {
       border-color: darken(#fbfbfb, 5%);

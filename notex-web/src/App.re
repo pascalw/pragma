@@ -244,19 +244,7 @@ let reducer = (action: action, state: state) =>
       };
 
     ReasonReact.SideEffects(
-      (
-        _self =>
-          Db.updateContentBlock({
-            id: updatedContentBlock.id,
-            noteId: updatedContentBlock.noteId,
-            content:
-              switch (updatedContentBlock.content) {
-              | TextContent(text) => Db.TextContent(text)
-              | _ => Js.Exn.raiseError("TODO")
-              },
-          })
-          |> ignore
-      ),
+      (_self => Db.updateContentBlock(updatedContentBlock, ()) |> ignore),
     );
   };
 

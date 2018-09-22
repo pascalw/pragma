@@ -30,17 +30,28 @@ let make = (~text: string, ~onChange, _children) => {
   ...component,
   initialState: () => ({editorRef: ref(None), text}: state),
   reducer: (_state: state, _action) => ReasonReact.NoUpdate,
+  willReceiveProps: self => {...self.state, text},
+  didUpdate: ({oldSelf, newSelf}) =>
+    if (oldSelf.state.text !== newSelf.state.text) {
+      withTrix(newSelf.state.editorRef, editor =>
+        updateTrixEditorValue(editor, newSelf.state.text)
+      );
+    },
   didMount: self =>
     withTrix(
       self.state.editorRef,
       editor => {
-        let notifyChange = event => {
+        let notifyChange = (event, self) => {
           let target =
             EventRe.target(event)
             |> EventTargetRe.unsafeAsElement
             |> ReactDOMRe.domElementToObj;
 
-          onChange(target##value);
+          let editorText = target##value;
+
+          if (editorText !== self.ReasonReact.state.text) {
+            onChange(editorText);
+          };
         };
 
         let editorDomNode = editor |> Webapi.Dom.Element.asEventTarget;
@@ -49,7 +60,7 @@ let make = (~text: string, ~onChange, _children) => {
 
           EventTarget.addEventListener(
             "trix-change",
-            notifyChange,
+            self.handle(notifyChange),
             editorDomNode,
           );
         };
@@ -69,7 +80,7 @@ let make = (~text: string, ~onChange, _children) => {
 
           EventTarget.removeEventListener(
             "trix-change",
-            notifyChange,
+            self.handle(notifyChange),
             editorDomNode,
           );
         });

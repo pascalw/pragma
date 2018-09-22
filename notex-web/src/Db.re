@@ -1,6 +1,5 @@
 type tag = string;
 type language = string;
-type revision = Js.Date.t;
 
 type content =
   | TextContent(string)
@@ -28,7 +27,7 @@ type notebook = {
 };
 
 type state = {
-  revision: option(revision),
+  revision: option(string),
   notebooks: list(notebook),
   notes: list(note),
   contentBlocks: list(contentBlock),
@@ -153,7 +152,7 @@ module JsonCoders = {
         (
           "revision",
           switch (state.revision) {
-          | Some(revision) => date(revision)
+          | Some(revision) => string(revision)
           | None => null
           },
         ),
@@ -180,7 +179,7 @@ module JsonCoders = {
 
   let decodeState = json =>
     Json.Decode.{
-      revision: json |> optional(field("revision", date)),
+      revision: json |> optional(field("revision", string)),
       notebooks: json |> field("notebooks", list(decodeNotebook)),
       notes: json |> field("notes", list(decodeNote)),
       contentBlocks:
@@ -223,9 +222,11 @@ let saveStateAndNotify = newState => {
 
   state := newState;
   Belt.List.forEach(listeners^, l => l());
+
+  Future.value();
 };
 
-let clear = () => saveStateAndNotify(None);
+let clear = () => saveStateAndNotify(None) |> ignore;
 
 let subscribe = listener => listeners := [listener, ...listeners^];
 
@@ -246,6 +247,13 @@ let getContentBlocks = noteId =>
     state.contentBlocks->(Belt.List.keep(cb => cb.noteId == noteId))
   );
 
+let getContentBlock = contentBlockId =>
+  Future.map(getState(), state =>
+    state.contentBlocks
+    ->(Belt.List.keep(cb => cb.id == contentBlockId))
+    ->Belt.List.head
+  );
+
 let addNotebooks = notebooks =>
   Future.map(
     getState(),
@@ -254,7 +262,7 @@ let addNotebooks = notebooks =>
         ...state,
         notebooks: state.notebooks->(Belt.List.concat(notebooks)),
       };
-      saveStateAndNotify(Some(newState));
+      saveStateAndNotify(Some(newState)) |> ignore;
     },
   );
 
@@ -266,7 +274,7 @@ let addNotes = notes =>
         ...state,
         notes: state.notes->(Belt.List.concat(notes)),
       };
-      saveStateAndNotify(Some(newState));
+      saveStateAndNotify(Some(newState)) |> ignore;
     },
   );
 
@@ -278,35 +286,44 @@ let addContentBlocks = contentBlocks =>
         ...state,
         contentBlocks: state.contentBlocks->(Belt.List.concat(contentBlocks)),
       };
-      saveStateAndNotify(Some(newState));
+      saveStateAndNotify(Some(newState)) |> ignore;
     },
   );
 
-let updateContentBlock = (contentBlock: contentBlock) =>
-  Future.map(
-    getState(),
-    state => {
+let mapContentBlock = (contentBlock: Data.contentBlock): contentBlock => {
+  id: contentBlock.id,
+  noteId: contentBlock.noteId,
+  content:
+    switch (contentBlock.content) {
+    | Data.TextContent(text) => TextContent(text)
+    | _ => Js.Exn.raiseError("TODO")
+    },
+};
+
+let updateContentBlock = (contentBlock: Data.contentBlock, ~sync=true, ()) =>
+  getState()
+  ->Future.map(state => {
       let updatedContentBlocks: list(contentBlock) =
         Belt.List.map(state.contentBlocks, block =>
           if (block.id == contentBlock.id) {
-            contentBlock;
+            mapContentBlock(contentBlock);
           } else {
             block;
           }
         );
 
       let newState = {...state, contentBlocks: updatedContentBlocks};
+      Some(newState);
+    })
+  ->Future.tap(_ => sync ? DataSync.pushContentBlock(contentBlock) : ())
+  ->Future.flatMap(saveStateAndNotify);
 
-      saveStateAndNotify(Some(newState));
-    },
-  );
-
-let insertRevision = (revision: Js.Date.t) =>
+let insertRevision = (revision: string) =>
   Future.map(
     getState(),
     state => {
       let newState = {...state, revision: Some(revision)};
-      saveStateAndNotify(Some(newState));
+      saveStateAndNotify(Some(newState)) |> ignore;
     },
   );
 

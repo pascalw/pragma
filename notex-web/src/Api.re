@@ -39,13 +39,13 @@ type changes = {
 };
 
 type apiResponse = {
-  revision: Js.Date.t,
+  revision: string,
   changes,
   deletions: list(resource),
 };
 
-module Decode = {
-  let notebook = json =>
+module JsonCoders = {
+  let decodeNotebook = json =>
     Json.Decode.{
       id: json |> field("id", int),
       name: json |> field("name", string),
@@ -53,7 +53,7 @@ module Decode = {
       systemUpdatedAt: json |> field("systemUpdatedAt", date),
     };
 
-  let note = json =>
+  let decodeNote = json =>
     Json.Decode.{
       id: json |> field("id", int),
       notebookId: json |> field("notebookId", int),
@@ -76,7 +76,7 @@ module Decode = {
     CodeContent(code, language);
   };
 
-  let content = json => {
+  let decodeContent = json => {
     let type_ = json |> Json.Decode.field("type", Json.Decode.string);
 
     switch (type_) {
@@ -86,44 +86,95 @@ module Decode = {
     };
   };
 
-  let contentBlock = json =>
+  let decodeContentBlock = json =>
     Json.Decode.{
       id: json |> field("id", int),
       noteId: json |> field("noteId", int),
-      content: json |> field("content", content),
+      content: json |> field("content", decodeContent),
     };
 
-  let changes = json =>
+  let encodeContentBlock = (contentBlock: Data.contentBlock) => {
+    let type_ = (content: Data.content) =>
+      switch (content) {
+      | Data.TextContent(_text) => "text"
+      | Data.CodeContent(_code, _language) => "code"
+      };
+
+    let data = (content: Data.content) =>
+      switch (content) {
+      | TextContent(text) =>
+        Json.Encode.(object_([("text", string(text))]))
+      | CodeContent(code, language) =>
+        Json.Encode.(
+          object_([
+            ("code", string(code)),
+            ("language", string(language)),
+          ])
+        )
+      };
+
+    let content = (content: Data.content) =>
+      Json.Encode.(
+        object_([
+          ("type", string(type_(content))),
+          ("data", data(content)),
+        ])
+      );
+
+    Json.Encode.(
+      object_([
+        ("content", content(contentBlock.content)),
+        ("updatedAt", date(Js.Date.make())) /* FIXME */
+      ])
+    );
+  };
+
+  let decodeChanges = json =>
     Json.Decode.{
-      notebooks: json |> field("notebooks", list(notebook)),
-      notes: json |> field("notes", list(note)),
-      contentBlocks: json |> field("contentBlocks", list(contentBlock)),
+      notebooks: json |> field("notebooks", list(decodeNotebook)),
+      notes: json |> field("notes", list(decodeNote)),
+      contentBlocks:
+        json |> field("contentBlocks", list(decodeContentBlock)),
     };
 
-  let resource = json =>
+  let decodeResource = json =>
     Json.Decode.{
       id: json |> field("id", int),
       type_: json |> field("type", string),
     };
 
-  let apiResponse = json =>
+  let decodeChangesResponse = json =>
     Json.Decode.{
-      revision: json |> field("revision", date),
-      changes: json |> field("changes", changes),
-      deletions: json |> field("deletions", list(resource)),
+      revision: json |> field("revision", string),
+      changes: json |> field("changes", decodeChanges),
+      deletions: json |> field("deletions", list(decodeResource)),
     };
 };
 
-let fetchUrl = (revision: option(Js.Date.t)) =>
+let fetchUrl = (revision: option(string)) =>
   switch (revision) {
-  | Some(revision) =>
-    "/api/data?since_revision=" ++ Js.Date.toISOString(revision)
+  | Some(revision) => "/api/data?since_revision=" ++ revision
   | None => "/api/data"
   };
 
-let fetchChanges = (revision: option(Js.Date.t)) =>
+let fetchChanges = (revision: option(string)) =>
   (
     fetchUrl(revision) |> Fetch.fetch |> Js.Promise.then_(Fetch.Response.json)
   )
   ->(FutureJs.fromPromise(Js.String.make)) /* FIXME */
-  ->(Future.mapOk(Decode.apiResponse));
+  ->(Future.mapOk(JsonCoders.decodeChangesResponse));
+
+let updateContentBlock = (contentBlock: Data.contentBlock) => {
+  let json = JsonCoders.encodeContentBlock(contentBlock);
+
+  Fetch.fetchWithInit(
+    "/api/content_blocks/" ++ string_of_int(contentBlock.id),
+    Fetch.RequestInit.make(
+      ~method_=Put,
+      ~body=Fetch.BodyInit.make(Js.Json.stringify(json)),
+      ~headers=Fetch.HeadersInit.make({"Content-Type": "application/json"}),
+      (),
+    ),
+  )
+  ->FutureJs.fromPromise(Js.String.make);
+};
