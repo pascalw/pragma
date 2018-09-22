@@ -23,6 +23,11 @@ type action =
   | SelectNote(selectedNote)
   | UpdateNoteText(contentBlock, string);
 
+let sortDesc = (notes: list(note)) =>
+  Belt.List.sort(notes, (a, b) =>
+    Utils.compareDates(a.updatedAt, b.updatedAt) * (-1)
+  );
+
 module MainUI = {
   let renderNotebooks =
       (
@@ -160,6 +165,7 @@ let reducer = (action: action, state: state) =>
       (
         self =>
           Db.getNotes(notebook.id)
+          ->Future.map(sortDesc)
           ->(
               Future.get(notes => {
                 self.send(SelectNotebook({notebook, notes}));

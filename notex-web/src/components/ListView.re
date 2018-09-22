@@ -26,7 +26,7 @@ let defaultRenderItemContent = (item: listItem('a)) =>
     }
   </div>;
 
-let component = ReasonReact.statelessComponent("NotebooksListing");
+let component = ReasonReact.statelessComponent("ListView");
 
 let make =
     (
