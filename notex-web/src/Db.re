@@ -188,7 +188,7 @@ let getState = () =>
     }
   };
 
-let saveStateAndNotify = newState => {
+let saveState = newState => {
   switch (newState) {
   | Some(state) =>
     let json = JsonCoders.encodeState(state) |> Json.stringify;
@@ -197,10 +197,12 @@ let saveStateAndNotify = newState => {
   };
 
   state := newState;
-  Belt.List.forEach(listeners^, l => l());
-
   Future.value();
 };
+
+let saveStateAndNotify = newState =>
+  saveState(newState)
+  ->Future.tap(() => Belt.List.forEach(listeners^, l => l()));
 
 let clear = () => saveStateAndNotify(None) |> ignore;
 
@@ -284,7 +286,7 @@ let updateContentBlock = (contentBlock: Data.contentBlock, ~sync=true, ()) =>
       Some(newState);
     })
   ->Future.tap(_ => sync ? DataSync.pushContentBlock(contentBlock) : ())
-  ->Future.flatMap(saveStateAndNotify);
+  ->Future.flatMap(saveState);
 
 let insertRevision = (revision: string) =>
   Future.map(
