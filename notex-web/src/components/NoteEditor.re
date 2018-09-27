@@ -19,8 +19,7 @@ let renderContentBlocks = (note: Data.note, contentBlocks, onChange) =>
 
 let make = (~note, ~contentBlocks, ~onChange, _children) => {
   ...component,
-  render: _self => {
-    Js.log2("Render editor", contentBlocks);
+  render: _self =>
     switch (note) {
     | None => <div className={style("editor")} />
     | Some(note) =>
@@ -34,6 +33,5 @@ let make = (~note, ~contentBlocks, ~onChange, _children) => {
           }
         </div>
       </div>
-    };
-  },
+    },
 };
