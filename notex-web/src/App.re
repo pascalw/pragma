@@ -10,17 +10,18 @@ type notebookWithCount = (notebook, noteCount);
 
 type state = {
   notebooks: option(list(notebookWithCount)),
-  selectedNotebook: option(selectedNotebook),
-  selectedNote: option(selectedNote),
+  selectedNotebook: option(int),
+  notes: option(list(note)),
+  selectedNote: option(int),
+  contentBlocks: option(list(contentBlock)),
 };
 
 type action =
-  | ReloadDbState
-  | LoadNotebooks(list(notebookWithCount))
-  | LoadNotebook(notebook)
-  | LoadNote(note)
-  | SelectNotebook(selectedNotebook)
-  | SelectNote(selectedNote)
+  | Load(state)
+  | SelectNote(int)
+  | LoadNote(int, list(contentBlock))
+  | SelectNotebook(int)
+  | LoadNotebook(int, list(note), option(int), option(list(contentBlock)))
   | UpdateNoteText(contentBlock, string);
 
 let sortDesc = (notes: list(note)) =>
@@ -28,11 +29,28 @@ let sortDesc = (notes: list(note)) =>
     Utils.compareDates(a.updatedAt, b.updatedAt) * (-1)
   );
 
+let getNotes = notebookId =>
+  Db.getNotes(notebookId)
+  ->Future.map(notes => {
+      let selectedNoteId = List.head(notes)->Option.map(note => note.id);
+      (notes, selectedNoteId);
+    })
+  ->Future.flatMap(((notes, selectedNoteId)) =>
+      switch (selectedNoteId) {
+      | None => Future.value((notes, selectedNoteId, None))
+      | Some(noteId) =>
+        Db.getContentBlocks(noteId)
+        ->Future.map(contentBlocks =>
+            (notes, selectedNoteId, Some(contentBlocks))
+          )
+      }
+    );
+
 module MainUI = {
   let renderNotebooks =
       (
         notebooks: list(notebookWithCount),
-        selectedNotebook: option(selectedNotebook),
+        selectedNotebook: option(int),
         send,
       ) => {
     let listItems =
@@ -50,26 +68,18 @@ module MainUI = {
 
     <ListView
       items=listItems
-      selectedId={
-        Option.map(selectedNotebook, selected =>
-          selected.notebook.id->string_of_int
-        )
-      }
-      onItemSelected={item => send(LoadNotebook(item.model))}
+      selectedId={Option.map(selectedNotebook, string_of_int)}
+      onItemSelected={item => send(SelectNotebook(item.model.id))}
     />;
   };
 
   let renderNotes =
-      (
-        selectedNotebook: option(selectedNotebook),
-        editingNote: option(selectedNote),
-        send,
-      ) => {
+      (notes: option(list(note)), selectedNote: option(int), send) => {
     let listItems =
-      switch (selectedNotebook) {
+      switch (notes) {
       | None => []
-      | Some(selected) =>
-        List.map(selected.notes, note =>
+      | Some(notes) =>
+        List.map(notes, note =>
           (
             {
               id: note.id |> string_of_int,
@@ -95,26 +105,33 @@ module MainUI = {
     <ListView
       minWidth="250px"
       items=listItems
-      selectedId={
-        Option.map(editingNote, selectedNote =>
-          selectedNote.note.id->string_of_int
-        )
-      }
-      onItemSelected={item => send(LoadNote(item.model))}
+      selectedId={Option.map(selectedNote, string_of_int)}
+      onItemSelected={item => send(SelectNote(item.model.id))}
       renderItemContent=renderNoteListItemContent
     />;
   };
 
   let component = ReasonReact.statelessComponent("MainUI");
-  let make = (~notebooks, ~selectedNotebook, ~editingNote, ~send, _children) => {
+  let make =
+      (
+        ~notebooks,
+        ~selectedNotebook,
+        ~notes,
+        ~selectedNote,
+        ~contentBlocks,
+        ~editingNote,
+        ~send,
+        _children,
+      ) => {
     ...component,
     render: _self =>
       <main className={style("main")}>
         <div className={style("columns")}>
           {renderNotebooks(notebooks, selectedNotebook, send)}
-          {renderNotes(selectedNotebook, editingNote, send)}
+          {renderNotes(notes, selectedNote, send)}
           <NoteEditor
             note=editingNote
+            contentBlocks
             onChange={
               (contentBlock, value) =>
                 send(UpdateNoteText(contentBlock, value))
@@ -127,91 +144,53 @@ module MainUI = {
 
 let reducer = (action: action, state: state) =>
   switch (action) {
-  | ReloadDbState =>
+  | Load(state) => ReasonReact.Update(state)
+  | SelectNotebook(notebookId) =>
     ReasonReact.SideEffects(
       (
         self =>
-          Db.getNotebooks()
-          ->(Future.get(notebooks => self.send(LoadNotebooks(notebooks))))
-      ),
-    )
-  | LoadNotebooks(notebooks) =>
-    let newState = {...state, notebooks: Some(notebooks)};
-
-    ReasonReact.UpdateWithSideEffects(
-      newState,
-      (
-        self => {
-          let selectedNotebook =
-            if (Option.isSome(state.selectedNotebook)) {
-              Option.map(state.selectedNotebook, selectedNotebook =>
-                selectedNotebook.notebook
-              );
-            } else {
-              notebooks
-              ->List.head
-              ->Belt.Option.map(((notebook, _)) => notebook);
-            };
-
-          switch (selectedNotebook) {
-          | None => ()
-          | Some(notebook) => self.send(LoadNotebook(notebook))
-          };
-        }
-      ),
-    );
-  | LoadNotebook(notebook) =>
-    ReasonReact.SideEffects(
-      (
-        self =>
-          Db.getNotes(notebook.id)
-          ->Future.map(sortDesc)
-          ->(
-              Future.get(notes => {
-                self.send(SelectNotebook({notebook, notes}));
-
-                let isDifferentNotebook =
-                  switch (state.selectedNotebook) {
-                  | Some(selectedNotebook) =>
-                    selectedNotebook.notebook.id != notebook.id
-                  | None => true
-                  };
-
-                let selectedNote =
-                  if (isDifferentNotebook || Option.isNone(state.selectedNote)) {
-                    List.head(notes);
-                  } else {
-                    Option.map(state.selectedNote, selectedNote =>
-                      selectedNote.note
-                    );
-                  };
-
-                switch (selectedNote) {
-                | None => ()
-                | Some(note) => self.send(LoadNote(note))
-                };
-              })
-            )
-      ),
-    )
-  | LoadNote(note) =>
-    ReasonReact.SideEffects(
-      (
-        self =>
-          Db.getContentBlocks(note.id)
-          ->(
-              Future.get(contentBlocks =>
-                {note, content: contentBlocks}->SelectNote->(self.send)
+          getNotes(notebookId)
+          ->Future.get(((notes, selectedNoteId, contentBlocks)) =>
+              self.send(
+                LoadNotebook(
+                  notebookId,
+                  notes,
+                  selectedNoteId,
+                  contentBlocks,
+                ),
               )
             )
       ),
     )
 
-  | SelectNotebook(selectedNotebook) =>
-    {...state, selectedNotebook: Some(selectedNotebook)}->ReasonReact.Update
+  | LoadNotebook(notebookId, notes, selectedNoteId, contentBlocks) =>
+    {
+      ...state,
+      selectedNotebook: Some(notebookId),
+      notes: Some(notes),
+      selectedNote: selectedNoteId,
+      contentBlocks,
+    }
+    ->ReasonReact.Update
 
-  | SelectNote(selectedNote) =>
-    {...state, selectedNote: Some(selectedNote)}->ReasonReact.Update
+  | SelectNote(noteId) =>
+    ReasonReact.SideEffects(
+      (
+        self =>
+          Db.getContentBlocks(noteId)
+          ->Future.get(contentBlocks =>
+              self.send(LoadNote(noteId, contentBlocks))
+            )
+      ),
+    )
+
+  | LoadNote(noteId, contentBlocks) =>
+    {
+      ...state,
+      selectedNote: Some(noteId),
+      contentBlocks: Some(contentBlocks),
+    }
+    ->ReasonReact.Update
 
   | UpdateNoteText(contentBlock, text) =>
     let updatedContentBlock =
@@ -231,23 +210,96 @@ let make = _children => {
   initialState: () => {
     notebooks: None,
     selectedNotebook: None,
+    notes: None,
     selectedNote: None,
+    contentBlocks: None,
   },
   reducer,
   didMount: self => {
-    Db.subscribe(() => self.send(ReloadDbState));
+    let fetchData = () => {
+      let appState = AppState.get();
 
-    self.send(ReloadDbState);
+      Db.getNotebooks()
+      ->Future.flatMap(notebooks => {
+          let selectedNotebookId =
+            switch (appState.selectedNotebookId) {
+            | Some(id) => Some(id)
+            | None =>
+              List.head(notebooks)
+              ->Belt.Option.map(((notebook, _count)) => notebook.id)
+            };
+
+          switch (selectedNotebookId) {
+          | None => Future.value((notebooks, None, None))
+          | Some(notebookId) =>
+            Db.getNotes(notebookId)
+            ->Future.map(notes =>
+                (notebooks, Some(notebookId), Some(notes))
+              )
+          };
+        })
+      ->Future.get(((notebooks, selectedNotebook, notes)) => {
+          let selectedNoteId =
+            switch (appState.selectedNoteId) {
+            | Some(id) => Some(id)
+            | None =>
+              Belt.Option.flatMap(notes, notes =>
+                List.head(notes)->Option.map(note => note.id)
+              )
+            };
+
+          let contentBlocksFuture =
+            switch (selectedNoteId) {
+            | None => Future.value([])
+            | Some(noteId) => Db.getContentBlocks(noteId)
+            };
+
+          contentBlocksFuture
+          ->Future.get(contentBlocks =>
+              self.send(
+                Load({
+                  notebooks: Some(notebooks),
+                  notes,
+                  selectedNotebook,
+                  selectedNote: selectedNoteId,
+                  contentBlocks: Some(contentBlocks),
+                }),
+              )
+            );
+        });
+    };
+
+    fetchData();
+    Db.subscribe(fetchData);
   },
-  render: self =>
+  didUpdate: ({oldSelf: _oldSelf, newSelf}) =>
+    AppState.setSelected(
+      newSelf.state.selectedNotebook,
+      newSelf.state.selectedNote,
+    ),
+  render: self => {
+    let editingNote =
+      self.state.selectedNote
+      ->Option.flatMap(selectedNote =>
+          switch (self.state.notes) {
+          | None => None
+          | Some(notes) =>
+            Belt.List.keep(notes, n => n.id == selectedNote)->List.head
+          }
+        );
+
     switch (self.state.notebooks) {
     | None => <div> {ReasonReact.string("Loading...")} </div>
     | Some(_notebooks) =>
       <MainUI
         notebooks=self.state.notebooks->Option.getExn
         selectedNotebook={self.state.selectedNotebook}
-        editingNote={self.state.selectedNote}
+        notes={self.state.notes}
+        selectedNote={self.state.selectedNote}
+        contentBlocks={self.state.contentBlocks}
+        editingNote
         send={self.send}
       />
-    },
+    };
+  },
 };

@@ -21,19 +21,9 @@ type note = {
   systemUpdatedAt: Js.Date.t,
 };
 
-type selectedNote = {
-  note,
-  content: list(contentBlock),
-};
-
 type notebook = {
   id: int,
   name: string,
   createdAt: Js.Date.t,
   systemUpdatedAt: Js.Date.t,
-};
-
-type selectedNotebook = {
-  notebook,
-  notes: list(note),
 };

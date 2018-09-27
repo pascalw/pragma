@@ -286,7 +286,7 @@ let updateContentBlock = (contentBlock: Data.contentBlock, ~sync=true, ()) =>
       Some(newState);
     })
   ->Future.tap(_ => sync ? DataSync.pushContentBlock(contentBlock) : ())
-  ->Future.flatMap(saveState);
+  ->Future.flatMap(saveStateAndNotify);
 
 let insertRevision = (revision: string) =>
   Future.map(

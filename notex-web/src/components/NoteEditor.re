@@ -6,30 +6,34 @@ let style = name => Js.Dict.get(styles, name)->Option.getExn;
 
 let component = ReasonReact.statelessComponent("NoteEditor");
 
-let renderContentBlocks = (selectedNote: selectedNote, onChange) =>
-  switch (selectedNote.content |> List.head) {
+let renderContentBlocks = (note: Data.note, contentBlocks, onChange) =>
+  switch (contentBlocks |> List.head) {
   | Some({id: _, content: TextContent(text)} as contentBlock) =>
     <TrixEditor
-      key={selectedNote.note.id |> string_of_int}
+      key={note.id |> string_of_int}
       text
       onChange=(value => onChange(contentBlock, value))
     />
   | _ => <p> {ReasonReact.string("FIXME: unsupported content type.")} </p>
   };
 
-let make = (~note, ~onChange, _children) => {
+let make = (~note, ~contentBlocks, ~onChange, _children) => {
   ...component,
-  render: _self =>
+  render: _self => {
+    Js.log2("Render editor", contentBlocks);
     switch (note) {
     | None => <div className={style("editor")} />
-    | Some(selectedNote) =>
+    | Some(note) =>
       <div className={style("editor")}>
         <h2 className={style("note-title")}>
-          selectedNote.note.title->ReasonReact.string
+          note.title->ReasonReact.string
         </h2>
         <div className="content">
-          {renderContentBlocks(selectedNote, onChange)}
+          {
+            renderContentBlocks(note, contentBlocks |> Option.getExn, onChange)
+          }
         </div>
       </div>
-    },
+    };
+  },
 };
