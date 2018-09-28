@@ -40,7 +40,7 @@ $editor-padding: 0.75rem;
       border-color: darken(#fbfbfb, 5%);
     }
 
-    *:last-child {
+    > :last-child {
       margin-bottom: 0.5em;
     }
   }
