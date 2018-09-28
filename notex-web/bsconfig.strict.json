@@ -13,7 +13,7 @@
   "reason": {
     "react-jsx": 2
   },
-  "bsc-flags": ["-bs-super-errors"],
+  "bsc-flags": ["-bs-super-errors", "-warn-error", "@A", "-w", "@A-4-9-40-41-42-102"],
   "refmt": 3,
   "package-specs": {
     "module": "es6",
