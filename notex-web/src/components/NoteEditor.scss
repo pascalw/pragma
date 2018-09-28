@@ -26,7 +26,23 @@ $editor-padding: 0.75rem;
     }
 
     ul {
-      margin: 0;
+      list-style-type: disc;
+      list-style-position: outside;
+    }
+
+    ol {
+      list-style-type: decimal;
+      list-style-position: outside;
+    }
+
+    ul ul, ol ul {
+      list-style-type: circle;
+      list-style-position: outside;
+    }
+
+    ol ol, ul ol {
+      list-style-type: lower-latin;
+      list-style-position: outside;
     }
   }
 

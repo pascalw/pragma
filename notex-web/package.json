@@ -8,7 +8,7 @@
     "bs-fetch": "^0.3.0",
     "bs-platform": "^4.0.5",
     "bs-webapi": "^0.10.0",
-    "bulma": "^0.7.1",
+    "minireset.css": "^0.0.3",
     "promise": "8.0.1",
     "react": "^16.4.1",
     "react-dom": "^16.4.1",
