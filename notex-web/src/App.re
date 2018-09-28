@@ -111,6 +111,23 @@ module MainUI = {
     />;
   };
 
+  let onChangeDebounced = send => {
+    let timerId: ref(option(Utils.timerId)) = ref(None);
+
+    let sendUpdate = (contentBlock, value) =>
+      send(UpdateNoteText(contentBlock, value));
+
+    (contentBlock, value) => {
+      switch (timerId^) {
+      | Some(timerId) => Utils.clearTimeout(timerId)
+      | _ => ()
+      };
+
+      timerId :=
+        Some(Utils.setTimeout(() => sendUpdate(contentBlock, value), 1000));
+    };
+  };
+
   let component = ReasonReact.statelessComponent("MainUI");
   let make =
       (
@@ -132,10 +149,7 @@ module MainUI = {
           <NoteEditor
             note=editingNote
             contentBlocks
-            onChange={
-              (contentBlock, value) =>
-                send(UpdateNoteText(contentBlock, value))
-            }
+            onChange={onChangeDebounced(send)}
           />
         </div>
       </main>,

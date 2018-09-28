@@ -1,7 +1,3 @@
-type timerId;
-[@bs.val] external setInterval: (unit => unit, int) => timerId = "";
-[@bs.val] external clearInterval: timerId => unit = "";
-
 type changeValue =
   | ContentBlock(Data.contentBlock);
 
@@ -22,7 +18,7 @@ let unsafeDeleteKey: (Js.Dict.t(change), string) => unit = [%bs.raw
 ];
 
 let start = () =>
-  setInterval(
+  Utils.setInterval(
     () =>
       Js.Dict.values(pendingChanges)
       ->Belt.List.fromArray
