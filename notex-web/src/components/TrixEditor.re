@@ -91,7 +91,11 @@ let make = (~text: string, ~onChange, _children) => {
       {
         ReasonReact.cloneElement(
           ReactDOMRe.createElement("trix-editor", [||]),
-          ~props={"class": "trix-content", "ref": self.handle(setEditorRef)},
+          ~props={
+            "class": "trix-content",
+            "spellcheck": "false",
+            "ref": self.handle(setEditorRef),
+          },
           [||],
         )
       }
