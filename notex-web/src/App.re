@@ -112,19 +112,21 @@ module MainUI = {
   };
 
   let onChangeDebounced = send => {
-    let timerId: ref(option(Utils.timerId)) = ref(None);
+    let timerId: ref(option(Js.Global.timeoutId)) = ref(None);
 
     let sendUpdate = (contentBlock, value) =>
       send(UpdateNoteText(contentBlock, value));
 
     (contentBlock, value) => {
       switch (timerId^) {
-      | Some(timerId) => Utils.clearTimeout(timerId)
+      | Some(timerId) => Js.Global.clearTimeout(timerId)
       | _ => ()
       };
 
       timerId :=
-        Some(Utils.setTimeout(() => sendUpdate(contentBlock, value), 1000));
+        Some(
+          Js.Global.setTimeout(() => sendUpdate(contentBlock, value), 1000),
+        );
     };
   };
 

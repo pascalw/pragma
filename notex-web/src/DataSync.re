@@ -18,7 +18,7 @@ let unsafeDeleteKey: (Js.Dict.t(change), string) => unit = [%bs.raw
 ];
 
 let start = () =>
-  Utils.setInterval(
+  Js.Global.setInterval(
     () =>
       Js.Dict.values(pendingChanges)
       ->Belt.List.fromArray

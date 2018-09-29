@@ -19,10 +19,3 @@ let compareDates = (a, b) => {
     0;
   };
 };
-
-type timerId;
-[@bs.val] external setInterval: (unit => unit, int) => timerId = "";
-[@bs.val] external clearInterval: timerId => unit = "";
-
-[@bs.val] external setTimeout: (unit => unit, int) => timerId = "";
-[@bs.val] external clearTimeout: timerId => unit = "";
