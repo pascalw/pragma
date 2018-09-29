@@ -55,7 +55,7 @@ impl Handler<CreateNotebookMessage> for DbExecutor {
 // Start UpdateNotebook
 
 pub struct UpdateNotebookMessage {
-    pub id: i32,
+    pub id: String,
     pub update: NotebookUpdate,
 }
 
@@ -119,7 +119,7 @@ impl Handler<CreateNoteMessage> for DbExecutor {
 // Start UpdateNote
 
 pub struct UpdateNoteMessage {
-    pub id: i32,
+    pub id: String,
     pub update: NoteUpdate,
 }
 
@@ -162,7 +162,7 @@ impl Handler<CreateContentBlockMessage> for DbExecutor {
 // Start UpdateContentBlock
 
 pub struct UpdateContentBlockMessage {
-    pub id: i32,
+    pub id: String,
     pub update: ContentBlockUpdate,
 }
 

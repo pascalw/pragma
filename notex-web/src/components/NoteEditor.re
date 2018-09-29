@@ -10,7 +10,7 @@ let renderContentBlocks = (note: Data.note, contentBlocks, onChange) =>
   switch (contentBlocks |> List.head) {
   | Some({id: _, content: TextContent(text)} as contentBlock) =>
     <TrixEditor
-      key={note.id |> string_of_int}
+      key={note.id}
       text
       onChange=(value => onChange(contentBlock, value))
     />

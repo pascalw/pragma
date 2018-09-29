@@ -6,14 +6,14 @@ type content =
   | CodeContent(string, language);
 
 type contentBlock = {
-  id: int,
-  noteId: int,
+  id: string,
+  noteId: string,
   content,
 };
 
 type note = {
-  id: int,
-  notebookId: int,
+  id: string,
+  notebookId: string,
   title: string,
   tags: list(tag),
   createdAt: Js.Date.t,
@@ -22,7 +22,7 @@ type note = {
 };
 
 type notebook = {
-  id: int,
+  id: string,
   name: string,
   createdAt: Js.Date.t,
   systemUpdatedAt: Js.Date.t,

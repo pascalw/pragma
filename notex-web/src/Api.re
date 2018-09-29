@@ -20,7 +20,7 @@ type apiResponse = {
 module JsonCoders = {
   let decodeNotebook = json: Data.notebook =>
     Json.Decode.{
-      id: json |> field("id", int),
+      id: json |> field("id", string),
       name: json |> field("name", string),
       createdAt: json |> field("createdAt", date),
       systemUpdatedAt: json |> field("systemUpdatedAt", date),
@@ -28,8 +28,8 @@ module JsonCoders = {
 
   let decodeNote = json: Data.note =>
     Json.Decode.{
-      id: json |> field("id", int),
-      notebookId: json |> field("notebookId", int),
+      id: json |> field("id", string),
+      notebookId: json |> field("notebookId", string),
       title: json |> field("title", string),
       tags: json |> field("tags", list(string)),
       createdAt: json |> field("createdAt", date),
@@ -61,8 +61,8 @@ module JsonCoders = {
 
   let decodeContentBlock = json: Data.contentBlock =>
     Json.Decode.{
-      id: json |> field("id", int),
-      noteId: json |> field("noteId", int),
+      id: json |> field("id", string),
+      noteId: json |> field("noteId", string),
       content: json |> field("content", decodeContent),
     };
 
@@ -141,7 +141,7 @@ let updateContentBlock = (contentBlock: Data.contentBlock) => {
   let json = JsonCoders.encodeContentBlock(contentBlock);
 
   Fetch.fetchWithInit(
-    "/api/content_blocks/" ++ string_of_int(contentBlock.id),
+    "/api/content_blocks/" ++ contentBlock.id,
     Fetch.RequestInit.make(
       ~method_=Put,
       ~body=Fetch.BodyInit.make(Js.Json.stringify(json)),

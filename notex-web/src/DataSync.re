@@ -37,7 +37,7 @@ let start = () =>
   );
 
 let pushContentBlock = (contentBlock: Data.contentBlock) => {
-  let id = "contentBlock:" ++ string_of_int(contentBlock.id);
+  let id = "contentBlock:" ++ contentBlock.id;
   let change = {id, change: ContentBlock(contentBlock)};
 
   Js.Dict.set(pendingChanges, id, change);

@@ -1,13 +1,14 @@
 type state = {
-  selectedNotebookId: option(int),
-  selectedNoteId: option(int),
+  selectedNotebookId: option(string),
+  selectedNoteId: option(string),
 };
 
 module JsonCoders = {
   let decodeState = json: state =>
     Json.Decode.{
-      selectedNotebookId: json |> optional(field("selectedNotebookId", int)),
-      selectedNoteId: json |> optional(field("selectedNoteId", int)),
+      selectedNotebookId:
+        json |> optional(field("selectedNotebookId", string)),
+      selectedNoteId: json |> optional(field("selectedNoteId", string)),
     };
 
   let encodeState = (state: state) =>
@@ -17,14 +18,14 @@ module JsonCoders = {
           "selectedNoteId",
           switch (state.selectedNoteId) {
           | None => null
-          | Some(id) => int(id)
+          | Some(id) => string(id)
           },
         ),
         (
           "selectedNotebookId",
           switch (state.selectedNotebookId) {
           | None => null
-          | Some(id) => int(id)
+          | Some(id) => string(id)
           },
         ),
       ])

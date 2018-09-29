@@ -10,18 +10,23 @@ type notebookWithCount = (notebook, noteCount);
 
 type state = {
   notebooks: option(list(notebookWithCount)),
-  selectedNotebook: option(int),
+  selectedNotebook: option(string),
   notes: option(list(note)),
-  selectedNote: option(int),
+  selectedNote: option(string),
   contentBlocks: option(list(contentBlock)),
 };
 
 type action =
   | Load(state)
-  | SelectNote(int)
-  | LoadNote(int, list(contentBlock))
-  | SelectNotebook(int)
-  | LoadNotebook(int, list(note), option(int), option(list(contentBlock)))
+  | SelectNote(string)
+  | LoadNote(string, list(contentBlock))
+  | SelectNotebook(string)
+  | LoadNotebook(
+      string,
+      list(note),
+      option(string),
+      option(list(contentBlock)),
+    )
   | UpdateNoteText(contentBlock, string);
 
 let sortDesc = (notes: list(note)) =>
@@ -50,14 +55,14 @@ module MainUI = {
   let renderNotebooks =
       (
         notebooks: list(notebookWithCount),
-        selectedNotebook: option(int),
+        selectedNotebook: option(string),
         send,
       ) => {
     let listItems =
       List.map(notebooks, ((notebook, noteCount)) =>
         (
           {
-            id: notebook.id |> string_of_int,
+            id: notebook.id,
             title: notebook.name,
             count: Some(noteCount),
             model: notebook,
@@ -68,25 +73,20 @@ module MainUI = {
 
     <ListView
       items=listItems
-      selectedId={Option.map(selectedNotebook, string_of_int)}
+      selectedId=selectedNotebook
       onItemSelected={item => send(SelectNotebook(item.model.id))}
     />;
   };
 
   let renderNotes =
-      (notes: option(list(note)), selectedNote: option(int), send) => {
+      (notes: option(list(note)), selectedNote: option(string), send) => {
     let listItems =
       switch (notes) {
       | None => []
       | Some(notes) =>
         List.map(notes, note =>
           (
-            {
-              id: note.id |> string_of_int,
-              title: note.title,
-              count: None,
-              model: note,
-            }:
+            {id: note.id, title: note.title, count: None, model: note}:
               ListView.listItem(note)
           )
         )
@@ -105,7 +105,7 @@ module MainUI = {
     <ListView
       minWidth="250px"
       items=listItems
-      selectedId={Option.map(selectedNote, string_of_int)}
+      selectedId=selectedNote
       onItemSelected={item => send(SelectNote(item.model.id))}
       renderItemContent=renderNoteListItemContent
     />;

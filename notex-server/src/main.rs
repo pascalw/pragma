@@ -18,6 +18,8 @@ extern crate diesel;
 #[macro_use]
 extern crate diesel_migrations;
 
+extern crate nanoid;
+
 // <EMBEDDED ASSETS>
 
 #[cfg(feature = "embedded_assets")]
@@ -40,6 +42,7 @@ mod build_info;
 mod data;
 mod repo;
 mod repo_actor;
+mod repo_id;
 mod schema;
 
 fn main() {

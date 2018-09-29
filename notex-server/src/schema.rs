@@ -1,10 +1,10 @@
 table! {
     content_blocks (id) {
-        id -> Integer,
+        id -> Text,
         #[sql_name = "type"]
         type_ -> Text,
         content -> Text,
-        note_id -> Integer,
+        note_id -> Text,
         created_at -> Timestamp,
         updated_at -> Timestamp,
         system_updated_at -> Timestamp,
@@ -13,17 +13,17 @@ table! {
 
 table! {
     deletions (id) {
-        id -> Integer,
+        id -> Text,
         #[sql_name = "type"]
         type_ -> Text,
-        resource_id -> Integer,
+        resource_id -> Text,
         system_updated_at -> Timestamp,
     }
 }
 
 table! {
     notebooks (id) {
-        id -> Integer,
+        id -> Text,
         name -> Text,
         created_at -> Timestamp,
         system_updated_at -> Timestamp,
@@ -32,10 +32,10 @@ table! {
 
 table! {
     notes (id) {
-        id -> Integer,
+        id -> Text,
         title -> Text,
         tags -> Nullable<Text>,
-        notebook_id -> Integer,
+        notebook_id -> Text,
         created_at -> Timestamp,
         updated_at -> Timestamp,
         system_updated_at -> Timestamp,

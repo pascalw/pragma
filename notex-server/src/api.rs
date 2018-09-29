@@ -29,7 +29,7 @@ struct Changes {
 #[derive(Serialize)]
 #[serde(rename_all = "camelCase")]
 struct Resource {
-    id: i32,
+    id: String,
 
     #[serde(rename = "type")]
     type_: String,
@@ -100,7 +100,11 @@ fn create_content_block(
 }
 
 fn update_content_block(
-    (req, params, content_block_update): (HttpRequest<State>, Path<i32>, Json<ContentBlockUpdate>),
+    (req, params, content_block_update): (
+        HttpRequest<State>,
+        Path<String>,
+        Json<ContentBlockUpdate>,
+    ),
 ) -> Box<Future<Item = HttpResponse, Error = Error>> {
     let id = params.into_inner();
 
@@ -118,7 +122,7 @@ fn update_content_block(
 }
 
 fn update_note(
-    (req, params, note_update): (HttpRequest<State>, Path<i32>, Json<NoteUpdate>),
+    (req, params, note_update): (HttpRequest<State>, Path<String>, Json<NoteUpdate>),
 ) -> Box<Future<Item = HttpResponse, Error = Error>> {
     let id = params.into_inner();
 
@@ -136,7 +140,7 @@ fn update_note(
 }
 
 fn update_notebook(
-    (req, params, notebook_update): (HttpRequest<State>, Path<i32>, Json<NotebookUpdate>),
+    (req, params, notebook_update): (HttpRequest<State>, Path<String>, Json<NotebookUpdate>),
 ) -> Box<Future<Item = HttpResponse, Error = Error>> {
     let id = params.into_inner();
 
@@ -194,7 +198,7 @@ fn build_response(
     let deletions: Vec<Resource> = deleted_records
         .iter()
         .map(|d| Resource {
-            id: d.id,
+            id: d.id.clone(),
             type_: d.type_.clone(),
         })
         .collect();

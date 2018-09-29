@@ -11,7 +11,7 @@ module JsonCoders = {
   /* Notebooks */
   let decodeNotebook = json: Data.notebook =>
     Json.Decode.{
-      id: json |> field("id", int),
+      id: json |> field("id", string),
       name: json |> field("name", string),
       createdAt: json |> field("createdAt", date),
       systemUpdatedAt: json |> field("systemUpdatedAt", date),
@@ -20,7 +20,7 @@ module JsonCoders = {
   let encodeNotebook = (notebook: Data.notebook) =>
     Json.Encode.(
       object_([
-        ("id", int(notebook.id)),
+        ("id", string(notebook.id)),
         ("name", string(notebook.name)),
         ("createdAt", date(notebook.createdAt)),
         ("systemUpdatedAt", date(notebook.systemUpdatedAt)),
@@ -30,8 +30,8 @@ module JsonCoders = {
   /* Notes */
   let decodeNote = json: Data.note =>
     Json.Decode.{
-      id: json |> field("id", int),
-      notebookId: json |> field("notebookId", int),
+      id: json |> field("id", string),
+      notebookId: json |> field("notebookId", string),
       title: json |> field("title", string),
       tags: json |> field("tags", list(string)),
       createdAt: json |> field("createdAt", date),
@@ -42,8 +42,8 @@ module JsonCoders = {
   let encodeNote = (note: Data.note) =>
     Json.Encode.(
       object_([
-        ("id", int(note.id)),
-        ("notebookId", int(note.notebookId)),
+        ("id", string(note.id)),
+        ("notebookId", string(note.notebookId)),
         ("title", string(note.title)),
         ("tags", jsonArray(note.tags |> List.map(string) |> Array.of_list)),
         ("createdAt", date(note.createdAt)),
@@ -78,8 +78,8 @@ module JsonCoders = {
     };
 
     Json.Decode.{
-      id: json |> field("id", int),
-      noteId: json |> field("noteId", int),
+      id: json |> field("id", string),
+      noteId: json |> field("noteId", string),
       content: json |> field("content", content),
     };
   };
@@ -114,8 +114,8 @@ module JsonCoders = {
 
     Json.Encode.(
       object_([
-        ("id", int(contentBlock.id)),
-        ("noteId", int(contentBlock.noteId)),
+        ("id", string(contentBlock.id)),
+        ("noteId", string(contentBlock.noteId)),
         ("content", content(contentBlock.content)),
       ])
     );

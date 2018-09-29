@@ -2,6 +2,7 @@ use chrono::prelude::*;
 use data;
 use diesel;
 use diesel::prelude::*;
+use repo_id;
 use serde_json;
 use std;
 
@@ -13,7 +14,7 @@ embed_migrations!("./migrations");
 
 #[derive(Queryable)]
 struct Notebook {
-    id: i32,
+    id: String,
     name: String,
     created_at: NaiveDateTime,
     system_updated_at: NaiveDateTime,
@@ -22,6 +23,7 @@ struct Notebook {
 #[derive(Insertable)]
 #[table_name = "notebooks"]
 struct NewNotebook {
+    id: String,
     name: String,
     created_at: NaiveDateTime,
     system_updated_at: NaiveDateTime,
@@ -29,10 +31,10 @@ struct NewNotebook {
 
 #[derive(Queryable, AsChangeset)]
 struct Note {
-    id: i32,
+    id: String,
     title: String,
     tags: Option<String>,
-    notebook_id: i32,
+    notebook_id: String,
     created_at: NaiveDateTime,
     updated_at: NaiveDateTime,
     system_updated_at: NaiveDateTime,
@@ -41,9 +43,10 @@ struct Note {
 #[derive(Insertable)]
 #[table_name = "notes"]
 struct NewNote {
+    id: String,
     title: String,
     tags: Option<String>,
-    notebook_id: i32,
+    notebook_id: String,
     created_at: NaiveDateTime,
     updated_at: NaiveDateTime,
     system_updated_at: NaiveDateTime,
@@ -51,11 +54,11 @@ struct NewNote {
 
 #[derive(Queryable)]
 struct ContentBlock {
-    id: i32,
+    id: String,
     #[allow(dead_code)]
     type_: String,
     content: String,
-    note_id: i32,
+    note_id: String,
     created_at: NaiveDateTime,
     updated_at: NaiveDateTime,
     system_updated_at: NaiveDateTime,
@@ -64,12 +67,13 @@ struct ContentBlock {
 #[derive(Insertable)]
 #[table_name = "content_blocks"]
 struct NewContentBlock {
+    id: String,
     type_: String,
     content: String,
     created_at: NaiveDateTime,
     updated_at: NaiveDateTime,
     system_updated_at: NaiveDateTime,
-    note_id: i32,
+    note_id: String,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -81,9 +85,9 @@ pub enum Content {
 
 #[derive(Queryable)]
 struct Deletion {
-    id: i32,
+    id: String,
     type_: String,
-    resource_id: i32,
+    resource_id: String,
     system_updated_at: NaiveDateTime,
 }
 
@@ -144,7 +148,7 @@ fn map_notebooks(notebooks: &[Notebook]) -> Vec<data::Notebook> {
 
 fn map_notebook(notebook: &Notebook) -> data::Notebook {
     data::Notebook {
-        id: notebook.id,
+        id: notebook.id.to_owned(),
         name: notebook.name.to_owned(),
         created_at: to_utc(notebook.created_at),
         system_updated_at: to_utc(notebook.system_updated_at),
@@ -162,10 +166,10 @@ fn map_note(note: &Note) -> data::Note {
     };
 
     data::Note {
-        id: note.id,
+        id: note.id.to_owned(),
         title: note.title.to_owned(),
         tags,
-        notebook_id: note.notebook_id,
+        notebook_id: note.notebook_id.to_owned(),
         created_at: to_utc(note.created_at),
         updated_at: to_utc(note.updated_at),
         system_updated_at: to_utc(note.system_updated_at),
@@ -196,8 +200,8 @@ fn map_content_blocks(content_blocks: &[ContentBlock]) -> Vec<data::ContentBlock
 
 fn map_content_block(content_block: &ContentBlock) -> data::ContentBlock {
     data::ContentBlock {
-        id: content_block.id,
-        note_id: content_block.note_id,
+        id: content_block.id.to_owned(),
+        note_id: content_block.note_id.to_owned(),
         content: map_content(content_block),
         system_updated_at: to_utc(content_block.system_updated_at),
         created_at: to_utc(content_block.created_at),
@@ -238,9 +242,9 @@ fn map_deletions(deletions: &[Deletion]) -> Vec<data::Deletion> {
 
 fn map_deletion(deletion: &Deletion) -> data::Deletion {
     data::Deletion {
-        id: deletion.id,
+        id: deletion.id.to_owned(),
         type_: deletion.type_.to_owned(),
-        resource_id: deletion.resource_id,
+        resource_id: deletion.resource_id.to_owned(),
         system_updated_at: to_utc(deletion.system_updated_at),
     }
 }
@@ -254,6 +258,7 @@ pub fn create_notebook(
     let now = Utc::now();
 
     let new_notebook = NewNotebook {
+        id: repo_id::generate(),
         name: notebook.name,
         created_at: to_naive(notebook.created_at),
         system_updated_at: to_naive(now),
@@ -264,7 +269,7 @@ pub fn create_notebook(
             .values(&new_notebook)
             .execute(conn)?;
 
-        notebooks.order(id.desc()).first(conn)
+        notebooks.order(system_updated_at.desc()).first(conn)
     });
 
     match result {
@@ -274,7 +279,7 @@ pub fn create_notebook(
 }
 
 pub fn update_notebook(
-    notebook_id: i32,
+    notebook_id: String,
     update: data::NotebookUpdate,
     connection: &SqliteConnection,
 ) -> Result<(), String> {
@@ -299,6 +304,7 @@ pub fn create_note(note: data::NewNote, conn: &SqliteConnection) -> Result<data:
     let now = Utc::now();
 
     let new_note = NewNote {
+        id: repo_id::generate(),
         title: note.title,
         tags: Some(tags_to_string(&note.tags)),
         notebook_id: note.notebook_id,
@@ -310,7 +316,7 @@ pub fn create_note(note: data::NewNote, conn: &SqliteConnection) -> Result<data:
     let result = conn.transaction::<Note, _, _>(|| {
         diesel::insert_into(notes).values(&new_note).execute(conn)?;
 
-        notes.order(id.desc()).first(conn)
+        notes.order(system_updated_at.desc()).first(conn)
     });
 
     match result {
@@ -320,7 +326,7 @@ pub fn create_note(note: data::NewNote, conn: &SqliteConnection) -> Result<data:
 }
 
 pub fn update_note(
-    note_id: i32,
+    note_id: String,
     update: data::NoteUpdate,
     connection: &SqliteConnection,
 ) -> Result<(), String> {
@@ -352,6 +358,7 @@ pub fn create_content_block(
     let (content_string, content_type) = content_to_string(content_block.content);
 
     let new_content_block = NewContentBlock {
+        id: repo_id::generate(),
         type_: content_type,
         content: content_string,
         created_at: to_naive(content_block.created_at),
@@ -365,7 +372,7 @@ pub fn create_content_block(
             .values(&new_content_block)
             .execute(conn)?;
 
-        content_blocks.order(id.desc()).first(conn)
+        content_blocks.order(system_updated_at.desc()).first(conn)
     });
 
     match result {
@@ -375,7 +382,7 @@ pub fn create_content_block(
 }
 
 pub fn update_content_block(
-    content_block_id: i32,
+    content_block_id: String,
     update: data::ContentBlockUpdate,
     connection: &SqliteConnection,
 ) -> Result<(), String> {
