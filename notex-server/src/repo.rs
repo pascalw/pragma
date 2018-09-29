@@ -258,7 +258,7 @@ pub fn create_notebook(
     let now = Utc::now();
 
     let new_notebook = NewNotebook {
-        id: repo_id::generate(),
+        id: notebook.id.unwrap_or_else(|| repo_id::generate()),
         name: notebook.name,
         created_at: to_naive(notebook.created_at),
         system_updated_at: to_naive(now),
@@ -304,7 +304,7 @@ pub fn create_note(note: data::NewNote, conn: &SqliteConnection) -> Result<data:
     let now = Utc::now();
 
     let new_note = NewNote {
-        id: repo_id::generate(),
+        id: note.id.unwrap_or_else(|| repo_id::generate()),
         title: note.title,
         tags: Some(tags_to_string(&note.tags)),
         notebook_id: note.notebook_id,
@@ -358,7 +358,7 @@ pub fn create_content_block(
     let (content_string, content_type) = content_to_string(content_block.content);
 
     let new_content_block = NewContentBlock {
-        id: repo_id::generate(),
+        id: content_block.id.unwrap_or_else(|| repo_id::generate()),
         type_: content_type,
         content: content_string,
         created_at: to_naive(content_block.created_at),

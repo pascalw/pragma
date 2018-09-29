@@ -12,6 +12,7 @@ pub struct Notebook {
 #[derive(Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct NewNotebook {
+    pub id: Option<String>,
     pub name: String,
     pub created_at: DateTime<Utc>,
 }
@@ -43,6 +44,7 @@ pub struct Note {
 #[derive(Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct NewNote {
+    pub id: Option<String>,
     pub title: String,
     pub tags: Vec<Tag>,
     pub created_at: DateTime<Utc>,
@@ -87,6 +89,7 @@ pub struct ContentBlock {
 #[derive(Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct NewContentBlock {
+    pub id: Option<String>,
     pub content: Content,
     pub created_at: DateTime<Utc>,
     pub note_id: String,
