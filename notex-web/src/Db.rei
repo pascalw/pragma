@@ -1,5 +1,8 @@
 type listener = unit => unit;
+
 let subscribe: listener => unit;
+let unsubscribe: listener => unit;
+
 let addNotebooks: list(Data.notebook) => Future.t(unit);
 let addNotes: list(Data.note) => Future.t(unit);
 

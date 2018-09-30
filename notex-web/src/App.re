@@ -286,7 +286,9 @@ let make = _children => {
     };
 
     fetchData();
+
     Db.subscribe(fetchData);
+    self.onUnmount(() => Db.unsubscribe(fetchData));
   },
   didUpdate: ({oldSelf: _oldSelf, newSelf}) =>
     AppState.setSelected(

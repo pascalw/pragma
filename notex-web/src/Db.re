@@ -208,6 +208,9 @@ let clear = () => saveStateAndNotify(None) |> ignore;
 
 let subscribe = listener => listeners := [listener, ...listeners^];
 
+let unsubscribe = listener =>
+  listeners := Belt.List.keep(listeners^, l => l !== listener);
+
 let getNotes_ = (state, notebookId) =>
   Belt.List.keep(state.notes, note => note.notebookId == notebookId);
 
