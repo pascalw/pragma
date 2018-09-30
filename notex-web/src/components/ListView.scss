@@ -1,9 +1,11 @@
+@import "../styles/colors";
+
 .listView {
   max-width: 10%;
   min-width: 200px;
 
-  background: #fbfbfb;
-  border-right: 1px solid darken(#fbfbfb, 5%);
+  background: $color-background-light;
+  border-right: 1px solid $color-border-light;
 
   transition: min-width 250ms, max-width 250ms;
 
@@ -13,11 +15,15 @@
     border-right: 0;
   }
 
+  ul {
+    overflow-y: auto;
+  }
+
   li {
     display: flex;
     cursor: pointer;
     padding: 0.25rem 0.75rem;
-    border-bottom: 1px solid darken(#fbfbfb, 5%);
+    border-bottom: 1px solid $color-border-light;
 
     & > * {
       text-overflow: ellipsis;
@@ -26,7 +32,7 @@
     }
 
     &:hover {
-      background: darken(#fbfbfb, 2%);
+      background: darken($color-background-light, 2%);
     }
 
     &.selected {

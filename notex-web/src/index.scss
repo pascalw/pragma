@@ -1,19 +1,26 @@
 @import "minireset.css/minireset.sass";
+@import "styles/colors";
+
+html, body {
+  height: 100%;
+  overflow: hidden;
+}
 
 html {
   font-size: 16px;
   -moz-osx-font-smoothing: grayscale;
+  -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
   -webkit-text-size-adjust: 100%;
   -moz-text-size-adjust: 100%;
 }
 
 body, button, input, select, textarea {
-  font-family: BlinkMacSystemFont, -apple-system, "Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue", "Helvetica", "Arial", sans-serif;
+  font-family: system, -apple-system, system-ui, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue", "Helvetica", "Arial", sans-serif;
 }
 
 body {
-  color: #363636;
+  color: $color-text;
   font-size: 1rem;
   font-weight: 400;
   line-height: 1.5;

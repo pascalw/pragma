@@ -1,3 +1,4 @@
+@import "../styles/colors";
 $editor-padding: 0.75rem;
 
 .editor {
@@ -10,8 +11,7 @@ $editor-padding: 0.75rem;
   .note-title {
     margin: 0.5em 0;
     padding: 0 $editor-padding 0.25em;
-    border-bottom: 1px solid darken(#fbfbfb, 5%);
-    color: #000;
+    border-bottom: 1px solid $color-border-light;
   }
 
   :global(.content) {
@@ -53,11 +53,13 @@ $editor-padding: 0.75rem;
   trix-editor {
     overflow-y: scroll;
     border: 1px solid transparent;
-    margin: 0 $editor-padding $editor-padding;
+    margin: 0 $editor-padding;
+    padding-bottom: 0;
+    border-bottom: 0;
     min-height: 2em;
 
     &:focus {
-      border-color: darken(#fbfbfb, 5%);
+      border-color: $color-border-light;
     }
 
     > :last-child {
@@ -66,7 +68,7 @@ $editor-padding: 0.75rem;
   }
 
   trix-toolbar {
-    border-bottom: 1px solid darken(#fbfbfb, 5%);
+    border-bottom: 1px solid $color-border-light;
     margin-bottom: 0.5em;
     padding: 0 $editor-padding;
 
