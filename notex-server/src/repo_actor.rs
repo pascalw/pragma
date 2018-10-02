@@ -1,10 +1,10 @@
 use actix::prelude::*;
 use chrono::prelude::*;
 use data::*;
-use diesel::prelude::*;
 use repo;
+use repo_connection;
 
-pub struct DbExecutor(pub SqliteConnection);
+pub struct DbExecutor(pub repo_connection::Pool);
 
 impl Actor for DbExecutor {
     type Context = SyncContext<Self>;
@@ -24,8 +24,9 @@ impl Handler<GetNoteBooksMessage> for DbExecutor {
     type Result = Result<Vec<Notebook>, String>;
 
     fn handle(&mut self, msg: GetNoteBooksMessage, _: &mut Self::Context) -> Self::Result {
-        let connection = &self.0;
-        repo::notebooks(msg.since_revision, connection)
+        let pool = &self.0;
+        let connection = pool.get().unwrap();
+        repo::notebooks(msg.since_revision, &connection)
     }
 }
 
@@ -45,8 +46,9 @@ impl Handler<CreateNotebookMessage> for DbExecutor {
     type Result = Result<Notebook, String>;
 
     fn handle(&mut self, msg: CreateNotebookMessage, _: &mut Self::Context) -> Self::Result {
-        let connection = &self.0;
-        repo::create_notebook(msg.new_notebook, connection)
+        let pool = &self.0;
+        let connection = pool.get().unwrap();
+        repo::create_notebook(msg.new_notebook, &connection)
     }
 }
 
@@ -67,8 +69,9 @@ impl Handler<UpdateNotebookMessage> for DbExecutor {
     type Result = Result<(), String>;
 
     fn handle(&mut self, msg: UpdateNotebookMessage, _: &mut Self::Context) -> Self::Result {
-        let connection = &self.0;
-        repo::update_notebook(msg.id, msg.update, connection)
+        let pool = &self.0;
+        let connection = pool.get().unwrap();
+        repo::update_notebook(msg.id, msg.update, &connection)
     }
 }
 
@@ -88,8 +91,9 @@ impl Handler<GetNotesMessage> for DbExecutor {
     type Result = Result<Vec<Note>, String>;
 
     fn handle(&mut self, msg: GetNotesMessage, _: &mut Self::Context) -> Self::Result {
-        let connection = &self.0;
-        repo::notes(msg.since_revision, connection)
+        let pool = &self.0;
+        let connection = pool.get().unwrap();
+        repo::notes(msg.since_revision, &connection)
     }
 }
 
@@ -109,8 +113,9 @@ impl Handler<CreateNoteMessage> for DbExecutor {
     type Result = Result<Note, String>;
 
     fn handle(&mut self, msg: CreateNoteMessage, _: &mut Self::Context) -> Self::Result {
-        let connection = &self.0;
-        repo::create_note(msg.new_note, connection)
+        let pool = &self.0;
+        let connection = pool.get().unwrap();
+        repo::create_note(msg.new_note, &connection)
     }
 }
 
@@ -131,8 +136,9 @@ impl Handler<UpdateNoteMessage> for DbExecutor {
     type Result = Result<(), String>;
 
     fn handle(&mut self, msg: UpdateNoteMessage, _: &mut Self::Context) -> Self::Result {
-        let connection = &self.0;
-        repo::update_note(msg.id, msg.update, connection)
+        let pool = &self.0;
+        let connection = pool.get().unwrap();
+        repo::update_note(msg.id, msg.update, &connection)
     }
 }
 
@@ -152,8 +158,9 @@ impl Handler<CreateContentBlockMessage> for DbExecutor {
     type Result = Result<ContentBlock, String>;
 
     fn handle(&mut self, msg: CreateContentBlockMessage, _: &mut Self::Context) -> Self::Result {
-        let connection = &self.0;
-        repo::create_content_block(msg.new_content_block, connection)
+        let pool = &self.0;
+        let connection = pool.get().unwrap();
+        repo::create_content_block(msg.new_content_block, &connection)
     }
 }
 
@@ -174,8 +181,9 @@ impl Handler<UpdateContentBlockMessage> for DbExecutor {
     type Result = Result<(), String>;
 
     fn handle(&mut self, msg: UpdateContentBlockMessage, _: &mut Self::Context) -> Self::Result {
-        let connection = &self.0;
-        repo::update_content_block(msg.id, msg.update, connection)
+        let pool = &self.0;
+        let connection = pool.get().unwrap();
+        repo::update_content_block(msg.id, msg.update, &connection)
     }
 }
 
@@ -195,7 +203,8 @@ impl Handler<GetContentBlocksMessage> for DbExecutor {
     type Result = Result<Vec<ContentBlock>, String>;
 
     fn handle(&mut self, msg: GetContentBlocksMessage, _: &mut Self::Context) -> Self::Result {
-        let connection = &self.0;
+        let pool = &self.0;
+        let connection = pool.get().unwrap();
         repo::content_blocks(msg.since_revision, &connection)
     }
 }
@@ -216,7 +225,8 @@ impl Handler<GetDeletionsMessage> for DbExecutor {
     type Result = Result<Vec<Deletion>, String>;
 
     fn handle(&mut self, msg: GetDeletionsMessage, _: &mut Self::Context) -> Self::Result {
-        let connection = &self.0;
+        let pool = &self.0;
+        let connection = pool.get().unwrap();
         repo::deletions(msg.since_revision, &connection)
     }
 }

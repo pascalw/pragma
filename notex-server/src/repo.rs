@@ -95,17 +95,6 @@ pub fn run_migrations(connection: &SqliteConnection) {
     embedded_migrations::run_with_output(connection, &mut std::io::stdout()).unwrap();
 }
 
-pub fn establish_connection(database_url: &str) -> SqliteConnection {
-    let connection = SqliteConnection::establish(database_url)
-        .unwrap_or_else(|_| panic!("Error connecting to {}", database_url));
-
-    connection
-        .execute("PRAGMA foreign_keys = ON")
-        .expect("Failed to enable forgein_keys.");
-
-    connection
-}
-
 pub fn notebooks(
     since_revision: Option<DateTime<Utc>>,
     connection: &SqliteConnection,

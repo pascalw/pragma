@@ -17,6 +17,7 @@ extern crate serde_json;
 extern crate diesel;
 #[macro_use]
 extern crate diesel_migrations;
+extern crate r2d2;
 
 extern crate nanoid;
 
@@ -33,7 +34,6 @@ mod assets;
 use actix::prelude::*;
 use actix_state::State;
 use actix_web::{server, App};
-use diesel::sqlite::SqliteConnection;
 use std::env;
 
 mod actix_state;
@@ -42,6 +42,7 @@ mod build_info;
 mod data;
 mod repo;
 mod repo_actor;
+mod repo_connection;
 mod repo_id;
 mod schema;
 
@@ -50,9 +51,10 @@ fn main() {
     let port = port();
 
     let sys = actix::System::new("notex-server");
-    init_repo();
 
-    server::HttpServer::new(build_actix_app)
+    let pool = init_repo();
+
+    server::HttpServer::new(move || build_actix_app(pool.clone()))
         .bind(format!("127.0.0.1:{}", port))
         .unwrap_or_else(|_| panic!("Can not bind to port {}", port))
         .start();
@@ -60,11 +62,8 @@ fn main() {
     let _ = sys.run();
 }
 
-fn build_actix_app() -> App<State> {
-    let addr = SyncArbiter::start(num_cpus::get(), || {
-        let connection = establish_repo_connection();
-        repo_actor::DbExecutor(connection)
-    });
+fn build_actix_app(pool: repo_connection::Pool) -> App<State> {
+    let addr = SyncArbiter::start(1, move || repo_actor::DbExecutor(pool.clone()));
 
     let mut app = App::with_state(State { db: addr.clone() });
 
@@ -88,14 +87,14 @@ fn configure_logger() {
         .init();
 }
 
-fn init_repo() {
-    let connection = establish_repo_connection();
-    repo::run_migrations(&connection);
-}
-
-fn establish_repo_connection() -> SqliteConnection {
+fn init_repo() -> repo_connection::Pool {
     let database_url = env::var("DATABASE_URL").expect("Missing required variable DATABASE_URL");
-    repo::establish_connection(&database_url)
+    let pool = repo_connection::create_pool(&database_url);
+
+    let connection = pool.get().unwrap();
+    repo::run_migrations(&connection);
+
+    pool
 }
 
 fn port() -> String {
