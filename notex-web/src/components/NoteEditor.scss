@@ -55,8 +55,7 @@ $editor-padding: 0.75rem;
     border: 1px solid transparent;
     margin: 0 $editor-padding;
     padding-bottom: 0;
-    border-bottom: 0;
-    min-height: 2em;
+    min-height: 3em;
 
     &:focus {
       border-color: $color-border-light;

@@ -81,6 +81,9 @@ module JsonCoders = {
       id: json |> field("id", string),
       noteId: json |> field("noteId", string),
       content: json |> field("content", content),
+      createdAt: json |> field("createdAt", date),
+      updatedAt: json |> field("updatedAt", date),
+      systemUpdatedAt: json |> field("systemUpdatedAt", date),
     };
   };
 
@@ -117,6 +120,9 @@ module JsonCoders = {
         ("id", string(contentBlock.id)),
         ("noteId", string(contentBlock.noteId)),
         ("content", content(contentBlock.content)),
+        ("createdAt", date(contentBlock.createdAt)),
+        ("updatedAt", date(contentBlock.updatedAt)),
+        ("systemUpdatedAt", date(contentBlock.systemUpdatedAt)),
       ])
     );
   };
@@ -260,6 +266,45 @@ let addNotes = notes =>
       saveStateAndNotify(Some(newState)) |> ignore;
     },
   );
+
+let createNote = (notebookId: string) => {
+  let now = Js.Date.fromFloat(Js.Date.now());
+
+  let note: Data.note = {
+    id: Utils.generateId(),
+    notebookId,
+    title: "Untitled note",
+    tags: [],
+    createdAt: now,
+    updatedAt: now,
+    systemUpdatedAt: now,
+  };
+
+  let contentBlock: Data.contentBlock = {
+    id: Utils.generateId(),
+    noteId: note.id,
+    content: Data.TextContent(""),
+    createdAt: now,
+    updatedAt: now,
+    systemUpdatedAt: now,
+  };
+
+  getState()
+  ->Future.flatMap(state => {
+      let newState = {
+        ...state,
+        notes: state.notes @ [note],
+        contentBlocks: state.contentBlocks @ [contentBlock],
+      };
+
+      saveStateAndNotify(Some(newState));
+    })
+  ->Future.tap(_ => {
+      DataSync.pushNewNote(note);
+      DataSync.pushNewContentBlock(contentBlock);
+    })
+  ->Future.flatMap(_ => Future.value((note, contentBlock)));
+};
 
 let addContentBlocks = contentBlocks =>
   Future.map(

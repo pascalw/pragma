@@ -19,3 +19,8 @@ let compareDates = (a, b) => {
     0;
   };
 };
+
+let nanoIdAlphabet = "0123456789abcdefghijklmnopqrstuvwxyz";
+[@bs.module]
+external generateNanoId: (string, int) => string = "nanoid/generate";
+let generateId = () => generateNanoId(nanoIdAlphabet, 10);

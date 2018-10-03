@@ -26,6 +26,19 @@ module JsonCoders = {
       systemUpdatedAt: json |> field("systemUpdatedAt", date),
     };
 
+  let encodeNote = (note: Data.note) =>
+    Json.Encode.(
+      object_([
+        ("id", string(note.id)),
+        ("notebookId", string(note.notebookId)),
+        ("title", string(note.title)),
+        ("tags", jsonArray(note.tags |> List.map(string) |> Array.of_list)),
+        ("createdAt", date(note.createdAt)),
+        ("updatedAt", date(note.updatedAt)),
+        ("systemUpdatedAt", date(note.systemUpdatedAt)),
+      ])
+    );
+
   let decodeNote = json: Data.note =>
     Json.Decode.{
       id: json |> field("id", string),
@@ -64,6 +77,9 @@ module JsonCoders = {
       id: json |> field("id", string),
       noteId: json |> field("noteId", string),
       content: json |> field("content", decodeContent),
+      createdAt: json |> field("createdAt", date),
+      updatedAt: json |> field("updatedAt", date),
+      systemUpdatedAt: json |> field("systemUpdatedAt", date),
     };
 
   let encodeContentBlock = (contentBlock: Data.contentBlock) => {
@@ -96,8 +112,11 @@ module JsonCoders = {
 
     Json.Encode.(
       object_([
+        ("id", string(contentBlock.id)),
+        ("noteId", string(contentBlock.noteId)),
         ("content", content(contentBlock.content)),
-        ("updatedAt", date(Js.Date.make())) /* FIXME */
+        ("createdAt", date(contentBlock.createdAt)),
+        ("updatedAt", date(contentBlock.updatedAt)),
       ])
     );
   };
@@ -130,6 +149,24 @@ let fetchUrl = (revision: option(string)) =>
   | None => "/api/data"
   };
 
+let toFuture = promise => {
+  let promise =
+    promise
+    |> Js.Promise.then_(response =>
+         if (!Fetch.Response.ok(response)) {
+           Js.Promise.reject(
+             Js.Exn.raiseError(
+               "Request failed with " ++ Fetch.Response.statusText(response),
+             ),
+           );
+         } else {
+           Js.Promise.resolve(response);
+         }
+       );
+
+  FutureJs.fromPromise(promise, Js.String.make);
+};
+
 let fetchChanges = (revision: option(string)) =>
   (
     fetchUrl(revision) |> Fetch.fetch |> Js.Promise.then_(Fetch.Response.json)
@@ -149,5 +186,35 @@ let updateContentBlock = (contentBlock: Data.contentBlock) => {
       (),
     ),
   )
-  ->FutureJs.fromPromise(Js.String.make);
+  ->toFuture;
+};
+
+let createNote = (note: Data.note) => {
+  let json = JsonCoders.encodeNote(note);
+
+  Fetch.fetchWithInit(
+    "/api/notes",
+    Fetch.RequestInit.make(
+      ~method_=Post,
+      ~body=Fetch.BodyInit.make(Js.Json.stringify(json)),
+      ~headers=Fetch.HeadersInit.make({"Content-Type": "application/json"}),
+      (),
+    ),
+  )
+  ->toFuture;
+};
+
+let createContentBlock = (contentBlock: Data.contentBlock) => {
+  let json = JsonCoders.encodeContentBlock(contentBlock);
+
+  Fetch.fetchWithInit(
+    "/api/content_blocks",
+    Fetch.RequestInit.make(
+      ~method_=Post,
+      ~body=Fetch.BodyInit.make(Js.Json.stringify(json)),
+      ~headers=Fetch.HeadersInit.make({"Content-Type": "application/json"}),
+      (),
+    ),
+  )
+  ->toFuture;
 };

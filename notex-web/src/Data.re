@@ -9,6 +9,9 @@ type contentBlock = {
   id: string,
   noteId: string,
   content,
+  createdAt: Js.Date.t,
+  updatedAt: Js.Date.t,
+  systemUpdatedAt: Js.Date.t,
 };
 
 type note = {

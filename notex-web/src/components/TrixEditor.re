@@ -7,6 +7,16 @@ type state = {
   text: string,
 };
 
+let setCursorEnd = [%raw
+  {|
+  function(element) {
+    var editor = element.editor;
+    var length = editor.getDocument().toString().length;
+    editor.setSelectedRange(length - 1);
+  }
+|}
+];
+
 let setEditorRef = (ref, {ReasonReact.state}) =>
   state.editorRef := Js.Nullable.toOption(ref);
 
@@ -15,6 +25,7 @@ let updateTrixEditorValue = (editor, text) => {
 
   if (domNode##value != text) {
     domNode##value #= text;
+    setCursorEnd(. editor) |> ignore;
   };
 };
 
@@ -94,6 +105,7 @@ let make = (~text: string, ~onChange, _children) => {
           ~props={
             "class": "trix-content",
             "spellcheck": "false",
+            "autofocus": "true",
             "ref": self.handle(setEditorRef),
           },
           [||],

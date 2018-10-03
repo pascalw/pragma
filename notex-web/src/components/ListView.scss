@@ -1,6 +1,8 @@
 @import "../styles/colors";
 
 .listView {
+  display: flex;
+  flex-direction: column;
   max-width: 10%;
   min-width: 200px;
 
@@ -17,6 +19,7 @@
 
   ul {
     overflow-y: auto;
+    flex: 1;
   }
 
   li {
@@ -63,4 +66,15 @@
 .count {
     align-self: flex-end;
     flex: 0;
+}
+
+.footer {
+  display: flex;
+  flex-direction: column;
+
+  margin-top: auto;
+  padding: 0 0.5rem;
+
+  border-top: 1px solid $color-border-light;
+  box-shadow: 0px 0px 1px rgba(0,0,0,.1);
 }

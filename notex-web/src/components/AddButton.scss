@@ -1,0 +1,25 @@
+@import "../styles/colors";
+
+.button {
+  align-self: flex-end;
+
+  cursor: pointer;
+  appearance: none;
+  border: none;
+  background: none;
+  padding: 0;
+
+  border-radius: 50%;
+
+  background-image: url("../assets/plus.svg");
+  background-size: 75%;
+  background-repeat: no-repeat;
+  background-position: center;
+  width: 1.5rem;
+  height: 1.5rem;
+  margin: 0.25em 0;
+
+  &:hover {
+    background-color: darken($color-background-light, 5%);
+  }
+}

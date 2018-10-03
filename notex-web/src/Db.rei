@@ -6,6 +6,8 @@ let unsubscribe: listener => unit;
 let addNotebooks: list(Data.notebook) => Future.t(unit);
 let addNotes: list(Data.note) => Future.t(unit);
 
+let createNote: string => Future.t((Data.note, Data.contentBlock));
+
 let getNotes: string => Future.t(list(Data.note));
 let getNotebooks: unit => Future.t(list((Data.notebook, int)));
 

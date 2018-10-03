@@ -35,6 +35,7 @@ let make =
       ~onItemSelected: listItem('a) => unit,
       ~minWidth=?,
       ~renderItemContent=?,
+      ~renderFooter=?,
       _children,
     ) => {
   ...component,
@@ -70,6 +71,13 @@ let make =
       <ul>
         {List.map(items, renderItem) |> List.toArray |> ReasonReact.array}
       </ul>
+      {
+        switch (renderFooter) {
+        | None => ReasonReact.null
+        | Some(renderFun) =>
+          <div className={style("footer")}> {renderFun()} </div>
+        }
+      }
     </div>;
   },
 };

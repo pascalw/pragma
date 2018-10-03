@@ -20,6 +20,7 @@ type action =
   | Load(state)
   | SelectNote(string)
   | LoadNote(string, list(contentBlock))
+  | CreateNote
   | SelectNotebook(string)
   | LoadNotebook(
       string,
@@ -80,6 +81,8 @@ module MainUI = {
 
   let renderNotes =
       (notes: option(list(note)), selectedNote: option(string), send) => {
+    let listFooter = <> <AddButton onClick={_ => send(CreateNote)} /> </>;
+
     let listItems =
       switch (notes) {
       | None => []
@@ -108,6 +111,7 @@ module MainUI = {
       selectedId=selectedNote
       onItemSelected={item => send(SelectNote(item.model.id))}
       renderItemContent=renderNoteListItemContent
+      renderFooter={() => listFooter}
     />;
   };
 
@@ -207,6 +211,17 @@ let reducer = (action: action, state: state) =>
       contentBlocks: Some(contentBlocks),
     }
     ->ReasonReact.Update
+  | CreateNote =>
+    ReasonReact.SideEffects(
+      (
+        self =>
+          Db.createNote(self.state.selectedNotebook |> Belt.Option.getExn)
+          ->Future.map(((note, _contentBlock)) =>
+              self.send(SelectNote(note.id))
+            )
+          ->ignore
+      ),
+    )
 
   | UpdateNoteText(contentBlock, text) =>
     let updatedContentBlock =
