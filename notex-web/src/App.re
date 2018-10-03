@@ -152,11 +152,17 @@ module MainUI = {
         <div className={style("columns")}>
           {renderNotebooks(notebooks, selectedNotebook, send)}
           {renderNotes(notes, selectedNote, send)}
-          <NoteEditor
-            note=editingNote
-            contentBlocks
-            onChange={onChangeDebounced(send)}
-          />
+          {
+            switch (editingNote) {
+            | None => <NoNoteSelected />
+            | Some(_) =>
+              <NoteEditor
+                note=editingNote
+                contentBlocks
+                onChange={onChangeDebounced(send)}
+              />
+            }
+          }
         </div>
       </main>,
   };
