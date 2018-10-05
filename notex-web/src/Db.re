@@ -223,6 +223,11 @@ let getNotes_ = (state, notebookId) =>
 let getNotes = notebookId =>
   Future.map(getState(), state => getNotes_(state, notebookId));
 
+let getNote = noteId =>
+  Future.map(getState(), state =>
+    Belt.List.keep(state.notes, n => n.id == noteId)->Belt.List.head
+  );
+
 let getNotebooks = () =>
   Future.map(getState(), state =>
     state.notebooks
@@ -334,6 +339,24 @@ let updateContentBlock = (contentBlock: Data.contentBlock, ~sync=true, ()) =>
       Some(newState);
     })
   ->Future.tap(_ => sync ? DataSync.pushContentBlock(contentBlock) : ())
+  ->Future.flatMap(saveStateAndNotify);
+
+let updateNote = (note: Data.note, ~sync=true, ()) =>
+  getState()
+  ->Future.map(state => {
+      let updatedNotes: list(Data.note) =
+        Belt.List.map(state.notes, existingNote =>
+          if (existingNote.id == note.id) {
+            note;
+          } else {
+            existingNote;
+          }
+        );
+
+      let newState = {...state, notes: updatedNotes};
+      Some(newState);
+    })
+  ->Future.tap(_ => sync ? DataSync.pushNoteChange(note) : ())
   ->Future.flatMap(saveStateAndNotify);
 
 let insertRevision = (revision: string) =>

@@ -28,7 +28,8 @@ type action =
       option(string),
       option(list(contentBlock)),
     )
-  | UpdateNoteText(contentBlock, string);
+  | UpdateNoteText(contentBlock, string)
+  | UpdateNoteTitle(note, string);
 
 let sortDesc = (notes: list(note)) =>
   Belt.List.sort(notes, (a, b) =>
@@ -115,11 +116,8 @@ module MainUI = {
     />;
   };
 
-  let onChangeDebounced = send => {
+  let onChangeNoteTextDebounced = send => {
     let timerId: ref(option(Js.Global.timeoutId)) = ref(None);
-
-    let sendUpdate = (contentBlock, value) =>
-      send(UpdateNoteText(contentBlock, value));
 
     (contentBlock, value) => {
       switch (timerId^) {
@@ -129,10 +127,20 @@ module MainUI = {
 
       timerId :=
         Some(
-          Js.Global.setTimeout(() => sendUpdate(contentBlock, value), 1000),
+          Js.Global.setTimeout(
+            () => send(UpdateNoteText(contentBlock, value)),
+            1000,
+          ),
         );
     };
   };
+
+  let onChange = (send, onChangeNoteText, change) =>
+    switch (change) {
+    | NoteEditor.Text(contentBlock, value) =>
+      onChangeNoteText(contentBlock, value)
+    | NoteEditor.Title(note, title) => send(UpdateNoteTitle(note, title))
+    };
 
   let component = ReasonReact.statelessComponent("MainUI");
   let make =
@@ -159,7 +167,7 @@ module MainUI = {
               <NoteEditor
                 note=editingNote
                 contentBlocks
-                onChange={onChangeDebounced(send)}
+                onChange={onChange(send, onChangeNoteTextDebounced(send))}
               />
             }
           }
@@ -238,6 +246,12 @@ let reducer = (action: action, state: state) =>
 
     ReasonReact.SideEffects(
       (_self => Db.updateContentBlock(updatedContentBlock, ()) |> ignore),
+    );
+  | UpdateNoteTitle(note, title) =>
+    let updatedNote = {...note, title};
+
+    ReasonReact.SideEffects(
+      (_self => Db.updateNote(updatedNote, ()) |> ignore),
     );
   };
 

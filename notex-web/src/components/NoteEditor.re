@@ -6,27 +6,45 @@ let style = name => Js.Dict.get(styles, name)->Option.getExn;
 
 let component = ReasonReact.statelessComponent("NoteEditor");
 
+let isUntitled = note => note.title == "Untitled note";
+let title = note => isUntitled(note) ? "" : note.title;
+
+type change =
+  | Text(Data.contentBlock, string)
+  | Title(Data.note, string);
+
+let onChangeTitle = (note, onChange, e) => {
+  let value = ReactEvent.Form.target(e)##value;
+  onChange(Title(note, value));
+};
+
 let renderContentBlocks = (note: Data.note, contentBlocks, onChange) =>
   switch (contentBlocks |> List.head) {
   | Some({id: _, content: TextContent(text)} as contentBlock) =>
     <TrixEditor
       key={note.id}
       text
-      onChange=(value => onChange(contentBlock, value))
+      autoFocus={!isUntitled(note)}
+      onChange=(value => onChange(Text(contentBlock, value)))
     />
   | _ => <p> {ReasonReact.string("FIXME: unsupported content type.")} </p>
   };
 
-let make = (~note, ~contentBlocks, ~onChange, _children) => {
+let make = (~note: option(Data.note), ~contentBlocks, ~onChange, _children) => {
   ...component,
   render: _self =>
     switch (note) {
     | None => <div className={style("editor")} />
     | Some(note) =>
       <div className={style("editor")}>
-        <h2 className={style("note-title")}>
-          note.title->ReasonReact.string
-        </h2>
+        <input
+          className={style("note-title")}
+          placeholder="Untitled note"
+          key={note.id}
+          autoFocus={isUntitled(note)}
+          value={title(note)}
+          onChange={onChangeTitle(note, onChange)}
+        />
         <div className="content">
           {
             renderContentBlocks(note, contentBlocks |> Option.getExn, onChange)

@@ -204,6 +204,21 @@ let createNote = (note: Data.note) => {
   ->toFuture;
 };
 
+let updateNote = (note: Data.note) => {
+  let json = JsonCoders.encodeNote(note);
+
+  Fetch.fetchWithInit(
+    "/api/notes/" ++ note.id,
+    Fetch.RequestInit.make(
+      ~method_=Put,
+      ~body=Fetch.BodyInit.make(Js.Json.stringify(json)),
+      ~headers=Fetch.HeadersInit.make({"Content-Type": "application/json"}),
+      (),
+    ),
+  )
+  ->toFuture;
+};
+
 let createContentBlock = (contentBlock: Data.contentBlock) => {
   let json = JsonCoders.encodeContentBlock(contentBlock);
 

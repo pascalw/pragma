@@ -1,6 +1,7 @@
 type changeValue =
   | ContentBlock(Data.contentBlock)
   | NoteCreated(Data.note)
+  | NoteUpdated(Data.note)
   | ContentBlockCreated(Data.contentBlock);
 
 type change = {
@@ -38,6 +39,7 @@ let start = () =>
             | ContentBlock(contentBlock) =>
               Api.updateContentBlock(contentBlock)
             | NoteCreated(note) => Api.createNote(note)
+            | NoteUpdated(note) => Api.updateNote(note)
             | ContentBlockCreated(contentBlock) =>
               Api.createContentBlock(contentBlock)
             };
@@ -69,6 +71,13 @@ let pushNewContentBlock = (contentBlock: Data.contentBlock) => {
 let pushNewNote = (note: Data.note) => {
   let id = "note:craeted:" ++ note.id;
   let change = {id, change: NoteCreated(note)};
+
+  pushChange(change);
+};
+
+let pushNoteChange = (note: Data.note) => {
+  let id = "note:updated:" ++ note.id;
+  let change = {id, change: NoteUpdated(note)};
 
   pushChange(change);
 };
