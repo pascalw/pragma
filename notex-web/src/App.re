@@ -33,7 +33,7 @@ type action =
   | UpdateNoteTitle(note, string);
 
 let sortDesc = (notes: list(note)) =>
-  Belt.List.sort(notes, (a, b) =>
+  List.sort(notes, (a, b) =>
     Utils.compareDates(a.updatedAt, b.updatedAt) * (-1)
   );
 
@@ -84,8 +84,19 @@ module MainUI = {
   };
 
   let renderNotes =
-      (notes: option(list(note)), selectedNote: option(string), send) => {
-    let listFooter = <> <AddButton onClick={_ => send(CreateNote)} /> </>;
+      (
+        selectedNotebook: option(string),
+        notes: option(list(note)),
+        selectedNote: option(string),
+        send,
+      ) => {
+    let renderFooter =
+      switch (selectedNotebook) {
+      | None => (() => ReasonReact.null)
+      | Some(_) => (
+          () => <> <AddButton onClick={_ => send(CreateNote)} /> </>
+        )
+      };
 
     let listItems =
       switch (notes) {
@@ -115,7 +126,7 @@ module MainUI = {
       selectedId=selectedNote
       onItemSelected={item => send(SelectNote(item.model.id))}
       renderItemContent=renderNoteListItemContent
-      renderFooter={() => listFooter}
+      renderFooter
     />;
   };
 
@@ -162,7 +173,7 @@ module MainUI = {
       <main className={style("main")}>
         <div className={style("columns")}>
           {renderNotebooks(notebooks, selectedNotebook, send)}
-          {renderNotes(notes, selectedNote, send)}
+          {renderNotes(selectedNotebook, notes, selectedNote, send)}
           {
             switch (editingNote) {
             | None => <NoNoteSelected />
@@ -232,7 +243,7 @@ let reducer = (action: action, state: state) =>
     ReasonReact.SideEffects(
       (
         self =>
-          Db.createNote(self.state.selectedNotebook |> Belt.Option.getExn)
+          Db.createNote(self.state.selectedNotebook |> Option.getExn)
           ->Future.map(((note, _contentBlock)) =>
               self.send(SelectNote(note.id))
             )
@@ -286,10 +297,14 @@ let make = _children => {
       ->Future.flatMap(notebooks => {
           let selectedNotebookId =
             switch (appState.selectedNotebookId) {
-            | Some(id) => Some(id)
+            | Some(id) =>
+              notebooks
+              ->List.map(((notebook, _count)) => notebook)
+              ->Utils.find(notebook => notebook.id == id)
+              ->Option.map(notebook => notebook.id)
             | None =>
               List.head(notebooks)
-              ->Belt.Option.map(((notebook, _count)) => notebook.id)
+              ->Option.map(((notebook, _count)) => notebook.id)
             };
 
           switch (selectedNotebookId) {
@@ -306,7 +321,7 @@ let make = _children => {
             switch (appState.selectedNoteId) {
             | Some(id) => Some(id)
             | None =>
-              Belt.Option.flatMap(notes, notes =>
+              Option.flatMap(notes, notes =>
                 List.head(notes)->Option.map(note => note.id)
               )
             };
@@ -348,8 +363,7 @@ let make = _children => {
       ->Option.flatMap(selectedNote =>
           switch (self.state.notes) {
           | None => None
-          | Some(notes) =>
-            Belt.List.keep(notes, n => n.id == selectedNote)->List.head
+          | Some(notes) => Utils.find(notes, n => n.id == selectedNote)
           }
         );
 

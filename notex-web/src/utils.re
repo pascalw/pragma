@@ -24,3 +24,6 @@ let nanoIdAlphabet = "0123456789abcdefghijklmnopqrstuvwxyz";
 [@bs.module]
 external generateNanoId: (string, int) => string = "nanoid/generate";
 let generateId = () => generateNanoId(nanoIdAlphabet, 10);
+
+let find = (xs: list('a), predicate: 'a => bool): option('a) =>
+  Belt.List.keep(xs, predicate)->Belt.List.head;
