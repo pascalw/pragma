@@ -6,5 +6,5 @@ CREATE TABLE content_blocks (
   created_at DATETIME NOT NULL,
   updated_at DATETIME NOT NULL,
   system_updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  FOREIGN KEY(note_id) REFERENCES notes(id)
+  FOREIGN KEY(note_id) REFERENCES notes(id) ON DELETE CASCADE
 );

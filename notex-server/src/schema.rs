@@ -12,8 +12,7 @@ table! {
 }
 
 table! {
-    deletions (id) {
-        id -> Text,
+    deletions (type_, resource_id) {
         #[sql_name = "type"]
         type_ -> Text,
         resource_id -> Text,

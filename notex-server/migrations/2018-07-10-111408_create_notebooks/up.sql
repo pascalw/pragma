@@ -6,5 +6,5 @@ CREATE TABLE notes (
   created_at DATETIME NOT NULL,
   updated_at DATETIME NOT NULL,
   system_updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  FOREIGN KEY(notebook_id) REFERENCES notebooks(id)
+  FOREIGN KEY(notebook_id) REFERENCES notebooks(id) ON DELETE CASCADE
 );

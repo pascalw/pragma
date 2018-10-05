@@ -85,7 +85,6 @@ pub enum Content {
 
 #[derive(Queryable)]
 struct Deletion {
-    id: String,
     type_: String,
     resource_id: String,
     system_updated_at: NaiveDateTime,
@@ -231,7 +230,6 @@ fn map_deletions(deletions: &[Deletion]) -> Vec<data::Deletion> {
 
 fn map_deletion(deletion: &Deletion) -> data::Deletion {
     data::Deletion {
-        id: deletion.id.to_owned(),
         type_: deletion.type_.to_owned(),
         resource_id: deletion.resource_id.to_owned(),
         system_updated_at: to_utc(deletion.system_updated_at),

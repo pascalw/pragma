@@ -198,8 +198,8 @@ fn build_response(
     let deletions: Vec<Resource> = deleted_records
         .iter()
         .map(|d| Resource {
-            id: d.id.clone(),
-            type_: d.type_.clone(),
+            id: d.resource_id.to_owned(),
+            type_: d.type_.to_owned(),
         })
         .collect();
 

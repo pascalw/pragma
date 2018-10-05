@@ -23,12 +23,6 @@ pub struct NotebookUpdate {
     pub name: String,
 }
 
-impl TypeIdentifiable for Notebook {
-    fn type_name(&self) -> &'static str {
-        "Notebook"
-    }
-}
-
 #[derive(Serialize, Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct Note {
@@ -57,12 +51,6 @@ pub struct NoteUpdate {
     pub title: String,
     pub tags: Vec<Tag>,
     pub updated_at: DateTime<Utc>,
-}
-
-impl TypeIdentifiable for Note {
-    fn type_name(&self) -> &'static str {
-        "Note"
-    }
 }
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -102,22 +90,11 @@ pub struct ContentBlockUpdate {
     pub updated_at: DateTime<Utc>,
 }
 
-impl TypeIdentifiable for ContentBlock {
-    fn type_name(&self) -> &'static str {
-        "ContentBlock"
-    }
-}
-
 #[derive(Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct Deletion {
-    pub id: String,
     #[serde(rename = "type")]
     pub type_: String,
     pub resource_id: String,
     pub system_updated_at: DateTime<Utc>,
-}
-
-pub trait TypeIdentifiable {
-    fn type_name(&self) -> &'static str;
 }
