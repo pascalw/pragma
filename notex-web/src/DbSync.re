@@ -1,3 +1,5 @@
+open Belt;
+
 let upsertContentBlock = (contentBlock: Data.contentBlock) =>
   Db.getContentBlock(contentBlock.id)
   ->Future.get(storedContentBlock =>
@@ -17,21 +19,27 @@ let upsertNote = (note: Data.note) =>
       }
     );
 
+let upsertNotebook = (notebook: Data.notebook) =>
+  Db.getNotebook(notebook.id)
+  ->Future.get(storedNotebook =>
+      switch (storedNotebook) {
+      | None => Db.addNotebooks([notebook]) |> ignore
+      | Some(_note) => Db.updateNotebook(notebook, ~sync=false, ()) |> ignore
+      }
+    );
+
 let run = () =>
   Db.getRevision()
   ->(Future.flatMap(Api.fetchChanges))
   ->(
       Future.get(result => {
-        let apiResult = Belt.Result.getExn(result);
+        let apiResult = Result.getExn(result);
 
         let revision = apiResult.revision;
         Db.insertRevision(revision) |> ignore;
 
-        Db.addNotebooks(apiResult.changes.notebooks) |> ignore;
-
-        apiResult.changes.notes->Belt.List.forEach(upsertNote);
-
-        apiResult.changes.contentBlocks
-        ->Belt.List.forEach(upsertContentBlock);
+        apiResult.changes.notebooks->List.forEach(upsertNotebook);
+        apiResult.changes.notes->List.forEach(upsertNote);
+        apiResult.changes.contentBlocks->List.forEach(upsertContentBlock);
       })
     );

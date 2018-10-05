@@ -236,6 +236,11 @@ let getNotebooks = () =>
        )
   );
 
+let getNotebook = notebookId =>
+  Future.map(getState(), state =>
+    Belt.List.keep(state.notebooks, n => n.id == notebookId)->Belt.List.head
+  );
+
 let getContentBlocks = noteId =>
   Future.map(getState(), state =>
     state.contentBlocks->(Belt.List.keep(cb => cb.noteId == noteId))
@@ -311,6 +316,30 @@ let createNote = (notebookId: string) => {
   ->Future.flatMap(_ => Future.value((note, contentBlock)));
 };
 
+let createNotebook = () => {
+  let now = Js.Date.fromFloat(Js.Date.now());
+
+  let notebook: Data.notebook = {
+    id: Utils.generateId(),
+    name: "Untitled notebook",
+    createdAt: now,
+    systemUpdatedAt: now,
+  };
+
+  getState()
+  ->Future.map(state => {
+      let newState = {
+        ...state,
+        notebooks: state.notebooks->Belt.List.concat([notebook]),
+      };
+
+      Some(newState);
+    })
+  ->Future.flatMap(saveStateAndNotify)
+  ->Future.tap(_ => DataSync.pushNewNotebook(notebook))
+  ->Future.flatMap(_ => Future.value(notebook));
+};
+
 let addContentBlocks = contentBlocks =>
   Future.map(
     getState(),
@@ -357,6 +386,24 @@ let updateNote = (note: Data.note, ~sync=true, ()) =>
       Some(newState);
     })
   ->Future.tap(_ => sync ? DataSync.pushNoteChange(note) : ())
+  ->Future.flatMap(saveStateAndNotify);
+
+let updateNotebook = (notebook: Data.notebook, ~sync=true, ()) =>
+  getState()
+  ->Future.map(state => {
+      let updatedNotebooks: list(Data.notebook) =
+        Belt.List.map(state.notebooks, existingNotebook =>
+          if (existingNotebook.id == notebook.id) {
+            notebook;
+          } else {
+            existingNotebook;
+          }
+        );
+
+      let newState = {...state, notebooks: updatedNotebooks};
+      Some(newState);
+    })
+  ->Future.tap(_ => sync ? DataSync.pushNotebookChange(notebook) : ())
   ->Future.flatMap(saveStateAndNotify);
 
 let insertRevision = (revision: string) =>

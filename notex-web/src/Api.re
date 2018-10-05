@@ -18,6 +18,16 @@ type apiResponse = {
 };
 
 module JsonCoders = {
+  let encodeNotebook = (notebook: Data.notebook) =>
+    Json.Encode.(
+      object_([
+        ("id", string(notebook.id)),
+        ("name", string(notebook.name)),
+        ("createdAt", date(notebook.createdAt)),
+        ("systemUpdatedAt", date(notebook.systemUpdatedAt)),
+      ])
+    );
+
   let decodeNotebook = json: Data.notebook =>
     Json.Decode.{
       id: json |> field("id", string),
@@ -196,6 +206,36 @@ let createNote = (note: Data.note) => {
     "/api/notes",
     Fetch.RequestInit.make(
       ~method_=Post,
+      ~body=Fetch.BodyInit.make(Js.Json.stringify(json)),
+      ~headers=Fetch.HeadersInit.make({"Content-Type": "application/json"}),
+      (),
+    ),
+  )
+  ->toFuture;
+};
+
+let createNotebook = (notebook: Data.notebook) => {
+  let json = JsonCoders.encodeNotebook(notebook);
+
+  Fetch.fetchWithInit(
+    "/api/notebooks",
+    Fetch.RequestInit.make(
+      ~method_=Post,
+      ~body=Fetch.BodyInit.make(Js.Json.stringify(json)),
+      ~headers=Fetch.HeadersInit.make({"Content-Type": "application/json"}),
+      (),
+    ),
+  )
+  ->toFuture;
+};
+
+let updateNotebook = (notebook: Data.notebook) => {
+  let json = JsonCoders.encodeNotebook(notebook);
+
+  Fetch.fetchWithInit(
+    "/api/notesbooks/" ++ notebook.id,
+    Fetch.RequestInit.make(
+      ~method_=Put,
       ~body=Fetch.BodyInit.make(Js.Json.stringify(json)),
       ~headers=Fetch.HeadersInit.make({"Content-Type": "application/json"}),
       (),

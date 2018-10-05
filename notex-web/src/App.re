@@ -20,6 +20,7 @@ type action =
   | Load(state)
   | SelectNote(string)
   | LoadNote(string, list(contentBlock))
+  | CreateNotebook
   | CreateNote
   | SelectNotebook(string)
   | LoadNotebook(
@@ -60,6 +61,7 @@ module MainUI = {
         selectedNotebook: option(string),
         send,
       ) => {
+    let listFooter = <> <AddButton onClick={_ => send(CreateNotebook)} /> </>;
     let listItems =
       List.map(notebooks, ((notebook, noteCount)) =>
         (
@@ -77,6 +79,7 @@ module MainUI = {
       items=listItems
       selectedId=selectedNotebook
       onItemSelected={item => send(SelectNotebook(item.model.id))}
+      renderFooter={() => listFooter}
     />;
   };
 
@@ -233,6 +236,15 @@ let reducer = (action: action, state: state) =>
           ->Future.map(((note, _contentBlock)) =>
               self.send(SelectNote(note.id))
             )
+          ->ignore
+      ),
+    )
+  | CreateNotebook =>
+    ReasonReact.SideEffects(
+      (
+        self =>
+          Db.createNotebook()
+          ->Future.map(notebook => self.send(SelectNotebook(notebook.id)))
           ->ignore
       ),
     )
