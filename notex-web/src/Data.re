@@ -24,6 +24,6 @@ type note = {
 
 type notebook = {
   id: string,
-  name: string,
+  title: string,
   createdAt: Js.Date.t,
 };

@@ -6,7 +6,7 @@ let style = name => Js.Dict.get(styles, name)->Option.getExn;
 
 let component = ReasonReact.statelessComponent("NoteEditor");
 
-let isUntitled = note => note.title == "Untitled note";
+let isUntitled = (note: Data.note) => note.title == "Untitled note";
 let title = note => isUntitled(note) ? "" : note.title;
 
 type change =

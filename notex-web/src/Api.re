@@ -22,7 +22,7 @@ module JsonCoders = {
     Json.Encode.(
       object_([
         ("id", string(notebook.id)),
-        ("name", string(notebook.name)),
+        ("title", string(notebook.title)),
         ("createdAt", date(notebook.createdAt)),
       ])
     );
@@ -30,7 +30,7 @@ module JsonCoders = {
   let decodeNotebook = json: Data.notebook =>
     Json.Decode.{
       id: json |> field("id", string),
-      name: json |> field("name", string),
+      title: json |> field("title", string),
       createdAt: json |> field("createdAt", date),
     };
 

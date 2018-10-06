@@ -71,7 +71,7 @@ module MainUI = {
         (
           {
             id: notebook.id,
-            title: notebook.name,
+            title: notebook.title,
             count: Some(noteCount),
             model: notebook,
           }:
@@ -84,10 +84,10 @@ module MainUI = {
       if (Some(item.model.id) == notebookIdEditingTitle) {
         <p>
           <NotebookTitleEditor
-            value={item.model.name}
+            value={item.model.title}
             onComplete={
               title => {
-                let updatedNotebook = {...item.model, name: title};
+                let updatedNotebook = {...item.model, title};
                 send(UpdateNotebook(updatedNotebook));
               }
             }

@@ -15,7 +15,7 @@ embed_migrations!("./migrations");
 #[derive(Queryable)]
 struct Notebook {
     id: String,
-    name: String,
+    title: String,
     created_at: NaiveDateTime,
     system_updated_at: NaiveDateTime,
 }
@@ -24,7 +24,7 @@ struct Notebook {
 #[table_name = "notebooks"]
 struct NewNotebook {
     id: String,
-    name: String,
+    title: String,
     created_at: NaiveDateTime,
     system_updated_at: NaiveDateTime,
 }
@@ -137,7 +137,7 @@ fn map_notebooks(notebooks: &[Notebook]) -> Vec<data::Notebook> {
 fn map_notebook(notebook: &Notebook) -> data::Notebook {
     data::Notebook {
         id: notebook.id.to_owned(),
-        name: notebook.name.to_owned(),
+        title: notebook.title.to_owned(),
         created_at: to_utc(notebook.created_at),
         system_updated_at: to_utc(notebook.system_updated_at),
     }
@@ -245,8 +245,8 @@ pub fn create_notebook(
     let now = Utc::now();
 
     let new_notebook = NewNotebook {
-        id: notebook.id.unwrap_or_else(|| repo_id::generate()),
-        name: notebook.name,
+        id: notebook.id.unwrap_or_else(repo_id::generate),
+        title: notebook.title,
         created_at: to_naive(notebook.created_at),
         system_updated_at: to_naive(now),
     };
@@ -274,7 +274,7 @@ pub fn update_notebook(
 
     let result = diesel::update(notebooks.filter(id.eq(notebook_id)))
         .set((
-            name.eq(update.name),
+            title.eq(update.title),
             system_updated_at.eq(to_naive(Utc::now())),
         ))
         .execute(connection);
@@ -291,7 +291,7 @@ pub fn create_note(note: data::NewNote, conn: &SqliteConnection) -> Result<data:
     let now = Utc::now();
 
     let new_note = NewNote {
-        id: note.id.unwrap_or_else(|| repo_id::generate()),
+        id: note.id.unwrap_or_else(repo_id::generate),
         title: note.title,
         tags: Some(tags_to_string(&note.tags)),
         notebook_id: note.notebook_id,
@@ -345,7 +345,7 @@ pub fn create_content_block(
     let (content_string, content_type) = content_to_string(content_block.content);
 
     let new_content_block = NewContentBlock {
-        id: content_block.id.unwrap_or_else(|| repo_id::generate()),
+        id: content_block.id.unwrap_or_else(repo_id::generate),
         type_: content_type,
         content: content_string,
         created_at: to_naive(content_block.created_at),

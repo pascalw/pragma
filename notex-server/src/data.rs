@@ -4,7 +4,7 @@ use chrono::prelude::*;
 #[serde(rename_all = "camelCase")]
 pub struct Notebook {
     pub id: String,
-    pub name: String,
+    pub title: String,
     pub created_at: DateTime<Utc>,
     pub system_updated_at: DateTime<Utc>,
 }
@@ -13,14 +13,14 @@ pub struct Notebook {
 #[serde(rename_all = "camelCase")]
 pub struct NewNotebook {
     pub id: Option<String>,
-    pub name: String,
+    pub title: String,
     pub created_at: DateTime<Utc>,
 }
 
 #[derive(Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct NotebookUpdate {
-    pub name: String,
+    pub title: String,
 }
 
 #[derive(Serialize, Deserialize, Debug)]

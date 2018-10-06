@@ -23,7 +23,7 @@ table! {
 table! {
     notebooks (id) {
         id -> Text,
-        name -> Text,
+        title -> Text,
         created_at -> Timestamp,
         system_updated_at -> Timestamp,
     }
