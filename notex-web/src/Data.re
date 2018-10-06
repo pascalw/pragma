@@ -11,7 +11,6 @@ type contentBlock = {
   content,
   createdAt: Js.Date.t,
   updatedAt: Js.Date.t,
-  systemUpdatedAt: Js.Date.t,
 };
 
 type note = {
@@ -21,12 +20,10 @@ type note = {
   tags: list(tag),
   createdAt: Js.Date.t,
   updatedAt: Js.Date.t,
-  systemUpdatedAt: Js.Date.t,
 };
 
 type notebook = {
   id: string,
   name: string,
   createdAt: Js.Date.t,
-  systemUpdatedAt: Js.Date.t,
 };

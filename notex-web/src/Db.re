@@ -14,7 +14,6 @@ module JsonCoders = {
       id: json |> field("id", string),
       name: json |> field("name", string),
       createdAt: json |> field("createdAt", date),
-      systemUpdatedAt: json |> field("systemUpdatedAt", date),
     };
 
   let encodeNotebook = (notebook: Data.notebook) =>
@@ -23,7 +22,6 @@ module JsonCoders = {
         ("id", string(notebook.id)),
         ("name", string(notebook.name)),
         ("createdAt", date(notebook.createdAt)),
-        ("systemUpdatedAt", date(notebook.systemUpdatedAt)),
       ])
     );
 
@@ -36,7 +34,6 @@ module JsonCoders = {
       tags: json |> field("tags", list(string)),
       createdAt: json |> field("createdAt", date),
       updatedAt: json |> field("updatedAt", date),
-      systemUpdatedAt: json |> field("systemUpdatedAt", date),
     };
 
   let encodeNote = (note: Data.note) =>
@@ -48,7 +45,6 @@ module JsonCoders = {
         ("tags", jsonArray(note.tags |> List.map(string) |> Array.of_list)),
         ("createdAt", date(note.createdAt)),
         ("updatedAt", date(note.updatedAt)),
-        ("systemUpdatedAt", date(note.systemUpdatedAt)),
       ])
     );
 
@@ -83,7 +79,6 @@ module JsonCoders = {
       content: json |> field("content", content),
       createdAt: json |> field("createdAt", date),
       updatedAt: json |> field("updatedAt", date),
-      systemUpdatedAt: json |> field("systemUpdatedAt", date),
     };
   };
 
@@ -122,7 +117,6 @@ module JsonCoders = {
         ("content", content(contentBlock.content)),
         ("createdAt", date(contentBlock.createdAt)),
         ("updatedAt", date(contentBlock.updatedAt)),
-        ("systemUpdatedAt", date(contentBlock.systemUpdatedAt)),
       ])
     );
   };
@@ -287,7 +281,6 @@ let createNote = (notebookId: string) => {
     tags: [],
     createdAt: now,
     updatedAt: now,
-    systemUpdatedAt: now,
   };
 
   let contentBlock: Data.contentBlock = {
@@ -296,7 +289,6 @@ let createNote = (notebookId: string) => {
     content: Data.TextContent(""),
     createdAt: now,
     updatedAt: now,
-    systemUpdatedAt: now,
   };
 
   getState()
@@ -323,7 +315,6 @@ let createNotebook = () => {
     id: Utils.generateId(),
     name: "Untitled notebook",
     createdAt: now,
-    systemUpdatedAt: now,
   };
 
   getState()
