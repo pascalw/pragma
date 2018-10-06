@@ -17,6 +17,7 @@ html {
 
 body, button, input, select, textarea {
   font-family: system, -apple-system, system-ui, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue", "Helvetica", "Arial", sans-serif;
+  font-size: inherit;
 }
 
 body {
@@ -24,6 +25,13 @@ body {
   font-size: 1rem;
   font-weight: 400;
   line-height: 1.5;
+}
+
+:focus {
+  outline:none;
+}
+::-moz-focus-inner {
+  border:0;
 }
 
 small {

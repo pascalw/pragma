@@ -33,6 +33,7 @@ let make =
       ~items: list(listItem('a)),
       ~selectedId: option(string),
       ~onItemSelected: listItem('a) => unit,
+      ~onItemDoubleClick=?,
       ~minWidth=?,
       ~renderItemContent=?,
       ~renderFooter=?,
@@ -50,6 +51,13 @@ let make =
       <li
         key={item.id}
         className={isSelected ? style("selected") : ""}
+        onDoubleClick={
+          _e =>
+            switch (onItemDoubleClick) {
+            | None => ()
+            | Some(fn) => fn(item) |> ignore
+            }
+        }
         onClick={_e => onItemSelected(item)}>
         {
           switch (renderItemContent) {

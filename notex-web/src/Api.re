@@ -228,7 +228,7 @@ let updateNotebook = (notebook: Data.notebook) => {
   let json = JsonCoders.encodeNotebook(notebook);
 
   Fetch.fetchWithInit(
-    "/api/notesbooks/" ++ notebook.id,
+    "/api/notebooks/" ++ notebook.id,
     Fetch.RequestInit.make(
       ~method_=Put,
       ~body=Fetch.BodyInit.make(Js.Json.stringify(json)),

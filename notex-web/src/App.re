@@ -11,6 +11,7 @@ type notebookWithCount = (notebook, noteCount);
 type state = {
   notebooks: option(list(notebookWithCount)),
   selectedNotebook: option(string),
+  notebookIdEditingTitle: option(string),
   notes: option(list(note)),
   selectedNote: option(string),
   contentBlocks: option(list(contentBlock)),
@@ -23,6 +24,7 @@ type action =
   | CreateNotebook
   | CreateNote
   | SelectNotebook(string)
+  | UpdateNotebook(notebook)
   | LoadNotebook(
       string,
       list(note),
@@ -30,7 +32,8 @@ type action =
       option(list(contentBlock)),
     )
   | UpdateNoteText(contentBlock, string)
-  | UpdateNoteTitle(note, string);
+  | UpdateNoteTitle(note, string)
+  | EditNotebookTitle(notebook);
 
 let sortDesc = (notes: list(note)) =>
   List.sort(notes, (a, b) =>
@@ -59,6 +62,7 @@ module MainUI = {
       (
         notebooks: list(notebookWithCount),
         selectedNotebook: option(string),
+        notebookIdEditingTitle: option(string),
         send,
       ) => {
     let listFooter = <> <AddButton onClick={_ => send(CreateNotebook)} /> </>;
@@ -75,10 +79,30 @@ module MainUI = {
         )
       );
 
+    let renderNotebookListItemContent =
+        (send, item: ListView.listItem(notebook)) =>
+      if (Some(item.model.id) == notebookIdEditingTitle) {
+        <p>
+          <NotebookTitleEditor
+            value={item.model.name}
+            onComplete={
+              title => {
+                let updatedNotebook = {...item.model, name: title};
+                send(UpdateNotebook(updatedNotebook));
+              }
+            }
+          />
+        </p>;
+      } else {
+        ListView.defaultRenderItemContent(item);
+      };
+
     <ListView
       items=listItems
       selectedId=selectedNotebook
       onItemSelected={item => send(SelectNotebook(item.model.id))}
+      onItemDoubleClick={item => send(EditNotebookTitle(item.model))}
+      renderItemContent={renderNotebookListItemContent(send)}
       renderFooter={() => listFooter}
     />;
   };
@@ -161,6 +185,7 @@ module MainUI = {
       (
         ~notebooks,
         ~selectedNotebook,
+        ~notebookIdEditingTitle,
         ~notes,
         ~selectedNote,
         ~contentBlocks,
@@ -172,7 +197,14 @@ module MainUI = {
     render: _self =>
       <main className={style("main")}>
         <div className={style("columns")}>
-          {renderNotebooks(notebooks, selectedNotebook, send)}
+          {
+            renderNotebooks(
+              notebooks,
+              selectedNotebook,
+              notebookIdEditingTitle,
+              send,
+            )
+          }
           {renderNotes(selectedNotebook, notes, selectedNote, send)}
           {
             switch (editingNote) {
@@ -255,10 +287,20 @@ let reducer = (action: action, state: state) =>
       (
         self =>
           Db.createNotebook()
-          ->Future.map(notebook => self.send(SelectNotebook(notebook.id)))
+          ->Future.map(notebook => {
+              self.send(SelectNotebook(notebook.id));
+              self.send(EditNotebookTitle(notebook));
+            })
           ->ignore
       ),
     )
+
+  | UpdateNotebook(notebook) =>
+    let newState = {...state, notebookIdEditingTitle: None};
+    ReasonReact.UpdateWithSideEffects(
+      newState,
+      (_self => Db.updateNotebook(notebook, ()) |> ignore),
+    );
 
   | UpdateNoteText(contentBlock, text) =>
     let updatedContentBlock =
@@ -276,6 +318,8 @@ let reducer = (action: action, state: state) =>
     ReasonReact.SideEffects(
       (_self => Db.updateNote(updatedNote, ()) |> ignore),
     );
+  | EditNotebookTitle(notebook) =>
+    ReasonReact.Update({...state, notebookIdEditingTitle: Some(notebook.id)})
   };
 
 let component = ReasonReact.reducerComponent("App");
@@ -284,6 +328,7 @@ let make = _children => {
   initialState: () => {
     notebooks: None,
     selectedNotebook: None,
+    notebookIdEditingTitle: None,
     notes: None,
     selectedNote: None,
     contentBlocks: None,
@@ -339,6 +384,7 @@ let make = _children => {
                   notebooks: Some(notebooks),
                   notes,
                   selectedNotebook,
+                  notebookIdEditingTitle: None,
                   selectedNote: selectedNoteId,
                   contentBlocks: Some(contentBlocks),
                 }),
@@ -373,6 +419,7 @@ let make = _children => {
       <MainUI
         notebooks=self.state.notebooks->Option.getExn
         selectedNotebook={self.state.selectedNotebook}
+        notebookIdEditingTitle={self.state.notebookIdEditingTitle}
         notes={self.state.notes}
         selectedNote={self.state.selectedNote}
         contentBlocks={self.state.contentBlocks}
