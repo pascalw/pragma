@@ -211,6 +211,72 @@ impl Handler<GetContentBlocksMessage> for DbExecutor {
 
 // End GetContentBlocks
 
+// Start DeleteNotebook
+
+pub struct DeleteNotebookMessage {
+    pub id: String,
+}
+
+impl Message for DeleteNotebookMessage {
+    type Result = Result<(), String>;
+}
+
+impl Handler<DeleteNotebookMessage> for DbExecutor {
+    type Result = Result<(), String>;
+
+    fn handle(&mut self, msg: DeleteNotebookMessage, _: &mut Self::Context) -> Self::Result {
+        let pool = &self.0;
+        let connection = pool.get().unwrap();
+        repo::delete_notebook(msg.id, &connection)
+    }
+}
+
+// End DeleteNotebook
+
+// Start DeleteNote
+
+pub struct DeleteNoteMessage {
+    pub id: String,
+}
+
+impl Message for DeleteNoteMessage {
+    type Result = Result<(), String>;
+}
+
+impl Handler<DeleteNoteMessage> for DbExecutor {
+    type Result = Result<(), String>;
+
+    fn handle(&mut self, msg: DeleteNoteMessage, _: &mut Self::Context) -> Self::Result {
+        let pool = &self.0;
+        let connection = pool.get().unwrap();
+        repo::delete_note(msg.id, &connection)
+    }
+}
+
+// End DeleteNote
+
+// Start DeleteContentBlock
+
+pub struct DeleteContentBlockMessage {
+    pub id: String,
+}
+
+impl Message for DeleteContentBlockMessage {
+    type Result = Result<(), String>;
+}
+
+impl Handler<DeleteContentBlockMessage> for DbExecutor {
+    type Result = Result<(), String>;
+
+    fn handle(&mut self, msg: DeleteContentBlockMessage, _: &mut Self::Context) -> Self::Result {
+        let pool = &self.0;
+        let connection = pool.get().unwrap();
+        repo::delete_contentblock(msg.id, &connection)
+    }
+}
+
+// End DeleteContentBlock
+
 // Start GetDeletions
 
 pub struct GetDeletionsMessage {

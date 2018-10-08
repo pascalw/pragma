@@ -1,7 +1,7 @@
 exception UnknownContentType(string);
 
 type resource = {
-  id: int,
+  id: string,
   type_: string,
 };
 
@@ -136,7 +136,7 @@ module JsonCoders = {
 
   let decodeResource = json =>
     Json.Decode.{
-      id: json |> field("id", int),
+      id: json |> field("id", string),
       type_: json |> field("type", string),
     };
 
@@ -239,6 +239,13 @@ let updateNotebook = (notebook: Data.notebook) => {
   ->toFuture;
 };
 
+let deleteNotebook = (notebookId: string) =>
+  Fetch.fetchWithInit(
+    "/api/notebooks/" ++ notebookId,
+    Fetch.RequestInit.make(~method_=Delete, ()),
+  )
+  ->toFuture;
+
 let updateNote = (note: Data.note) => {
   let json = JsonCoders.encodeNote(note);
 
@@ -253,6 +260,13 @@ let updateNote = (note: Data.note) => {
   )
   ->toFuture;
 };
+
+let deleteNote = (noteId: string) =>
+  Fetch.fetchWithInit(
+    "/api/notes/" ++ noteId,
+    Fetch.RequestInit.make(~method_=Delete, ()),
+  )
+  ->toFuture;
 
 let createContentBlock = (contentBlock: Data.contentBlock) => {
   let json = JsonCoders.encodeContentBlock(contentBlock);

@@ -22,6 +22,10 @@ let updateContentBlock: (Data.contentBlock, ~sync: bool=?, unit) => Future.t(uni
 let updateNote: (Data.note, ~sync:bool=?, unit) => Future.t(unit);
 let updateNotebook: (Data.notebook, ~sync:bool=?, unit) => Future.t(unit);
 
+let deleteNotebook: (string, ~sync: bool=?, unit) => Future.t(unit);
+let deleteNote: (string, ~sync: bool=?, unit) => Future.t(unit);
+let deleteContentBlock: (string) => Future.t(unit);
+
 let clear: unit => unit;
 
 let insertRevision: string => Future.t(unit);

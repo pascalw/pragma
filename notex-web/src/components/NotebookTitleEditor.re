@@ -32,7 +32,7 @@ let make = (~value, ~onComplete, _children) => {
         onFocus
         onKeyPress
         onBlur
-        style={ReactDOMRe.Style.make(~fontSize=".9em", ())}
+        style={ReactDOMRe.Style.make(~fontSize=".9em", ~border="none", ())}
       />,
   };
 };

@@ -102,6 +102,15 @@ module MainUI = {
       selectedId=selectedNotebook
       onItemSelected={item => send(SelectNotebook(item.model.id))}
       onItemDoubleClick={item => send(EditNotebookTitle(item.model))}
+      onItemLongpress={
+        item =>
+          if (WindowRe.confirm(
+                "Are you sure you want to delete this notebook?",
+                Webapi.Dom.window,
+              )) {
+            Db.deleteNotebook(item.model.id, ()) |> ignore;
+          }
+      }
       renderItemContent={renderNotebookListItemContent(send)}
       renderFooter={() => listFooter}
     />;
@@ -149,6 +158,15 @@ module MainUI = {
       items=listItems
       selectedId=selectedNote
       onItemSelected={item => send(SelectNote(item.model.id))}
+      onItemLongpress={
+        item =>
+          if (WindowRe.confirm(
+                "Are you sure you want to delete this note?",
+                Webapi.Dom.window,
+              )) {
+            Db.deleteNote(item.model.id, ()) |> ignore;
+          }
+      }
       renderItemContent=renderNoteListItemContent
       renderFooter
     />;

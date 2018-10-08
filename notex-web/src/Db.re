@@ -397,6 +397,45 @@ let updateNotebook = (notebook: Data.notebook, ~sync=true, ()) =>
   ->Future.tap(_ => sync ? DataSync.pushNotebookChange(notebook) : ())
   ->Future.flatMap(saveStateAndNotify);
 
+let deleteNotebook = (notebookId: string, ~sync=true, ()) =>
+  getState()
+  ->Future.map(state => {
+      let updatedNotebooks =
+        Belt.List.keep(state.notebooks, existingNotebook =>
+          existingNotebook.id != notebookId
+        );
+
+      let newState = {...state, notebooks: updatedNotebooks};
+      Some(newState);
+    })
+  ->Future.tap(_ => sync ? DataSync.pushNotebookDelete(notebookId) : ())
+  ->Future.flatMap(saveStateAndNotify);
+
+let deleteNote = (noteId: string, ~sync=true, ()) =>
+  getState()
+  ->Future.map(state => {
+      let updatedNotes =
+        Belt.List.keep(state.notes, existingNote => existingNote.id != noteId);
+
+      let newState = {...state, notes: updatedNotes};
+      Some(newState);
+    })
+  ->Future.tap(_ => sync ? DataSync.pushNoteDelete(noteId) : ())
+  ->Future.flatMap(saveStateAndNotify);
+
+let deleteContentBlock = (contentBlockId: string) =>
+  getState()
+  ->Future.map(state => {
+      let updatedContentBlocks =
+        Belt.List.keep(state.contentBlocks, existingBlock =>
+          existingBlock.id != contentBlockId
+        );
+
+      let newState = {...state, contentBlocks: updatedContentBlocks};
+      Some(newState);
+    })
+  ->Future.flatMap(saveStateAndNotify);
+
 let insertRevision = (revision: string) =>
   Future.map(
     getState(),

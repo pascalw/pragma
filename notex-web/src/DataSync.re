@@ -4,7 +4,9 @@ type changeValue =
   | NoteCreated(Data.note)
   | NoteUpdated(Data.note)
   | NotebookCreated(Data.notebook)
-  | NotebookUpdated(Data.notebook);
+  | NotebookUpdated(Data.notebook)
+  | NotebookDeleted(string)
+  | NoteDeleted(string);
 
 type change = {
   id: string,
@@ -46,6 +48,8 @@ let start = () =>
               Api.createContentBlock(contentBlock)
             | NotebookCreated(notebook) => Api.createNotebook(notebook)
             | NotebookUpdated(notebook) => Api.updateNotebook(notebook)
+            | NotebookDeleted(notebookId) => Api.deleteNotebook(notebookId)
+            | NoteDeleted(noteId) => Api.deleteNote(noteId)
             };
 
           Future.get(result, result =>
@@ -96,6 +100,20 @@ let pushNewNotebook = (notebook: Data.notebook) => {
 let pushNotebookChange = (notebook: Data.notebook) => {
   let id = "notebook:updated:" ++ notebook.id;
   let change = {id, change: NotebookUpdated(notebook)};
+
+  pushChange(change);
+};
+
+let pushNotebookDelete = (notebookId: string) => {
+  let id = "notebook:deleted:" ++ notebookId;
+  let change = {id, change: NotebookDeleted(notebookId)};
+
+  pushChange(change);
+};
+
+let pushNoteDelete = (noteId: string) => {
+  let id = "note:deleted:" ++ noteId;
+  let change = {id, change: NoteDeleted(noteId)};
 
   pushChange(change);
 };

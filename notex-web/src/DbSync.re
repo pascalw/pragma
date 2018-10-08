@@ -30,7 +30,7 @@ let upsertNotebook = (notebook: Data.notebook) =>
 
 let run = () =>
   Db.getRevision()
-  ->(Future.flatMap(Api.fetchChanges))
+  ->Future.flatMap(Api.fetchChanges)
   ->(
       Future.get(result => {
         let apiResult = Result.getExn(result);
@@ -41,5 +41,15 @@ let run = () =>
         apiResult.changes.notebooks->List.forEach(upsertNotebook);
         apiResult.changes.notes->List.forEach(upsertNote);
         apiResult.changes.contentBlocks->List.forEach(upsertContentBlock);
+
+        List.forEach(apiResult.deletions, deletedResource =>
+          switch (deletedResource.type_) {
+          | "notebook" =>
+            Db.deleteNotebook(deletedResource.id, ~sync=false, ())
+          | "note" => Db.deleteNote(deletedResource.id, ~sync=false, ())
+          | "contentBlock" => Db.deleteContentBlock(deletedResource.id)
+          | type_ => Js.Exn.raiseError("Unsupported deletion type: " ++ type_)
+          }
+        );
       })
     );

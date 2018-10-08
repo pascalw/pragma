@@ -45,10 +45,13 @@ pub fn mount(app: App<State>) -> App<State> {
     app.route("/api/data", Method::GET, get_data)
        .route("/api/notes", Method::POST, create_note)
        .route("/api/notes/{id}", Method::PUT, update_note)
+       .route("/api/notes/{id}", Method::DELETE, delete_note)
        .route("/api/notebooks", Method::POST, create_notebook)
        .route("/api/notebooks/{id}", Method::PUT, update_notebook)
+       .route("/api/notebooks/{id}", Method::DELETE, delete_notebook)
        .route("/api/content_blocks", Method::POST, create_content_block)
        .route("/api/content_blocks/{id}", Method::PUT, update_content_block)
+       .route("/api/content_blocks/{id}", Method::DELETE, delete_content_block)
        .route("/version", Method::GET, |_: HttpRequest<State>|
            build_info::build_version()
        )
@@ -121,6 +124,22 @@ fn update_content_block(
         .responder()
 }
 
+fn delete_content_block(
+    (req, params): (HttpRequest<State>, Path<String>),
+) -> Box<Future<Item = HttpResponse, Error = Error>> {
+    let id = params.into_inner();
+
+    let db = &req.state().db;
+
+    db.send(DeleteContentBlockMessage { id })
+        .from_err()
+        .and_then(move |res| match res {
+            Ok(_) => Ok(HttpResponse::Ok().finish()),
+            Err(reason) => Ok(HttpResponse::InternalServerError().body(reason)),
+        })
+        .responder()
+}
+
 fn update_note(
     (req, params, note_update): (HttpRequest<State>, Path<String>, Json<NoteUpdate>),
 ) -> Box<Future<Item = HttpResponse, Error = Error>> {
@@ -139,6 +158,22 @@ fn update_note(
         .responder()
 }
 
+fn delete_note(
+    (req, params): (HttpRequest<State>, Path<String>),
+) -> Box<Future<Item = HttpResponse, Error = Error>> {
+    let id = params.into_inner();
+
+    let db = &req.state().db;
+
+    db.send(DeleteNoteMessage { id })
+        .from_err()
+        .and_then(move |res| match res {
+            Ok(_) => Ok(HttpResponse::Ok().finish()),
+            Err(reason) => Ok(HttpResponse::InternalServerError().body(reason)),
+        })
+        .responder()
+}
+
 fn update_notebook(
     (req, params, notebook_update): (HttpRequest<State>, Path<String>, Json<NotebookUpdate>),
 ) -> Box<Future<Item = HttpResponse, Error = Error>> {
@@ -150,6 +185,22 @@ fn update_notebook(
         id,
         update: notebook_update.into_inner(),
     }).from_err()
+        .and_then(move |res| match res {
+            Ok(_) => Ok(HttpResponse::Ok().finish()),
+            Err(reason) => Ok(HttpResponse::InternalServerError().body(reason)),
+        })
+        .responder()
+}
+
+fn delete_notebook(
+    (req, params): (HttpRequest<State>, Path<String>),
+) -> Box<Future<Item = HttpResponse, Error = Error>> {
+    let id = params.into_inner();
+
+    let db = &req.state().db;
+
+    db.send(DeleteNotebookMessage { id })
+        .from_err()
         .and_then(move |res| match res {
             Ok(_) => Ok(HttpResponse::Ok().finish()),
             Err(reason) => Ok(HttpResponse::InternalServerError().body(reason)),

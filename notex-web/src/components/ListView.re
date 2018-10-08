@@ -10,6 +10,49 @@ type listItem('a) = {
   model: 'a,
 };
 
+module ListItem = {
+  type state = {pressTimer: ref(option(Js.Global.timeoutId))};
+
+  type action;
+
+  let component = ReasonReact.reducerComponent("ListItem");
+
+  let make =
+      (~selected: bool, ~onClick, ~onDoubleClick, ~onLongpress, children) => {
+    let handlePress = (_e, self) => {
+      switch (self.ReasonReact.state.pressTimer^) {
+      | None => ()
+      | Some(timerId) => Js.Global.clearTimeout(timerId)
+      };
+
+      self.ReasonReact.state.pressTimer :=
+        Some(Js.Global.setTimeout(() => onLongpress(), 1000));
+    };
+    let handleRelease = (_e, self) =>
+      switch (self.ReasonReact.state.pressTimer^) {
+      | None => ()
+      | Some(timerId) => Js.Global.clearTimeout(timerId)
+      };
+
+    {
+      ...component,
+      initialState: () => {pressTimer: ref(None)},
+      reducer: (_action: action, _state: state) => ReasonReact.NoUpdate,
+      render: self =>
+        <li
+          className={selected ? style("selected") : ""}
+          onClick
+          onDoubleClick
+          onTouchStart={self.handle(handlePress)}
+          onMouseDown={self.handle(handlePress)}
+          onTouchEnd={self.handle(handleRelease)}
+          onMouseUp={self.handle(handleRelease)}>
+          ...children
+        </li>,
+    };
+  };
+};
+
 let defaultRenderItemContent = (item: listItem('a)) =>
   <div className={style("itemContentWrapper")}>
     <span className={style("title")}>
@@ -34,6 +77,7 @@ let make =
       ~selectedId: option(string),
       ~onItemSelected: listItem('a) => unit,
       ~onItemDoubleClick=?,
+      ~onItemLongpress=?,
       ~minWidth=?,
       ~renderItemContent=?,
       ~renderFooter=?,
@@ -48,9 +92,16 @@ let make =
         | Some(selectedId) => selectedId == item.id
         };
 
-      <li
+      <ListItem
         key={item.id}
-        className={isSelected ? style("selected") : ""}
+        selected=isSelected
+        onLongpress={
+          _e =>
+            switch (onItemLongpress) {
+            | None => ()
+            | Some(fn) => fn(item) |> ignore
+            }
+        }
         onDoubleClick={
           _e =>
             switch (onItemDoubleClick) {
@@ -65,7 +116,7 @@ let make =
           | Some(renderItemContent) => renderItemContent(item)
           }
         }
-      </li>;
+      </ListItem>;
     };
 
     let inlineStyle =
