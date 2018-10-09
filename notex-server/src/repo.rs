@@ -17,6 +17,7 @@ struct Notebook {
     id: String,
     title: String,
     created_at: NaiveDateTime,
+    updated_at: NaiveDateTime,
     system_updated_at: NaiveDateTime,
 }
 
@@ -26,6 +27,7 @@ struct NewNotebook {
     id: String,
     title: String,
     created_at: NaiveDateTime,
+    updated_at: NaiveDateTime,
     system_updated_at: NaiveDateTime,
 }
 
@@ -139,6 +141,7 @@ fn map_notebook(notebook: &Notebook) -> data::Notebook {
         id: notebook.id.to_owned(),
         title: notebook.title.to_owned(),
         created_at: to_utc(notebook.created_at),
+        updated_at: to_utc(notebook.updated_at),
         system_updated_at: to_utc(notebook.system_updated_at),
     }
 }
@@ -248,6 +251,7 @@ pub fn create_notebook(
         id: notebook.id.unwrap_or_else(repo_id::generate),
         title: notebook.title,
         created_at: to_naive(notebook.created_at),
+        updated_at: to_naive(notebook.updated_at),
         system_updated_at: to_naive(now),
     };
 
@@ -307,7 +311,7 @@ pub fn create_note(note: data::NewNote, conn: &SqliteConnection) -> Result<data:
         tags: Some(tags_to_string(&note.tags)),
         notebook_id: note.notebook_id,
         created_at: to_naive(note.created_at),
-        updated_at: to_naive(note.created_at),
+        updated_at: to_naive(note.updated_at),
         system_updated_at: to_naive(now),
     };
 
@@ -371,7 +375,7 @@ pub fn create_content_block(
         type_: content_type,
         content: content_string,
         created_at: to_naive(content_block.created_at),
-        updated_at: to_naive(content_block.created_at),
+        updated_at: to_naive(content_block.updated_at),
         system_updated_at: to_naive(now),
         note_id: content_block.note_id,
     };

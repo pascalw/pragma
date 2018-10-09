@@ -25,6 +25,7 @@ table! {
         id -> Text,
         title -> Text,
         created_at -> Timestamp,
+        updated_at -> Timestamp,
         system_updated_at -> Timestamp,
     }
 }

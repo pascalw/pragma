@@ -6,6 +6,7 @@ pub struct Notebook {
     pub id: String,
     pub title: String,
     pub created_at: DateTime<Utc>,
+    pub updated_at: DateTime<Utc>,
     pub system_updated_at: DateTime<Utc>,
 }
 
@@ -15,6 +16,7 @@ pub struct NewNotebook {
     pub id: Option<String>,
     pub title: String,
     pub created_at: DateTime<Utc>,
+    pub updated_at: DateTime<Utc>,
 }
 
 #[derive(Deserialize, Debug)]
@@ -42,6 +44,7 @@ pub struct NewNote {
     pub title: String,
     pub tags: Vec<Tag>,
     pub created_at: DateTime<Utc>,
+    pub updated_at: DateTime<Utc>,
     pub notebook_id: String,
 }
 
@@ -80,6 +83,7 @@ pub struct NewContentBlock {
     pub id: Option<String>,
     pub content: Content,
     pub created_at: DateTime<Utc>,
+    pub updated_at: DateTime<Utc>,
     pub note_id: String,
 }
 
