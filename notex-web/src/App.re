@@ -135,12 +135,14 @@ module MainUI = {
       switch (notes) {
       | None => []
       | Some(notes) =>
-        List.map(notes, note =>
-          (
-            {id: note.id, title: note.title, count: None, model: note}:
-              ListView.listItem(note)
+        notes
+        ->sortDesc
+        ->List.map(note =>
+            (
+              {id: note.id, title: note.title, count: None, model: note}:
+                ListView.listItem(note)
+            )
           )
-        )
       };
 
     let formatDate = date => DateFns.format("D MMMM YYYY", date);
