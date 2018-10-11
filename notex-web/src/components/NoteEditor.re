@@ -20,11 +20,17 @@ let onChangeTitle = (note, onChange, e) => {
 
 let renderContentBlocks = (note: Data.note, contentBlocks, onChange) =>
   switch (contentBlocks |> List.head) {
-  | Some({id: _, content: TextContent(text)} as contentBlock) =>
+  | Some({content: TextContent(text)} as contentBlock) =>
     <TrixEditor
       key={note.id}
       text
       autoFocus={!isUntitled(note)}
+      onChange=(value => onChange(Text(contentBlock, value)))
+    />
+  | Some({content: CodeContent(_, _)} as contentBlock) =>
+    <CodeEditor
+      key={note.id}
+      contentBlock
       onChange=(value => onChange(Text(contentBlock, value)))
     />
   | _ => <p> {ReasonReact.string("FIXME: unsupported content type.")} </p>

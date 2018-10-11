@@ -55,16 +55,19 @@ $editor-padding: 0.75rem;
     }
   }
 
+  trix-editor, :global(.CodeMirror) {
+    margin: 0 $editor-padding;
+    border: 1px solid transparent;
+  }
+
+  trix-editor:focus, :global(.CodeMirror-focused) {
+      border-color: $color-border-light;
+  }
+
   trix-editor {
     overflow-y: scroll;
-    border: 1px solid transparent;
-    margin: 0 $editor-padding;
     padding-bottom: 0;
     min-height: 3em;
-
-    &:focus {
-      border-color: $color-border-light;
-    }
 
     > :last-child {
       margin-bottom: 0.5em;
@@ -82,6 +85,12 @@ $editor-padding: 0.75rem;
 
     :global(.trix-button.trix-active) {
         background: #EBEDF0;
+    }
+  }
+
+  :global {
+    .CodeMirror {
+        height: auto;
     }
   }
 }

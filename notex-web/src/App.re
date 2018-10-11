@@ -326,7 +326,10 @@ let reducer = (action: action, state: state) =>
     let updatedContentBlock =
       switch (contentBlock.content) {
       | TextContent(_) => {...contentBlock, content: TextContent(text)}
-      | _ => Js.Exn.raiseError("TODO")
+      | CodeContent(_code, language) => {
+          ...contentBlock,
+          content: CodeContent(text, language),
+        }
       };
 
     ReasonReact.SideEffects(
