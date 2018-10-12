@@ -22,7 +22,9 @@ type action =
   | SelectNote(string)
   | LoadNote(string, list(contentBlock))
   | CreateNotebook
+  | DeleteNotebook(notebook)
   | CreateNote
+  | DeleteNote(note)
   | SelectNotebook(string)
   | UpdateNotebook(notebook)
   | LoadNotebook(
@@ -108,7 +110,7 @@ module MainUI = {
                 "Are you sure you want to delete this notebook?",
                 Webapi.Dom.window,
               )) {
-            Db.deleteNotebook(item.model.id, ()) |> ignore;
+            send(DeleteNotebook(item.model));
           }
       }
       renderItemContent={renderNotebookListItemContent(send)}
@@ -166,7 +168,7 @@ module MainUI = {
                 "Are you sure you want to delete this note?",
                 Webapi.Dom.window,
               )) {
-            Db.deleteNote(item.model.id, ()) |> ignore;
+            send(DeleteNote(item.model));
           }
       }
       renderItemContent=renderNoteListItemContent
@@ -295,18 +297,34 @@ let reducer = (action: action, state: state) =>
     ReasonReact.SideEffects(
       (
         self =>
-          Db.createNote(self.state.selectedNotebook |> Option.getExn)
+          Db.withNotification(() =>
+            Db.createNote(self.state.selectedNotebook |> Option.getExn)
+          )
           ->Future.map(((note, _contentBlock)) =>
               self.send(SelectNote(note.id))
             )
           ->ignore
       ),
     )
+  | DeleteNote(note) =>
+    let updatedNotes =
+      Belt.List.keep(state.notes |> Option.getExn, existingNote =>
+        existingNote.id != note.id
+      );
+
+    let newState = {...state, notes: Some(updatedNotes)};
+    ReasonReact.UpdateWithSideEffects(
+      newState,
+      (
+        _self =>
+          Db.withNotification(() => Db.deleteNote(note.id, ()) |> ignore)
+      ),
+    );
   | CreateNotebook =>
     ReasonReact.SideEffects(
       (
         self =>
-          Db.createNotebook()
+          Db.withNotification(() => Db.createNotebook())
           ->Future.map(notebook => {
               self.send(SelectNotebook(notebook.id));
               self.send(EditNotebookTitle(notebook));
@@ -314,9 +332,40 @@ let reducer = (action: action, state: state) =>
           ->ignore
       ),
     )
+  | DeleteNotebook(notebook) =>
+    let updatedNotebooks =
+      Belt.List.keep(
+        state.notebooks |> Option.getExn, ((existingNotebook, _)) =>
+        existingNotebook.id != notebook.id
+      );
+
+    let newState = {...state, notebooks: Some(updatedNotebooks)};
+    ReasonReact.UpdateWithSideEffects(
+      newState,
+      (
+        _self =>
+          Db.withNotification(() => Db.deleteNotebook(notebook.id, ()))
+          |> ignore
+      ),
+    );
 
   | UpdateNotebook(notebook) =>
-    let newState = {...state, notebookIdEditingTitle: None};
+    let updatedNotebooks =
+      Belt.List.map(
+        state.notebooks |> Option.getExn, ((existingNotebook, noteCount)) =>
+        if (existingNotebook.id == notebook.id) {
+          (notebook, noteCount);
+        } else {
+          (existingNotebook, noteCount);
+        }
+      );
+
+    let newState = {
+      ...state,
+      notebookIdEditingTitle: None,
+      notebooks: Some(updatedNotebooks),
+    };
+
     ReasonReact.UpdateWithSideEffects(
       newState,
       (_self => Db.updateNotebook(notebook, ()) |> ignore),
@@ -338,7 +387,18 @@ let reducer = (action: action, state: state) =>
   | UpdateNoteTitle(note, title) =>
     let updatedNote = {...note, title};
 
-    ReasonReact.SideEffects(
+    let updatedNotes =
+      Belt.List.map(state.notes |> Option.getExn, existingNote =>
+        if (existingNote.id == note.id) {
+          updatedNote;
+        } else {
+          existingNote;
+        }
+      );
+
+    let newState = {...state, notes: Some(updatedNotes)};
+    ReasonReact.UpdateWithSideEffects(
+      newState,
       (_self => Db.updateNote(updatedNote, ()) |> ignore),
     );
   | EditNotebookTitle(notebook) =>

@@ -200,11 +200,7 @@ let saveState = newState => {
   Future.value();
 };
 
-let saveStateAndNotify = newState =>
-  saveState(newState)
-  ->Future.tap(() => Belt.List.forEach(listeners^, l => l()));
-
-let clear = () => saveStateAndNotify(None) |> ignore;
+let clear = () => saveState(None) |> ignore;
 
 let subscribe = listener => listeners := [listener, ...listeners^];
 
@@ -255,7 +251,7 @@ let addNotebooks = notebooks =>
         ...state,
         notebooks: state.notebooks->(Belt.List.concat(notebooks)),
       };
-      saveStateAndNotify(Some(newState)) |> ignore;
+      saveState(Some(newState)) |> ignore;
     },
   );
 
@@ -267,7 +263,7 @@ let addNotes = notes =>
         ...state,
         notes: state.notes->(Belt.List.concat(notes)),
       };
-      saveStateAndNotify(Some(newState)) |> ignore;
+      saveState(Some(newState)) |> ignore;
     },
   );
 
@@ -299,7 +295,7 @@ let createNote = (notebookId: string) => {
         contentBlocks: state.contentBlocks @ [contentBlock],
       };
 
-      saveStateAndNotify(Some(newState));
+      saveState(Some(newState));
     })
   ->Future.tap(_ => {
       DataSync.pushNewNote(note);
@@ -326,7 +322,7 @@ let createNotebook = () => {
 
       Some(newState);
     })
-  ->Future.flatMap(saveStateAndNotify)
+  ->Future.flatMap(saveState)
   ->Future.tap(_ => DataSync.pushNewNotebook(notebook))
   ->Future.flatMap(_ => Future.value(notebook));
 };
@@ -339,7 +335,7 @@ let addContentBlocks = contentBlocks =>
         ...state,
         contentBlocks: state.contentBlocks->(Belt.List.concat(contentBlocks)),
       };
-      saveStateAndNotify(Some(newState)) |> ignore;
+      saveState(Some(newState)) |> ignore;
     },
   );
 
@@ -359,7 +355,7 @@ let updateContentBlock = (contentBlock: Data.contentBlock, ~sync=true, ()) =>
       Some(newState);
     })
   ->Future.tap(_ => sync ? DataSync.pushContentBlock(contentBlock) : ())
-  ->Future.flatMap(saveStateAndNotify);
+  ->Future.flatMap(saveState);
 
 let updateNote = (note: Data.note, ~sync=true, ()) =>
   getState()
@@ -377,7 +373,7 @@ let updateNote = (note: Data.note, ~sync=true, ()) =>
       Some(newState);
     })
   ->Future.tap(_ => sync ? DataSync.pushNoteChange(note) : ())
-  ->Future.flatMap(saveStateAndNotify);
+  ->Future.flatMap(saveState);
 
 let updateNotebook = (notebook: Data.notebook, ~sync=true, ()) =>
   getState()
@@ -395,7 +391,7 @@ let updateNotebook = (notebook: Data.notebook, ~sync=true, ()) =>
       Some(newState);
     })
   ->Future.tap(_ => sync ? DataSync.pushNotebookChange(notebook) : ())
-  ->Future.flatMap(saveStateAndNotify);
+  ->Future.flatMap(saveState);
 
 let deleteNotebook = (notebookId: string, ~sync=true, ()) =>
   getState()
@@ -409,7 +405,7 @@ let deleteNotebook = (notebookId: string, ~sync=true, ()) =>
       Some(newState);
     })
   ->Future.tap(_ => sync ? DataSync.pushNotebookDelete(notebookId) : ())
-  ->Future.flatMap(saveStateAndNotify);
+  ->Future.flatMap(saveState);
 
 let deleteNote = (noteId: string, ~sync=true, ()) =>
   getState()
@@ -421,7 +417,7 @@ let deleteNote = (noteId: string, ~sync=true, ()) =>
       Some(newState);
     })
   ->Future.tap(_ => sync ? DataSync.pushNoteDelete(noteId) : ())
-  ->Future.flatMap(saveStateAndNotify);
+  ->Future.flatMap(saveState);
 
 let deleteContentBlock = (contentBlockId: string) =>
   getState()
@@ -434,15 +430,22 @@ let deleteContentBlock = (contentBlockId: string) =>
       let newState = {...state, contentBlocks: updatedContentBlocks};
       Some(newState);
     })
-  ->Future.flatMap(saveStateAndNotify);
+  ->Future.flatMap(saveState);
 
 let insertRevision = (revision: string) =>
   Future.map(
     getState(),
     state => {
       let newState = {...state, revision: Some(revision)};
-      saveStateAndNotify(Some(newState)) |> ignore;
+      saveState(Some(newState)) |> ignore;
     },
   );
 
 let getRevision = () => Future.map(getState(), state => state.revision);
+
+let withNotification = fn => {
+  let result = fn();
+  Belt.List.forEach(listeners^, l => l());
+
+  result;
+};

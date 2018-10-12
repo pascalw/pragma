@@ -26,6 +26,8 @@ let deleteNotebook: (string, ~sync: bool=?, unit) => Future.t(unit);
 let deleteNote: (string, ~sync: bool=?, unit) => Future.t(unit);
 let deleteContentBlock: (string) => Future.t(unit);
 
+let withNotification: (unit => 'a) => 'a;
+
 let clear: unit => unit;
 
 let insertRevision: string => Future.t(unit);

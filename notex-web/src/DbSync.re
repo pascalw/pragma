@@ -35,21 +35,24 @@ let run = () =>
       Future.get(result => {
         let apiResult = Result.getExn(result);
 
-        let revision = apiResult.revision;
-        Db.insertRevision(revision) |> ignore;
+        Db.withNotification(() => {
+          let revision = apiResult.revision;
+          Db.insertRevision(revision) |> ignore;
 
-        apiResult.changes.notebooks->List.forEach(upsertNotebook);
-        apiResult.changes.notes->List.forEach(upsertNote);
-        apiResult.changes.contentBlocks->List.forEach(upsertContentBlock);
+          apiResult.changes.notebooks->List.forEach(upsertNotebook);
+          apiResult.changes.notes->List.forEach(upsertNote);
+          apiResult.changes.contentBlocks->List.forEach(upsertContentBlock);
 
-        List.forEach(apiResult.deletions, deletedResource =>
-          switch (deletedResource.type_) {
-          | "notebook" =>
-            Db.deleteNotebook(deletedResource.id, ~sync=false, ())
-          | "note" => Db.deleteNote(deletedResource.id, ~sync=false, ())
-          | "contentBlock" => Db.deleteContentBlock(deletedResource.id)
-          | type_ => Js.Exn.raiseError("Unsupported deletion type: " ++ type_)
-          }
-        );
+          List.forEach(apiResult.deletions, deletedResource =>
+            switch (deletedResource.type_) {
+            | "notebook" =>
+              Db.deleteNotebook(deletedResource.id, ~sync=false, ())
+            | "note" => Db.deleteNote(deletedResource.id, ~sync=false, ())
+            | "contentBlock" => Db.deleteContentBlock(deletedResource.id)
+            | type_ =>
+              Js.Exn.raiseError("Unsupported deletion type: " ++ type_)
+            }
+          );
+        });
       })
     );
