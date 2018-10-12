@@ -42,8 +42,11 @@ let sortDesc = (notes: list(note)) =>
     Utils.compareDates(a.updatedAt, b.updatedAt) * (-1)
   );
 
+let getSortedNotes = notebookId =>
+  Db.getNotes(notebookId)->Future.map(sortDesc);
+
 let getNotes = notebookId =>
-  Db.getNotes(notebookId)
+  getSortedNotes(notebookId)
   ->Future.map(notes => {
       let selectedNoteId = List.head(notes)->Option.map(note => note.id);
       (notes, selectedNoteId);
@@ -137,14 +140,12 @@ module MainUI = {
       switch (notes) {
       | None => []
       | Some(notes) =>
-        notes
-        ->sortDesc
-        ->List.map(note =>
-            (
-              {id: note.id, title: note.title, count: None, model: note}:
-                ListView.listItem(note)
-            )
+        List.map(notes, note =>
+          (
+            {id: note.id, title: note.title, count: None, model: note}:
+              ListView.listItem(note)
           )
+        )
       };
 
     let formatDate = date => DateFns.format("D MMMM YYYY", date);
@@ -438,7 +439,7 @@ let make = _children => {
           switch (selectedNotebookId) {
           | None => Future.value((notebooks, None, None))
           | Some(notebookId) =>
-            Db.getNotes(notebookId)
+            getSortedNotes(notebookId)
             ->Future.map(notes =>
                 (notebooks, Some(notebookId), Some(notes))
               )
