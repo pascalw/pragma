@@ -105,7 +105,7 @@ let make = (~text: string, ~onChange, ~autoFocus: bool, _children) => {
           ~props={
             "class": "trix-content",
             "autofocus": string_of_bool(autoFocus),
-            "spellcheck": "false",
+            "spellcheck": "true",
             "ref": self.handle(setEditorRef),
           },
           [||],
