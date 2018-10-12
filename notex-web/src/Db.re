@@ -14,6 +14,7 @@ module JsonCoders = {
       id: json |> field("id", string),
       title: json |> field("title", string),
       createdAt: json |> field("createdAt", date),
+      updatedAt: json |> field("updatedAt", date),
     };
 
   let encodeNotebook = (notebook: Data.notebook) =>
@@ -22,6 +23,7 @@ module JsonCoders = {
         ("id", string(notebook.id)),
         ("title", string(notebook.title)),
         ("createdAt", date(notebook.createdAt)),
+        ("updatedAt", date(notebook.updatedAt)),
       ])
     );
 
@@ -311,6 +313,7 @@ let createNotebook = () => {
     id: Utils.generateId(),
     title: "Untitled notebook",
     createdAt: now,
+    updatedAt: now,
   };
 
   getState()

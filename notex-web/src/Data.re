@@ -26,4 +26,5 @@ type notebook = {
   id: string,
   title: string,
   createdAt: Js.Date.t,
+  updatedAt: Js.Date.t,
 };

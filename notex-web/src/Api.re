@@ -24,6 +24,7 @@ module JsonCoders = {
         ("id", string(notebook.id)),
         ("title", string(notebook.title)),
         ("createdAt", date(notebook.createdAt)),
+        ("updatedAt", date(notebook.updatedAt)),
       ])
     );
 
@@ -32,6 +33,7 @@ module JsonCoders = {
       id: json |> field("id", string),
       title: json |> field("title", string),
       createdAt: json |> field("createdAt", date),
+      updatedAt: json |> field("updatedAt", date),
     };
 
   let encodeNote = (note: Data.note) =>
