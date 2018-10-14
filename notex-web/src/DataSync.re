@@ -1,8 +1,6 @@
-open Belt;
-
 type changeValue =
   | ContentBlockCreated(Data.contentBlock)
-  | ContentBlock(Data.contentBlock)
+  | ContentBlockUpdated(Data.contentBlock)
   | NoteCreated(Data.note)
   | NoteUpdated(Data.note)
   | NotebookCreated(Data.notebook)
@@ -16,14 +14,11 @@ type change = {
 };
 
 let pendingChanges: ref(list(change)) = ref([]);
-
-let removePendingChange = change =>
-  pendingChanges :=
-    List.keep(pendingChanges^, pendingChange => pendingChange !== change);
+let retryQueue: ref(list(change)) = ref([]);
 
 let syncChange = change =>
   switch (change.change) {
-  | ContentBlock(contentBlock) => Api.updateContentBlock(contentBlock)
+  | ContentBlockUpdated(contentBlock) => Api.updateContentBlock(contentBlock)
   | NoteCreated(note) => Api.createNote(note)
   | NoteUpdated(note) => Api.updateNote(note)
   | ContentBlockCreated(contentBlock) => Api.createContentBlock(contentBlock)
@@ -33,15 +28,33 @@ let syncChange = change =>
   | NoteDeleted(noteId) => Api.deleteNote(noteId)
   };
 
-let pushChange = change =>
+let storePendingChanges = () =>
+  (pendingChanges^)
+  ->Belt.List.concat(retryQueue^)
+  ->Belt.List.map(change => change.id)
+  ->DataSyncPersistence.store;
+
+let removePendingChange = change => {
   pendingChanges :=
-    (pendingChanges^)
-    ->List.keep(pendingChange => pendingChange.id != change.id)
-    ->List.concat([change]);
+    Belt.List.keep(pendingChanges^, pendingChange => pendingChange !== change);
+
+  storePendingChanges();
+};
+
+let pushChangeToQueue = (queue, change) => {
+  queue :=
+    (queue^)
+    ->Belt.List.keep(pendingChange => pendingChange.id != change.id)
+    ->Belt.List.concat([change]);
+
+  storePendingChanges();
+};
+
+let pushChange = change => pushChangeToQueue(pendingChanges, change);
 
 let pushContentBlock = (contentBlock: Data.contentBlock) => {
-  let id = "contentBlock:" ++ contentBlock.id;
-  let change = {id, change: ContentBlock(contentBlock)};
+  let id = "contentBlock:updated:" ++ contentBlock.id;
+  let change = {id, change: ContentBlockUpdated(contentBlock)};
 
   pushChange(change);
 };
@@ -54,7 +67,7 @@ let pushNewContentBlock = (contentBlock: Data.contentBlock) => {
 };
 
 let pushNewNote = (note: Data.note) => {
-  let id = "note:craeted:" ++ note.id;
+  let id = "note:created:" ++ note.id;
   let change = {id, change: NoteCreated(note)};
 
   pushChange(change);
@@ -68,7 +81,7 @@ let pushNoteChange = (note: Data.note) => {
 };
 
 let pushNewNotebook = (notebook: Data.notebook) => {
-  let id = "notebook:craeted:" ++ notebook.id;
+  let id = "notebook:created:" ++ notebook.id;
   let change = {id, change: NotebookCreated(notebook)};
 
   pushChange(change);
@@ -96,28 +109,35 @@ let pushNoteDelete = (noteId: string) => {
 };
 
 let rec syncPendingChanges = onComplete => {
-  let nextChange = List.take(pendingChanges^, 1);
+  let nextChange = Belt.List.take(pendingChanges^, 1);
 
   switch (nextChange) {
   | Some([change]) =>
     syncChange(change)
     ->Future.get(result => {
-        if (Belt.Result.isOk(result)) {
-          removePendingChange(change);
-        } else {
-          pushChange(change);
+        if (Belt.Result.isError(result)) {
+          pushChangeToQueue(retryQueue, change);
         };
 
+        removePendingChange(change);
         syncPendingChanges(onComplete);
       })
   | _ => onComplete()
   };
 };
 
-let start = () => {
+let retryFailed = () => {
+  Belt.List.forEach(retryQueue^, pushChange);
+  retryQueue := [];
+};
+
+let start = persistedChanges => {
+  Belt.List.forEach(persistedChanges, pushChange);
+
   let rec onComplete = () =>
-    Js.Global.setTimeout(() => syncPendingChanges(onComplete), 3000)
+    Js.Global.setTimeout(() => syncPendingChanges(onComplete), 3_000)
     |> ignore;
 
   syncPendingChanges(onComplete);
+  Js.Global.setInterval(retryFailed, 10_000) |> ignore;
 };

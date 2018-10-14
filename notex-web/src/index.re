@@ -13,4 +13,5 @@ if (Utils.hot) {
 registerServiceWorker();
 
 DbSync.run();
-DataSync.start();
+
+DataSyncRetry.getPendingChanges()->Future.get(DataSync.start);
