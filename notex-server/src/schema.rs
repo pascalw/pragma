@@ -1,3 +1,6 @@
+// For Diesel 1.3 on Rust >= 1.29
+#![allow(proc_macro_derive_resolution_fallback)]
+
 table! {
     content_blocks (id) {
         id -> Text,
