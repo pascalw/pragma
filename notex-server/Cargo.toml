@@ -26,6 +26,7 @@ r2d2 = "0.8.2"
 futures = "0.1"
 num_cpus = "1.0"
 nanoid = "0.2.0"
+rand = "0.5.5"
 
 [features]
 embedded_assets = []

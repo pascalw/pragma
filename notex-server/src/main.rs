@@ -1,10 +1,13 @@
 extern crate actix;
 extern crate actix_web;
+
 extern crate chrono;
 extern crate env_logger;
 
+#[macro_use]
 extern crate log;
 extern crate num_cpus;
+extern crate rand;
 
 #[macro_use]
 extern crate lazy_static;
@@ -38,6 +41,7 @@ use std::env;
 
 mod actix_state;
 mod api;
+mod auth;
 mod build_info;
 mod data;
 mod repo;
@@ -48,12 +52,11 @@ mod schema;
 
 fn main() {
     configure_logger();
-    let port = port();
-
-    let sys = actix::System::new("notex-server");
-
+    auth::init();
     let pool = init_repo();
 
+    let port = port();
+    let sys = actix::System::new("notex-server");
     server::HttpServer::new(move || build_actix_app(pool.clone()))
         .bind(format!("127.0.0.1:{}", port))
         .unwrap_or_else(|_| panic!("Can not bind to port {}", port))

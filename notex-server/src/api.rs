@@ -6,6 +6,7 @@ use chrono::prelude::*;
 
 use self::futures::future::Future;
 use actix_state::State;
+use auth::AuthMiddleware;
 use build_info;
 use data::*;
 use repo_actor::*;
@@ -42,19 +43,22 @@ struct GetDataQuery {
 
 pub fn mount(app: App<State>) -> App<State> {
     #[cfg_attr(rustfmt, rustfmt_skip)]
-    app.route("/api/data", Method::GET, get_data)
-       .route("/api/notes", Method::POST, create_note)
-       .route("/api/notes/{id}", Method::PUT, update_note)
-       .route("/api/notes/{id}", Method::DELETE, delete_note)
-       .route("/api/notebooks", Method::POST, create_notebook)
-       .route("/api/notebooks/{id}", Method::PUT, update_notebook)
-       .route("/api/notebooks/{id}", Method::DELETE, delete_notebook)
-       .route("/api/content_blocks", Method::POST, create_content_block)
-       .route("/api/content_blocks/{id}", Method::PUT, update_content_block)
-       .route("/api/content_blocks/{id}", Method::DELETE, delete_content_block)
-       .route("/version", Method::GET, |_: HttpRequest<State>|
-           build_info::build_version()
-       )
+    app.scope("/api", |scope| {
+       scope.middleware(AuthMiddleware)
+            .route("/data", Method::GET, get_data)
+            .route("/notes", Method::POST, create_note)
+            .route("/notes/{id}", Method::PUT, update_note)
+            .route("/notes/{id}", Method::DELETE, delete_note)
+            .route("/notebooks", Method::POST, create_notebook)
+            .route("/notebooks/{id}", Method::PUT, update_notebook)
+            .route("/notebooks/{id}", Method::DELETE, delete_notebook)
+            .route("/content_blocks", Method::POST, create_content_block)
+            .route("/content_blocks/{id}", Method::PUT, update_content_block)
+            .route("/content_blocks/{id}", Method::DELETE, delete_content_block)
+    })
+    .route("/version", Method::GET, |_: HttpRequest<State>|
+        build_info::build_version()
+    )
 }
 
 fn create_notebook(
@@ -65,11 +69,10 @@ fn create_notebook(
     db.send(CreateNotebookMessage {
         new_notebook: new_notebook.into_inner(),
     }).from_err()
-        .and_then(move |res| match res {
-            Ok(notebook) => Ok(HttpResponse::Ok().json(notebook)),
-            Err(reason) => Ok(HttpResponse::InternalServerError().body(reason)),
-        })
-        .responder()
+    .and_then(move |res| match res {
+        Ok(notebook) => Ok(HttpResponse::Ok().json(notebook)),
+        Err(reason) => Ok(HttpResponse::InternalServerError().body(reason)),
+    }).responder()
 }
 
 fn create_note(
@@ -80,11 +83,10 @@ fn create_note(
     db.send(CreateNoteMessage {
         new_note: new_note.into_inner(),
     }).from_err()
-        .and_then(move |res| match res {
-            Ok(note) => Ok(HttpResponse::Ok().json(note)),
-            Err(reason) => Ok(HttpResponse::InternalServerError().body(reason)),
-        })
-        .responder()
+    .and_then(move |res| match res {
+        Ok(note) => Ok(HttpResponse::Ok().json(note)),
+        Err(reason) => Ok(HttpResponse::InternalServerError().body(reason)),
+    }).responder()
 }
 
 fn create_content_block(
@@ -95,11 +97,10 @@ fn create_content_block(
     db.send(CreateContentBlockMessage {
         new_content_block: new_content_block.into_inner(),
     }).from_err()
-        .and_then(move |res| match res {
-            Ok(content_block) => Ok(HttpResponse::Ok().json(content_block)),
-            Err(reason) => Ok(HttpResponse::InternalServerError().body(reason)),
-        })
-        .responder()
+    .and_then(move |res| match res {
+        Ok(content_block) => Ok(HttpResponse::Ok().json(content_block)),
+        Err(reason) => Ok(HttpResponse::InternalServerError().body(reason)),
+    }).responder()
 }
 
 fn update_content_block(
@@ -117,11 +118,10 @@ fn update_content_block(
         id,
         update: content_block_update.into_inner(),
     }).from_err()
-        .and_then(move |res| match res {
-            Ok(_) => Ok(HttpResponse::Ok().finish()),
-            Err(reason) => Ok(HttpResponse::InternalServerError().body(reason)),
-        })
-        .responder()
+    .and_then(move |res| match res {
+        Ok(_) => Ok(HttpResponse::Ok().finish()),
+        Err(reason) => Ok(HttpResponse::InternalServerError().body(reason)),
+    }).responder()
 }
 
 fn delete_content_block(
@@ -136,8 +136,7 @@ fn delete_content_block(
         .and_then(move |res| match res {
             Ok(_) => Ok(HttpResponse::Ok().finish()),
             Err(reason) => Ok(HttpResponse::InternalServerError().body(reason)),
-        })
-        .responder()
+        }).responder()
 }
 
 fn update_note(
@@ -151,11 +150,10 @@ fn update_note(
         id,
         update: note_update.into_inner(),
     }).from_err()
-        .and_then(move |res| match res {
-            Ok(_) => Ok(HttpResponse::Ok().finish()),
-            Err(reason) => Ok(HttpResponse::InternalServerError().body(reason)),
-        })
-        .responder()
+    .and_then(move |res| match res {
+        Ok(_) => Ok(HttpResponse::Ok().finish()),
+        Err(reason) => Ok(HttpResponse::InternalServerError().body(reason)),
+    }).responder()
 }
 
 fn delete_note(
@@ -170,8 +168,7 @@ fn delete_note(
         .and_then(move |res| match res {
             Ok(_) => Ok(HttpResponse::Ok().finish()),
             Err(reason) => Ok(HttpResponse::InternalServerError().body(reason)),
-        })
-        .responder()
+        }).responder()
 }
 
 fn update_notebook(
@@ -185,11 +182,10 @@ fn update_notebook(
         id,
         update: notebook_update.into_inner(),
     }).from_err()
-        .and_then(move |res| match res {
-            Ok(_) => Ok(HttpResponse::Ok().finish()),
-            Err(reason) => Ok(HttpResponse::InternalServerError().body(reason)),
-        })
-        .responder()
+    .and_then(move |res| match res {
+        Ok(_) => Ok(HttpResponse::Ok().finish()),
+        Err(reason) => Ok(HttpResponse::InternalServerError().body(reason)),
+    }).responder()
 }
 
 fn delete_notebook(
@@ -204,8 +200,7 @@ fn delete_notebook(
         .and_then(move |res| match res {
             Ok(_) => Ok(HttpResponse::Ok().finish()),
             Err(reason) => Ok(HttpResponse::InternalServerError().body(reason)),
-        })
-        .responder()
+        }).responder()
 }
 
 fn get_data(
@@ -236,8 +231,7 @@ fn get_data(
                 Ok(HttpResponse::Ok().json(data_response))
             }
             _ => Ok(HttpResponse::InternalServerError().into()),
-        })
-        .responder()
+        }).responder()
 }
 
 fn build_response(
@@ -251,8 +245,7 @@ fn build_response(
         .map(|d| Resource {
             id: d.resource_id.to_owned(),
             type_: d.type_.to_owned(),
-        })
-        .collect();
+        }).collect();
 
     let revision = revision(&notebooks, &notes, &content_blocks);
 

@@ -283,8 +283,7 @@ pub fn update_notebook(
         .set((
             title.eq(update.title),
             system_updated_at.eq(to_naive(Utc::now())),
-        ))
-        .execute(connection);
+        )).execute(connection);
 
     match result {
         Ok(_num_rows) => Ok(()),
@@ -343,8 +342,7 @@ pub fn update_note(
             tags.eq(tags_to_string(&update.tags)),
             updated_at.eq(to_naive(update.updated_at)),
             system_updated_at.eq(to_naive(Utc::now())),
-        ))
-        .execute(connection);
+        )).execute(connection);
 
     match result {
         Ok(_num_rows) => Ok(()),
@@ -411,8 +409,7 @@ pub fn update_content_block(
             content.eq(content_string),
             type_.eq(content_type.to_string()),
             system_updated_at.eq(to_naive(Utc::now())),
-        ))
-        .execute(connection);
+        )).execute(connection);
 
     match result {
         Ok(_num_rows) => Ok(()),
