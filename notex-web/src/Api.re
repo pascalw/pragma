@@ -174,9 +174,22 @@ let toFuture = promise => {
   FutureJs.fromPromise(promise, Js.String.make);
 };
 
+let headers = () => {
+  "Content-Type": "application/json",
+  "Authorization": "bearer " ++ Belt.Option.getExn(Auth.getToken()),
+};
+
 let fetchChanges = (revision: option(string)) =>
   (
-    fetchUrl(revision) |> Fetch.fetch |> Js.Promise.then_(Fetch.Response.json)
+    Fetch.fetchWithInit(
+      fetchUrl(revision),
+      Fetch.RequestInit.make(
+        ~method_=Get,
+        ~headers=Fetch.HeadersInit.make(headers()),
+        (),
+      ),
+    )
+    |> Js.Promise.then_(Fetch.Response.json)
   )
   ->(FutureJs.fromPromise(Js.String.make)) /* FIXME */
   ->(Future.mapOk(JsonCoders.decodeChangesResponse));
@@ -189,7 +202,7 @@ let updateContentBlock = (contentBlock: Data.contentBlock) => {
     Fetch.RequestInit.make(
       ~method_=Put,
       ~body=Fetch.BodyInit.make(Js.Json.stringify(json)),
-      ~headers=Fetch.HeadersInit.make({"Content-Type": "application/json"}),
+      ~headers=Fetch.HeadersInit.make(headers()),
       (),
     ),
   )
@@ -204,7 +217,7 @@ let createNote = (note: Data.note) => {
     Fetch.RequestInit.make(
       ~method_=Post,
       ~body=Fetch.BodyInit.make(Js.Json.stringify(json)),
-      ~headers=Fetch.HeadersInit.make({"Content-Type": "application/json"}),
+      ~headers=Fetch.HeadersInit.make(headers()),
       (),
     ),
   )
@@ -219,7 +232,7 @@ let createNotebook = (notebook: Data.notebook) => {
     Fetch.RequestInit.make(
       ~method_=Post,
       ~body=Fetch.BodyInit.make(Js.Json.stringify(json)),
-      ~headers=Fetch.HeadersInit.make({"Content-Type": "application/json"}),
+      ~headers=Fetch.HeadersInit.make(headers()),
       (),
     ),
   )
@@ -234,7 +247,7 @@ let updateNotebook = (notebook: Data.notebook) => {
     Fetch.RequestInit.make(
       ~method_=Put,
       ~body=Fetch.BodyInit.make(Js.Json.stringify(json)),
-      ~headers=Fetch.HeadersInit.make({"Content-Type": "application/json"}),
+      ~headers=Fetch.HeadersInit.make(headers()),
       (),
     ),
   )
@@ -256,7 +269,7 @@ let updateNote = (note: Data.note) => {
     Fetch.RequestInit.make(
       ~method_=Put,
       ~body=Fetch.BodyInit.make(Js.Json.stringify(json)),
-      ~headers=Fetch.HeadersInit.make({"Content-Type": "application/json"}),
+      ~headers=Fetch.HeadersInit.make(headers()),
       (),
     ),
   )
@@ -278,7 +291,7 @@ let createContentBlock = (contentBlock: Data.contentBlock) => {
     Fetch.RequestInit.make(
       ~method_=Post,
       ~body=Fetch.BodyInit.make(Js.Json.stringify(json)),
-      ~headers=Fetch.HeadersInit.make({"Content-Type": "application/json"}),
+      ~headers=Fetch.HeadersInit.make(headers()),
       (),
     ),
   )

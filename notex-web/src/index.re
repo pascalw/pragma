@@ -4,6 +4,7 @@
 [@bs.module "./registerServiceWorker"]
 external registerServiceWorker: unit => unit = "default";
 
+Auth.check();
 ReactDOMRe.renderToElementWithId(<App />, "root");
 
 if (Utils.hot) {
@@ -13,5 +14,4 @@ if (Utils.hot) {
 registerServiceWorker();
 
 DbSync.run();
-
 DataSyncRetry.getPendingChanges()->Future.get(DataSync.start);
