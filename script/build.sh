@@ -2,7 +2,11 @@
 BUILDER=${BUILDER:-local}
 
 function rust_musl_builder() {
-  docker run --rm -it -v "$(pwd)":/home/rust/src -v cargo-git:/home/rust/.cargo/git -v cargo-registry:/home/rust/.cargo/registry ekidd/rust-musl-builder "$@"
+  docker run --rm -it -v "$(pwd)":/home/rust/src \
+    -w /home/rust/src/notex-server \
+    -v cargo-git:/home/rust/.cargo/git \
+    -v cargo-registry:/home/rust/.cargo/registry \
+    ekidd/rust-musl-builder "$@"
 }
 
 echo "Building frontend..."
@@ -21,6 +25,6 @@ case "$BUILDER" in
     ;;
   "docker")
     echo "Building binary in Docker"
-    (cd notex-server && rust_musl_builder cargo build --release --features=embedded_assets)
+    (rust_musl_builder cargo build --release --features=embedded_assets)
     ;;
 esac
