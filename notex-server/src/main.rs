@@ -1,3 +1,5 @@
+extern crate listenfd;
+
 extern crate actix;
 extern crate actix_web;
 
@@ -37,6 +39,7 @@ mod assets;
 use actix::prelude::*;
 use actix_state::State;
 use actix_web::{server, App};
+use listenfd::ListenFd;
 use std::env;
 
 mod actix_state;
@@ -55,13 +58,20 @@ fn main() {
     auth::init();
     let pool = init_repo();
 
-    let port = port();
     let sys = actix::System::new("notex-server");
-    server::HttpServer::new(move || build_actix_app(pool.clone()))
-        .bind(format!("127.0.0.1:{}", port))
-        .unwrap_or_else(|_| panic!("Can not bind to port {}", port))
-        .start();
+    let mut server = server::HttpServer::new(move || build_actix_app(pool.clone()));
 
+    let mut listenfd = ListenFd::from_env();
+    server = if let Ok(Some(listener)) = listenfd.take_tcp_listener(0) {
+        server.listen(listener)
+    } else {
+        let port = port();
+        server
+            .bind(format!("127.0.0.1:{}", port))
+            .unwrap_or_else(|_| panic!("Can not bind to port {}", port))
+    };
+
+    server.start();
     let _ = sys.run();
 }
 
