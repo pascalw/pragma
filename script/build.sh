@@ -25,6 +25,9 @@ case "$BUILDER" in
     ;;
   "docker")
     echo "Building binary in Docker"
-    (rust_musl_builder cargo build --release --features=embedded_assets)
+    (rust_musl_builder sh -c '\
+      cargo build --release --features=embedded_assets \
+      && strip target/x86_64-unknown-linux-musl/release/notex-server -o \
+      target/x86_64-unknown-linux-musl/release/notex-server.stripped')
     ;;
 esac
