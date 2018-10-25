@@ -257,7 +257,11 @@ let updateNotebook = (notebook: Data.notebook) => {
 let deleteNotebook = (notebookId: string) =>
   Fetch.fetchWithInit(
     "/api/notebooks/" ++ notebookId,
-    Fetch.RequestInit.make(~method_=Delete, ()),
+    Fetch.RequestInit.make(
+      ~method_=Delete,
+      ~headers=Fetch.HeadersInit.make(headers()),
+      (),
+    ),
   )
   ->toFuture;
 
@@ -279,7 +283,11 @@ let updateNote = (note: Data.note) => {
 let deleteNote = (noteId: string) =>
   Fetch.fetchWithInit(
     "/api/notes/" ++ noteId,
-    Fetch.RequestInit.make(~method_=Delete, ()),
+    Fetch.RequestInit.make(
+      ~method_=Delete,
+      ~headers=Fetch.HeadersInit.make(headers()),
+      (),
+    ),
   )
   ->toFuture;
 
