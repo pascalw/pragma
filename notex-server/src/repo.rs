@@ -114,7 +114,7 @@ pub fn notebooks(
 
     query_result
         .map_err(|e| format!("{}", e))
-        .map(|n| map_notebooks(&n))
+        .map(|n| map_notebooks(n))
 }
 
 pub fn notes(
@@ -132,38 +132,38 @@ pub fn notes(
 
     query_result
         .map_err(|e| format!("{}", e))
-        .map(|n| map_notes(&n))
+        .map(|n| map_notes(n))
 }
 
-fn map_notebooks(notebooks: &[Notebook]) -> Vec<data::Notebook> {
-    notebooks.iter().map(map_notebook).collect()
+fn map_notebooks(notebooks: Vec<Notebook>) -> Vec<data::Notebook> {
+    notebooks.into_iter().map(map_notebook).collect()
 }
 
-fn map_notebook(notebook: &Notebook) -> data::Notebook {
+fn map_notebook(notebook: Notebook) -> data::Notebook {
     data::Notebook {
-        id: notebook.id.to_owned(),
-        title: notebook.title.to_owned(),
+        id: notebook.id,
+        title: notebook.title,
         created_at: to_utc(notebook.created_at),
         updated_at: to_utc(notebook.updated_at),
         revision: to_utc(notebook.system_updated_at),
     }
 }
 
-fn map_notes(notes: &[Note]) -> Vec<data::Note> {
-    notes.iter().map(map_note).collect()
+fn map_notes(notes: Vec<Note>) -> Vec<data::Note> {
+    notes.into_iter().map(map_note).collect()
 }
 
-fn map_note(note: &Note) -> data::Note {
+fn map_note(note: Note) -> data::Note {
     let tags: Vec<String> = match &note.tags {
         None => vec![],
         Some(tags) => tags_from_string(tags),
     };
 
     data::Note {
-        id: note.id.to_owned(),
-        title: note.title.to_owned(),
+        id: note.id,
+        title: note.title,
         tags,
-        notebook_id: note.notebook_id.to_owned(),
+        notebook_id: note.notebook_id,
         created_at: to_utc(note.created_at),
         updated_at: to_utc(note.updated_at),
         revision: to_utc(note.system_updated_at),
@@ -185,18 +185,20 @@ pub fn content_blocks(
 
     query_result
         .map_err(|e| format!("{}", e))
-        .map(|c| map_content_blocks(&c))
+        .map(|c| map_content_blocks(c))
 }
 
-fn map_content_blocks(content_blocks: &[ContentBlock]) -> Vec<data::ContentBlock> {
-    content_blocks.iter().map(map_content_block).collect()
+fn map_content_blocks(content_blocks: Vec<ContentBlock>) -> Vec<data::ContentBlock> {
+    content_blocks.into_iter().map(map_content_block).collect()
 }
 
-fn map_content_block(content_block: &ContentBlock) -> data::ContentBlock {
+fn map_content_block(content_block: ContentBlock) -> data::ContentBlock {
+    let content = map_content(&content_block);
+
     data::ContentBlock {
-        id: content_block.id.to_owned(),
-        note_id: content_block.note_id.to_owned(),
-        content: map_content(content_block),
+        id: content_block.id,
+        note_id: content_block.note_id,
+        content,
         revision: to_utc(content_block.system_updated_at),
         created_at: to_utc(content_block.created_at),
         updated_at: to_utc(content_block.updated_at),
@@ -227,17 +229,17 @@ pub fn deletions(
 
     query_result
         .map_err(|e| format!("{}", e))
-        .map(|d| map_deletions(&d))
+        .map(|d| map_deletions(d))
 }
 
-fn map_deletions(deletions: &[Deletion]) -> Vec<data::Deletion> {
-    deletions.iter().map(map_deletion).collect()
+fn map_deletions(deletions: Vec<Deletion>) -> Vec<data::Deletion> {
+    deletions.into_iter().map(map_deletion).collect()
 }
 
-fn map_deletion(deletion: &Deletion) -> data::Deletion {
+fn map_deletion(deletion: Deletion) -> data::Deletion {
     data::Deletion {
-        type_: deletion.type_.to_owned(),
-        resource_id: deletion.resource_id.to_owned(),
+        type_: deletion.type_,
+        resource_id: deletion.resource_id,
         system_updated_at: to_utc(deletion.system_updated_at),
     }
 }
@@ -267,7 +269,7 @@ pub fn create_notebook(
     });
 
     match result {
-        Ok(notebook) => Ok(map_notebook(&notebook)),
+        Ok(notebook) => Ok(map_notebook(notebook)),
         Err(err) => Err(format!("{}", err)),
     }
 }
@@ -287,7 +289,7 @@ pub fn update_notebook(
         .and_then(|_num_rows| notebooks.find(&notebook_id).first(connection));
 
     match result {
-        Ok(notebook) => Ok(map_notebook(&notebook)),
+        Ok(notebook) => Ok(map_notebook(notebook)),
         Err(err) => Err(format!("{}", err)),
     }
 }
@@ -325,7 +327,7 @@ pub fn create_note(note: data::NewNote, conn: &SqliteConnection) -> Result<data:
     });
 
     match result {
-        Ok(note) => Ok(map_note(&note)),
+        Ok(note) => Ok(map_note(note)),
         Err(err) => Err(format!("{}", err)),
     }
 }
@@ -347,7 +349,7 @@ pub fn update_note(
         .and_then(|_num_rows| notes.find(&note_id).first(connection));
 
     match result {
-        Ok(note) => Ok(map_note(&note)),
+        Ok(note) => Ok(map_note(note)),
         Err(err) => Err(format!("{}", err)),
     }
 }
@@ -392,7 +394,7 @@ pub fn create_content_block(
     });
 
     match result {
-        Ok(content_block) => Ok(map_content_block(&content_block)),
+        Ok(content_block) => Ok(map_content_block(content_block)),
         Err(err) => Err(format!("{}", err)),
     }
 }
@@ -415,7 +417,7 @@ pub fn update_content_block(
         .and_then(|_num_rows| content_blocks.find(&content_block_id).first(connection));
 
     match result {
-        Ok(content_block) => Ok(map_content_block(&content_block)),
+        Ok(content_block) => Ok(map_content_block(content_block)),
         Err(err) => Err(format!("{}", err)),
     }
 }

@@ -227,7 +227,7 @@ fn get_data(
         .and_then(move |res| match res {
             (Ok(notebooks), Ok(notes), Ok(content_blocks), Ok(deleted_records)) => {
                 let data_response =
-                    build_response(notebooks, notes, content_blocks, &deleted_records);
+                    build_response(notebooks, notes, content_blocks, deleted_records);
                 Ok(HttpResponse::Ok().json(data_response))
             }
             _ => Ok(HttpResponse::InternalServerError().into()),
@@ -238,13 +238,13 @@ fn build_response(
     notebooks: Vec<Notebook>,
     notes: Vec<Note>,
     content_blocks: Vec<ContentBlock>,
-    deleted_records: &[Deletion],
+    deleted_records: Vec<Deletion>,
 ) -> DataResponse {
     let deletions: Vec<Resource> = deleted_records
-        .iter()
+        .into_iter()
         .map(|d| Resource {
-            id: d.resource_id.to_owned(),
-            type_: d.type_.to_owned(),
+            id: d.resource_id,
+            type_: d.type_,
         }).collect();
 
     let revision = revision(&notebooks, &notes, &content_blocks);
