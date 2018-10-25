@@ -18,14 +18,19 @@ let retryQueue: ref(list(change)) = ref([]);
 
 let syncChange = change =>
   switch (change.change) {
-  | ContentBlockUpdated(contentBlock) => Api.updateContentBlock(contentBlock)
-  | NoteCreated(note) => Api.createNote(note)
-  | NoteUpdated(note) => Api.updateNote(note)
-  | ContentBlockCreated(contentBlock) => Api.createContentBlock(contentBlock)
-  | NotebookCreated(notebook) => Api.createNotebook(notebook)
-  | NotebookUpdated(notebook) => Api.updateNotebook(notebook)
-  | NotebookDeleted(notebookId) => Api.deleteNotebook(notebookId)
-  | NoteDeleted(noteId) => Api.deleteNote(noteId)
+  | ContentBlockUpdated(contentBlock) =>
+    Api.updateContentBlock(contentBlock)->Future.mapOk(_ => ())
+  | NoteCreated(note) => Api.createNote(note)->Future.mapOk(_ => ())
+  | NoteUpdated(note) => Api.updateNote(note)->Future.mapOk(_ => ())
+  | ContentBlockCreated(contentBlock) =>
+    Api.createContentBlock(contentBlock)->Future.mapOk(_ => ())
+  | NotebookCreated(notebook) =>
+    Api.createNotebook(notebook)->Future.mapOk(_ => ())
+  | NotebookUpdated(notebook) =>
+    Api.updateNotebook(notebook)->Future.mapOk(_ => ())
+  | NotebookDeleted(notebookId) =>
+    Api.deleteNotebook(notebookId)->Future.mapOk(_ => ())
+  | NoteDeleted(noteId) => Api.deleteNote(noteId)->Future.mapOk(_ => ())
   };
 
 let storePendingChanges = () =>
@@ -116,6 +121,7 @@ let rec syncPendingChanges = onComplete => {
     syncChange(change)
     ->Future.get(result => {
         if (Belt.Result.isError(result)) {
+          Js.log(result);
           pushChangeToQueue(retryQueue, change);
         };
 

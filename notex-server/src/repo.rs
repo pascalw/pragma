@@ -145,7 +145,7 @@ fn map_notebook(notebook: &Notebook) -> data::Notebook {
         title: notebook.title.to_owned(),
         created_at: to_utc(notebook.created_at),
         updated_at: to_utc(notebook.updated_at),
-        system_updated_at: to_utc(notebook.system_updated_at),
+        revision: to_utc(notebook.system_updated_at),
     }
 }
 
@@ -166,7 +166,7 @@ fn map_note(note: &Note) -> data::Note {
         notebook_id: note.notebook_id.to_owned(),
         created_at: to_utc(note.created_at),
         updated_at: to_utc(note.updated_at),
-        system_updated_at: to_utc(note.system_updated_at),
+        revision: to_utc(note.system_updated_at),
     }
 }
 
@@ -197,7 +197,7 @@ fn map_content_block(content_block: &ContentBlock) -> data::ContentBlock {
         id: content_block.id.to_owned(),
         note_id: content_block.note_id.to_owned(),
         content: map_content(content_block),
-        system_updated_at: to_utc(content_block.system_updated_at),
+        revision: to_utc(content_block.system_updated_at),
         created_at: to_utc(content_block.created_at),
         updated_at: to_utc(content_block.updated_at),
     }
@@ -276,17 +276,18 @@ pub fn update_notebook(
     notebook_id: String,
     update: data::NotebookUpdate,
     connection: &SqliteConnection,
-) -> Result<(), String> {
+) -> Result<data::Notebook, String> {
     use schema::notebooks::dsl::*;
 
-    let result = diesel::update(notebooks.filter(id.eq(notebook_id)))
+    let result = diesel::update(notebooks.filter(id.eq(&notebook_id)))
         .set((
             title.eq(update.title),
             system_updated_at.eq(to_naive(Utc::now())),
-        )).execute(connection);
+        )).execute(connection)
+        .and_then(|_num_rows| notebooks.find(&notebook_id).first(connection));
 
     match result {
-        Ok(_num_rows) => Ok(()),
+        Ok(notebook) => Ok(map_notebook(&notebook)),
         Err(err) => Err(format!("{}", err)),
     }
 }
@@ -333,19 +334,20 @@ pub fn update_note(
     note_id: String,
     update: data::NoteUpdate,
     connection: &SqliteConnection,
-) -> Result<(), String> {
+) -> Result<data::Note, String> {
     use schema::notes::dsl::*;
 
-    let result = diesel::update(notes.filter(id.eq(note_id)))
+    let result = diesel::update(notes.filter(id.eq(&note_id)))
         .set((
             title.eq(update.title),
             tags.eq(tags_to_string(&update.tags)),
             updated_at.eq(to_naive(update.updated_at)),
             system_updated_at.eq(to_naive(Utc::now())),
-        )).execute(connection);
+        )).execute(connection)
+        .and_then(|_num_rows| notes.find(&note_id).first(connection));
 
     match result {
-        Ok(_num_rows) => Ok(()),
+        Ok(note) => Ok(map_note(&note)),
         Err(err) => Err(format!("{}", err)),
     }
 }
@@ -399,20 +401,21 @@ pub fn update_content_block(
     content_block_id: String,
     update: data::ContentBlockUpdate,
     connection: &SqliteConnection,
-) -> Result<(), String> {
+) -> Result<data::ContentBlock, String> {
     use schema::content_blocks::dsl::*;
 
     let (content_string, content_type) = content_to_string(update.content);
 
-    let result = diesel::update(content_blocks.filter(id.eq(content_block_id)))
+    let result = diesel::update(content_blocks.filter(id.eq(&content_block_id)))
         .set((
             content.eq(content_string),
             type_.eq(content_type.to_string()),
             system_updated_at.eq(to_naive(Utc::now())),
-        )).execute(connection);
+        )).execute(connection)
+        .and_then(|_num_rows| content_blocks.find(&content_block_id).first(connection));
 
     match result {
-        Ok(_num_rows) => Ok(()),
+        Ok(content_block) => Ok(map_content_block(&content_block)),
         Err(err) => Err(format!("{}", err)),
     }
 }

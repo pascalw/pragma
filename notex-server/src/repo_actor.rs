@@ -62,11 +62,11 @@ pub struct UpdateNotebookMessage {
 }
 
 impl Message for UpdateNotebookMessage {
-    type Result = Result<(), String>;
+    type Result = Result<Notebook, String>;
 }
 
 impl Handler<UpdateNotebookMessage> for DbExecutor {
-    type Result = Result<(), String>;
+    type Result = Result<Notebook, String>;
 
     fn handle(&mut self, msg: UpdateNotebookMessage, _: &mut Self::Context) -> Self::Result {
         let pool = &self.0;
@@ -129,11 +129,11 @@ pub struct UpdateNoteMessage {
 }
 
 impl Message for UpdateNoteMessage {
-    type Result = Result<(), String>;
+    type Result = Result<Note, String>;
 }
 
 impl Handler<UpdateNoteMessage> for DbExecutor {
-    type Result = Result<(), String>;
+    type Result = Result<Note, String>;
 
     fn handle(&mut self, msg: UpdateNoteMessage, _: &mut Self::Context) -> Self::Result {
         let pool = &self.0;
@@ -174,11 +174,11 @@ pub struct UpdateContentBlockMessage {
 }
 
 impl Message for UpdateContentBlockMessage {
-    type Result = Result<(), String>;
+    type Result = Result<ContentBlock, String>;
 }
 
 impl Handler<UpdateContentBlockMessage> for DbExecutor {
-    type Result = Result<(), String>;
+    type Result = Result<ContentBlock, String>;
 
     fn handle(&mut self, msg: UpdateContentBlockMessage, _: &mut Self::Context) -> Self::Result {
         let pool = &self.0;

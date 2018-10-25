@@ -119,7 +119,7 @@ fn update_content_block(
         update: content_block_update.into_inner(),
     }).from_err()
     .and_then(move |res| match res {
-        Ok(_) => Ok(HttpResponse::Ok().finish()),
+        Ok(updated_content_block) => Ok(HttpResponse::Ok().json(updated_content_block)),
         Err(reason) => Ok(HttpResponse::InternalServerError().body(reason)),
     }).responder()
 }
@@ -151,7 +151,7 @@ fn update_note(
         update: note_update.into_inner(),
     }).from_err()
     .and_then(move |res| match res {
-        Ok(_) => Ok(HttpResponse::Ok().finish()),
+        Ok(updated_note) => Ok(HttpResponse::Ok().json(updated_note)),
         Err(reason) => Ok(HttpResponse::InternalServerError().body(reason)),
     }).responder()
 }
@@ -183,7 +183,7 @@ fn update_notebook(
         update: notebook_update.into_inner(),
     }).from_err()
     .and_then(move |res| match res {
-        Ok(_) => Ok(HttpResponse::Ok().finish()),
+        Ok(updated_notebook) => Ok(HttpResponse::Ok().json(updated_notebook)),
         Err(reason) => Ok(HttpResponse::InternalServerError().body(reason)),
     }).responder()
 }
@@ -265,9 +265,9 @@ fn revision(
     notes: &[Note],
     content_blocks: &[ContentBlock],
 ) -> DateTime<Utc> {
-    let iter1 = notebooks.iter().map(|n| n.system_updated_at);
-    let iter2 = notes.iter().map(|n| n.system_updated_at);
-    let iter3 = content_blocks.iter().map(|c| c.system_updated_at);
+    let iter1 = notebooks.iter().map(|n| n.revision);
+    let iter2 = notes.iter().map(|n| n.revision);
+    let iter3 = content_blocks.iter().map(|c| c.revision);
 
     iter1
         .chain(iter2)
