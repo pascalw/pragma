@@ -1,30 +1,30 @@
 open Belt;
 
 let upsertContentBlock = (contentBlock: Data.contentBlock) =>
-  Db.getContentBlock(contentBlock.id)
+  ContentBlocks.get(contentBlock.id)
   ->Future.get(storedContentBlock =>
       switch (storedContentBlock) {
-      | None => Db.addContentBlocks([contentBlock]) |> ignore
+      | None => ContentBlocks.add([contentBlock]) |> ignore
       | Some(_contentBlock) =>
-        Db.updateContentBlock(contentBlock, ~sync=false, ()) |> ignore
+        ContentBlocks.update(contentBlock, ~sync=false, ()) |> ignore
       }
     );
 
 let upsertNote = (note: Data.note) =>
-  Db.getNote(note.id)
+  Notes.get(note.id)
   ->Future.get(storedNote =>
       switch (storedNote) {
-      | None => Db.addNotes([note]) |> ignore
-      | Some(_note) => Db.updateNote(note, ~sync=false, ()) |> ignore
+      | None => Notes.add([note]) |> ignore
+      | Some(_note) => Notes.update(note, ~sync=false, ()) |> ignore
       }
     );
 
 let upsertNotebook = (notebook: Data.notebook) =>
-  Db.getNotebook(notebook.id)
+  Notebooks.get(notebook.id)
   ->Future.get(storedNotebook =>
       switch (storedNotebook) {
-      | None => Db.addNotebooks([notebook]) |> ignore
-      | Some(_note) => Db.updateNotebook(notebook, ~sync=false, ()) |> ignore
+      | None => Notebooks.add([notebook]) |> ignore
+      | Some(_note) => Notebooks.update(notebook, ~sync=false, ()) |> ignore
       }
     );
 
@@ -46,9 +46,9 @@ let run = () =>
           List.forEach(apiResult.deletions, deletedResource =>
             switch (deletedResource.type_) {
             | "notebook" =>
-              Db.deleteNotebook(deletedResource.id, ~sync=false, ())
-            | "note" => Db.deleteNote(deletedResource.id, ~sync=false, ())
-            | "contentBlock" => Db.deleteContentBlock(deletedResource.id)
+              Notebooks.delete(deletedResource.id, ~sync=false, ())
+            | "note" => Notes.delete(deletedResource.id, ~sync=false, ())
+            | "contentBlock" => ContentBlocks.delete(deletedResource.id)
             | type_ =>
               Js.Exn.raiseError("Unsupported deletion type: " ++ type_)
             }

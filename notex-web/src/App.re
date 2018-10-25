@@ -43,7 +43,7 @@ let sortDesc = (notes: list(note)) =>
   );
 
 let getSortedNotes = notebookId =>
-  Db.getNotes(notebookId)->Future.map(sortDesc);
+  Notes.fromNotebook(notebookId)->Future.map(sortDesc);
 
 let getNotes = notebookId =>
   getSortedNotes(notebookId)
@@ -55,7 +55,7 @@ let getNotes = notebookId =>
       switch (selectedNoteId) {
       | None => Future.value((notes, selectedNoteId, None))
       | Some(noteId) =>
-        Db.getContentBlocks(noteId)
+        ContentBlocks.fromNote(noteId)
         ->Future.map(contentBlocks =>
             (notes, selectedNoteId, Some(contentBlocks))
           )
@@ -280,7 +280,7 @@ let reducer = (action: action, state: state) =>
     ReasonReact.SideEffects(
       (
         self =>
-          Db.getContentBlocks(noteId)
+          ContentBlocks.fromNote(noteId)
           ->Future.get(contentBlocks =>
               self.send(LoadNote(noteId, contentBlocks))
             )
@@ -299,7 +299,7 @@ let reducer = (action: action, state: state) =>
       (
         self =>
           Db.withNotification(() =>
-            Db.createNote(self.state.selectedNotebook |> Option.getExn)
+            Notes.create(self.state.selectedNotebook |> Option.getExn)
           )
           ->Future.map(((note, _contentBlock)) =>
               self.send(SelectNote(note.id))
@@ -317,15 +317,14 @@ let reducer = (action: action, state: state) =>
     ReasonReact.UpdateWithSideEffects(
       newState,
       (
-        _self =>
-          Db.withNotification(() => Db.deleteNote(note.id, ()) |> ignore)
+        _self => Db.withNotification(() => Notes.delete(note.id, ()) |> ignore)
       ),
     );
   | CreateNotebook =>
     ReasonReact.SideEffects(
       (
         self =>
-          Db.withNotification(() => Db.createNotebook())
+          Db.withNotification(() => Notebooks.create())
           ->Future.map(notebook => {
               self.send(SelectNotebook(notebook.id));
               self.send(EditNotebookTitle(notebook));
@@ -345,7 +344,7 @@ let reducer = (action: action, state: state) =>
       newState,
       (
         _self =>
-          Db.withNotification(() => Db.deleteNotebook(notebook.id, ()))
+          Db.withNotification(() => Notebooks.delete(notebook.id, ()))
           |> ignore
       ),
     );
@@ -369,7 +368,7 @@ let reducer = (action: action, state: state) =>
 
     ReasonReact.UpdateWithSideEffects(
       newState,
-      (_self => Db.updateNotebook(notebook, ()) |> ignore),
+      (_self => Notebooks.update(notebook, ()) |> ignore),
     );
 
   | UpdateNoteText(contentBlock, text) =>
@@ -383,7 +382,7 @@ let reducer = (action: action, state: state) =>
       };
 
     ReasonReact.SideEffects(
-      (_self => Db.updateContentBlock(updatedContentBlock, ()) |> ignore),
+      (_self => ContentBlocks.update(updatedContentBlock, ()) |> ignore),
     );
   | UpdateNoteTitle(note, title) =>
     let updatedNote = {...note, title};
@@ -400,7 +399,7 @@ let reducer = (action: action, state: state) =>
     let newState = {...state, notes: Some(updatedNotes)};
     ReasonReact.UpdateWithSideEffects(
       newState,
-      (_self => Db.updateNote(updatedNote, ()) |> ignore),
+      (_self => Notes.update(updatedNote, ()) |> ignore),
     );
   | EditNotebookTitle(notebook) =>
     ReasonReact.Update({...state, notebookIdEditingTitle: Some(notebook.id)})
@@ -422,7 +421,7 @@ let make = _children => {
     let fetchData = () => {
       let appState = AppState.get();
 
-      Db.getNotebooks()
+      Notebooks.all()
       ->Future.flatMap(notebooks => {
           let selectedNotebookId =
             switch (appState.selectedNotebookId) {
@@ -458,22 +457,21 @@ let make = _children => {
           let contentBlocksFuture =
             switch (selectedNoteId) {
             | None => Future.value([])
-            | Some(noteId) => Db.getContentBlocks(noteId)
+            | Some(noteId) => ContentBlocks.fromNote(noteId)
             };
 
-          contentBlocksFuture
-          ->Future.get(contentBlocks =>
-              self.send(
-                Load({
-                  notebooks: Some(notebooks),
-                  notes,
-                  selectedNotebook,
-                  notebookIdEditingTitle: None,
-                  selectedNote: selectedNoteId,
-                  contentBlocks: Some(contentBlocks),
-                }),
-              )
-            );
+          contentBlocksFuture->Future.get(contentBlocks =>
+            self.send(
+              Load({
+                notebooks: Some(notebooks),
+                notes,
+                selectedNotebook,
+                notebookIdEditingTitle: None,
+                selectedNote: selectedNoteId,
+                contentBlocks: Some(contentBlocks),
+              }),
+            )
+          );
         });
     };
 
@@ -501,7 +499,7 @@ let make = _children => {
     | None => <div> {ReasonReact.string("Loading...")} </div>
     | Some(_notebooks) =>
       <MainUI
-        notebooks=self.state.notebooks->Option.getExn
+        notebooks={self.state.notebooks->Option.getExn}
         selectedNotebook={self.state.selectedNotebook}
         notebookIdEditingTitle={self.state.notebookIdEditingTitle}
         notes={self.state.notes}

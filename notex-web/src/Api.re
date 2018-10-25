@@ -25,7 +25,7 @@ module JsonCoders = {
         ("title", string(notebook.title)),
         ("createdAt", date(notebook.createdAt)),
         ("updatedAt", date(notebook.updatedAt)),
-        ("revision", string(notebook.revision)),
+        ("revision", nullable(string, notebook.revision)),
       ])
     );
 
@@ -35,7 +35,7 @@ module JsonCoders = {
       title: json |> field("title", string),
       createdAt: json |> field("createdAt", date),
       updatedAt: json |> field("updatedAt", date),
-      revision: json |> field("revision", string),
+      revision: json |> optional(field("revision", string)),
     };
 
   let encodeNote = (note: Data.note) =>
@@ -47,7 +47,7 @@ module JsonCoders = {
         ("tags", jsonArray(note.tags |> List.map(string) |> Array.of_list)),
         ("createdAt", date(note.createdAt)),
         ("updatedAt", date(note.updatedAt)),
-        ("revision", string(note.revision)),
+        ("revision", nullable(string, note.revision)),
       ])
     );
 
@@ -59,7 +59,7 @@ module JsonCoders = {
       tags: json |> field("tags", list(string)),
       createdAt: json |> field("createdAt", date),
       updatedAt: json |> field("updatedAt", date),
-      revision: json |> field("revision", string),
+      revision: json |> optional(field("revision", string)),
     };
 
   let textContent = json => {
@@ -91,7 +91,7 @@ module JsonCoders = {
       content: json |> field("content", decodeContent),
       createdAt: json |> field("createdAt", date),
       updatedAt: json |> field("updatedAt", date),
-      revision: json |> field("revision", string),
+      revision: json |> optional(field("revision", string)),
     };
 
   let encodeContentBlock = (contentBlock: Data.contentBlock) => {
@@ -129,7 +129,7 @@ module JsonCoders = {
         ("content", content(contentBlock.content)),
         ("createdAt", date(contentBlock.createdAt)),
         ("updatedAt", date(contentBlock.updatedAt)),
-        ("revision", string(contentBlock.revision)),
+        ("revision", nullable(string, contentBlock.revision)),
       ])
     );
   };
@@ -162,7 +162,9 @@ let fetchUrl = (revision: option(string)) =>
   | None => "/api/data"
   };
 
-let toFuture = promise => {
+let toFuture =
+    (promise, mapper: Fetch.Response.t => Js.Promise.t('b))
+    : Future.t(Belt.Result.t('b, string)) => {
   let promise =
     promise
     |> Js.Promise.then_(response =>
@@ -176,10 +178,12 @@ let toFuture = promise => {
            Js.Promise.resolve(response);
          }
        )
-    |> Js.Promise.then_(Fetch.Response.json);
+    |> Js.Promise.then_(mapper);
 
   FutureJs.fromPromise(promise, Js.String.make);
 };
+
+let toFutureJson = toFuture(_, Fetch.Response.json);
 
 let headers = () => {
   "Content-Type": "application/json",
@@ -213,7 +217,7 @@ let updateContentBlock = (contentBlock: Data.contentBlock) => {
       (),
     ),
   )
-  ->toFuture
+  ->toFutureJson
   ->Future.mapOk(json => JsonCoders.decodeContentBlock(json));
 };
 
@@ -229,7 +233,7 @@ let createNote = (note: Data.note) => {
       (),
     ),
   )
-  ->toFuture
+  ->toFutureJson
   ->Future.mapOk(json => JsonCoders.decodeNote(json));
 };
 
@@ -245,7 +249,7 @@ let createNotebook = (notebook: Data.notebook) => {
       (),
     ),
   )
-  ->toFuture
+  ->toFutureJson
   ->Future.mapOk(json => JsonCoders.decodeNotebook(json));
 };
 
@@ -261,11 +265,12 @@ let updateNotebook = (notebook: Data.notebook) => {
       (),
     ),
   )
-  ->toFuture
+  ->toFutureJson
   ->Future.mapOk(json => JsonCoders.decodeNotebook(json));
 };
 
-let deleteNotebook = (notebookId: string) =>
+let deleteNotebook =
+    (notebookId: string): Future.t(Belt.Result.t(Fetch.Response.t, string)) =>
   Fetch.fetchWithInit(
     "/api/notebooks/" ++ notebookId,
     Fetch.RequestInit.make(
@@ -274,7 +279,7 @@ let deleteNotebook = (notebookId: string) =>
       (),
     ),
   )
-  ->toFuture;
+  ->toFuture(Js.Promise.resolve);
 
 let updateNote = (note: Data.note) => {
   let json = JsonCoders.encodeNote(note);
@@ -288,7 +293,7 @@ let updateNote = (note: Data.note) => {
       (),
     ),
   )
-  ->toFuture
+  ->toFutureJson
   ->Future.mapOk(json => JsonCoders.decodeNote(json));
 };
 
@@ -301,7 +306,7 @@ let deleteNote = (noteId: string) =>
       (),
     ),
   )
-  ->toFuture;
+  ->toFuture(Js.Promise.resolve);
 
 let createContentBlock = (contentBlock: Data.contentBlock) => {
   let json = JsonCoders.encodeContentBlock(contentBlock);
@@ -315,6 +320,6 @@ let createContentBlock = (contentBlock: Data.contentBlock) => {
       (),
     ),
   )
-  ->toFuture
+  ->toFutureJson
   ->Future.mapOk(json => JsonCoders.decodeContentBlock(json));
 };

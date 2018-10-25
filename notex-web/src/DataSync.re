@@ -16,21 +16,58 @@ type change = {
 let pendingChanges: ref(list(change)) = ref([]);
 let retryQueue: ref(list(change)) = ref([]);
 
+type syncedListener('a) = 'a => Future.t(unit);
+
+let noteSyncedListener: ref(option(syncedListener(Data.note))) = ref(None);
+let notebookSyncedListener: ref(option(syncedListener(Data.notebook))) =
+  ref(None);
+let contentBlockSyncedListener:
+  ref(option(syncedListener(Data.contentBlock))) =
+  ref(None);
+
+let setNoteSyncedListener = listener => noteSyncedListener := Some(listener);
+
+let setNotebookSyncedListener = listener =>
+  notebookSyncedListener := Some(listener);
+
+let setContentBlockSyncedListener = listener =>
+  contentBlockSyncedListener := Some(listener);
+
+let notifyListener = (listener, resource) =>
+  (
+    switch (listener^) {
+    | None => Future.value()
+    | Some(listener) => listener(resource)
+    }
+  )
+  ->Future.map(v => Belt.Result.Ok(v));
+
+let notifyNoteSyncedListener = notifyListener(noteSyncedListener);
+let notifyNotebookSyncedListener = notifyListener(notebookSyncedListener);
+let notifyContentBlockSyncedListener =
+  notifyListener(contentBlockSyncedListener);
+
 let syncChange = change =>
   switch (change.change) {
-  | ContentBlockUpdated(contentBlock) =>
-    Api.updateContentBlock(contentBlock)->Future.mapOk(_ => ())
-  | NoteCreated(note) => Api.createNote(note)->Future.mapOk(_ => ())
-  | NoteUpdated(note) => Api.updateNote(note)->Future.mapOk(_ => ())
+  | NoteCreated(note) =>
+    Api.createNote(note)->Future.flatMapOk(notifyNoteSyncedListener)
+  | NoteUpdated(note) =>
+    Api.updateNote(note)->Future.flatMapOk(notifyNoteSyncedListener)
   | ContentBlockCreated(contentBlock) =>
-    Api.createContentBlock(contentBlock)->Future.mapOk(_ => ())
+    Api.createContentBlock(contentBlock)
+    ->Future.flatMapOk(notifyContentBlockSyncedListener)
+  | ContentBlockUpdated(contentBlock) =>
+    Api.updateContentBlock(contentBlock)
+    ->Future.flatMapOk(notifyContentBlockSyncedListener)
   | NotebookCreated(notebook) =>
-    Api.createNotebook(notebook)->Future.mapOk(_ => ())
+    Api.createNotebook(notebook)
+    ->Future.flatMapOk(notifyNotebookSyncedListener)
   | NotebookUpdated(notebook) =>
-    Api.updateNotebook(notebook)->Future.mapOk(_ => ())
+    Api.updateNotebook(notebook)
+    ->Future.flatMapOk(notifyNotebookSyncedListener)
   | NotebookDeleted(notebookId) =>
-    Api.deleteNotebook(notebookId)->Future.mapOk(_ => ())
-  | NoteDeleted(noteId) => Api.deleteNote(noteId)->Future.mapOk(_ => ())
+    Api.deleteNotebook(notebookId)->Future.mapOk(ignore)
+  | NoteDeleted(noteId) => Api.deleteNote(noteId)->Future.mapOk(ignore)
   };
 
 let storePendingChanges = () =>
@@ -121,7 +158,7 @@ let rec syncPendingChanges = onComplete => {
     syncChange(change)
     ->Future.get(result => {
         if (Belt.Result.isError(result)) {
-          Js.log(result);
+          Js.Console.error2("Error syncing: ", result);
           pushChangeToQueue(retryQueue, change);
         };
 

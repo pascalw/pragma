@@ -22,28 +22,28 @@ let getPendingChanges = () => {
         let change =
           switch (Js.String.split(":", changeId)) {
           | [|"contentBlock", "updated", id|] =>
-            Db.getContentBlock(id)
+            ContentBlocks.get(id)
             ->mapSome(cb => DataSync.ContentBlockUpdated(cb))
 
           | [|"contentBlock", "created", id|] =>
-            Db.getContentBlock(id)
+            ContentBlocks.get(id)
             ->mapSome(cb => DataSync.ContentBlockCreated(cb))
 
           | [|"note", "created", id|] =>
-            Db.getNote(id)->mapSome(note => DataSync.NoteCreated(note))
+            Notes.get(id)->mapSome(note => DataSync.NoteCreated(note))
 
           | [|"note", "updated", id|] =>
-            Db.getNote(id)->mapSome(note => DataSync.NoteUpdated(note))
+            Notes.get(id)->mapSome(note => DataSync.NoteUpdated(note))
 
           | [|"note", "deleted", id|] =>
             Future.value(Some(DataSync.NoteDeleted(id)))
 
           | [|"notebook", "created", id|] =>
-            Db.getNotebook(id)
+            Notebooks.get(id)
             ->mapSome(notebook => DataSync.NotebookCreated(notebook))
 
           | [|"notebook", "updated", id|] =>
-            Db.getNotebook(id)
+            Notebooks.get(id)
             ->mapSome(notebook => DataSync.NotebookUpdated(notebook))
 
           | [|"notebook", "deleted", id|] =>

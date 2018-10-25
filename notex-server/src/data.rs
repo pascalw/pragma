@@ -23,7 +23,7 @@ pub struct NewNotebook {
 #[serde(rename_all = "camelCase")]
 pub struct NotebookUpdate {
     pub title: String,
-    pub revision: DateTime<Utc>,
+    pub revision: Option<DateTime<Utc>>,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -55,7 +55,7 @@ pub struct NoteUpdate {
     pub title: String,
     pub tags: Vec<Tag>,
     pub updated_at: DateTime<Utc>,
-    pub revision: DateTime<Utc>,
+    pub revision: Option<DateTime<Utc>>,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -94,7 +94,7 @@ pub struct NewContentBlock {
 pub struct ContentBlockUpdate {
     pub content: Content,
     pub updated_at: DateTime<Utc>,
-    pub revision: DateTime<Utc>,
+    pub revision: Option<DateTime<Utc>>,
 }
 
 #[derive(Serialize)]

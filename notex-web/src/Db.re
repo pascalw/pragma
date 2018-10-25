@@ -15,7 +15,7 @@ module JsonCoders = {
       title: json |> field("title", string),
       createdAt: json |> field("createdAt", date),
       updatedAt: json |> field("updatedAt", date),
-      revision: json |> field("revision", string),
+      revision: json |> optional(field("revision", string)),
     };
 
   let encodeNotebook = (notebook: Data.notebook) =>
@@ -25,7 +25,7 @@ module JsonCoders = {
         ("title", string(notebook.title)),
         ("createdAt", date(notebook.createdAt)),
         ("updatedAt", date(notebook.updatedAt)),
-        ("revision", string(notebook.revision)),
+        ("revision", nullable(string, notebook.revision)),
       ])
     );
 
@@ -38,7 +38,7 @@ module JsonCoders = {
       tags: json |> field("tags", list(string)),
       createdAt: json |> field("createdAt", date),
       updatedAt: json |> field("updatedAt", date),
-      revision: json |> field("revision", string),
+      revision: json |> optional(field("revision", string)),
     };
 
   let encodeNote = (note: Data.note) =>
@@ -50,7 +50,7 @@ module JsonCoders = {
         ("tags", jsonArray(note.tags |> List.map(string) |> Array.of_list)),
         ("createdAt", date(note.createdAt)),
         ("updatedAt", date(note.updatedAt)),
-        ("revision", string(note.revision)),
+        ("revision", nullable(string, note.revision)),
       ])
     );
 
@@ -85,7 +85,7 @@ module JsonCoders = {
       content: json |> field("content", content),
       createdAt: json |> field("createdAt", date),
       updatedAt: json |> field("updatedAt", date),
-      revision: json |> field("revision", string),
+      revision: json |> optional(field("revision", string)),
     };
   };
 
@@ -124,7 +124,7 @@ module JsonCoders = {
         ("content", content(contentBlock.content)),
         ("createdAt", date(contentBlock.createdAt)),
         ("updatedAt", date(contentBlock.updatedAt)),
-        ("revision", string(contentBlock.revision)),
+        ("revision", nullable(string, contentBlock.revision)),
       ])
     );
   };
@@ -285,7 +285,7 @@ let createNote = (notebookId: string) => {
     tags: [],
     createdAt: now,
     updatedAt: now,
-    revision: "",
+    revision: None,
   };
 
   let contentBlock: Data.contentBlock = {
@@ -294,7 +294,7 @@ let createNote = (notebookId: string) => {
     content: Data.TextContent(""),
     createdAt: now,
     updatedAt: now,
-    revision: "",
+    revision: None,
   };
 
   getState()
@@ -322,7 +322,7 @@ let createNotebook = () => {
     title: "Untitled notebook",
     createdAt: now,
     updatedAt: now,
-    revision: "",
+    revision: None,
   };
 
   getState()

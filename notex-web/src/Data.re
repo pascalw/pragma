@@ -11,7 +11,7 @@ type contentBlock = {
   content,
   createdAt: Js.Date.t,
   updatedAt: Js.Date.t,
-  revision: string,
+  revision: option(string),
 };
 
 type note = {
@@ -21,7 +21,7 @@ type note = {
   tags: list(tag),
   createdAt: Js.Date.t,
   updatedAt: Js.Date.t,
-  revision: string,
+  revision: option(string),
 };
 
 type notebook = {
@@ -29,5 +29,5 @@ type notebook = {
   title: string,
   createdAt: Js.Date.t,
   updatedAt: Js.Date.t,
-  revision: string,
+  revision: option(string),
 };
