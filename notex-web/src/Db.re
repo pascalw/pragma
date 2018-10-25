@@ -15,6 +15,7 @@ module JsonCoders = {
       title: json |> field("title", string),
       createdAt: json |> field("createdAt", date),
       updatedAt: json |> field("updatedAt", date),
+      systemUpdatedAt: json |> field("systemUpdatedAt", date),
     };
 
   let encodeNotebook = (notebook: Data.notebook) =>
@@ -24,6 +25,7 @@ module JsonCoders = {
         ("title", string(notebook.title)),
         ("createdAt", date(notebook.createdAt)),
         ("updatedAt", date(notebook.updatedAt)),
+        ("systemUpdatedAt", date(notebook.systemUpdatedAt)),
       ])
     );
 
@@ -36,6 +38,7 @@ module JsonCoders = {
       tags: json |> field("tags", list(string)),
       createdAt: json |> field("createdAt", date),
       updatedAt: json |> field("updatedAt", date),
+      systemUpdatedAt: json |> field("systemUpdatedAt", date),
     };
 
   let encodeNote = (note: Data.note) =>
@@ -47,6 +50,7 @@ module JsonCoders = {
         ("tags", jsonArray(note.tags |> List.map(string) |> Array.of_list)),
         ("createdAt", date(note.createdAt)),
         ("updatedAt", date(note.updatedAt)),
+        ("systemUpdatedAt", date(note.systemUpdatedAt)),
       ])
     );
 
@@ -81,6 +85,7 @@ module JsonCoders = {
       content: json |> field("content", content),
       createdAt: json |> field("createdAt", date),
       updatedAt: json |> field("updatedAt", date),
+      systemUpdatedAt: json |> field("systemUpdatedAt", date),
     };
   };
 
@@ -119,6 +124,7 @@ module JsonCoders = {
         ("content", content(contentBlock.content)),
         ("createdAt", date(contentBlock.createdAt)),
         ("updatedAt", date(contentBlock.updatedAt)),
+        ("systemUpdatedAt", date(contentBlock.systemUpdatedAt)),
       ])
     );
   };
@@ -279,6 +285,7 @@ let createNote = (notebookId: string) => {
     tags: [],
     createdAt: now,
     updatedAt: now,
+    systemUpdatedAt: now,
   };
 
   let contentBlock: Data.contentBlock = {
@@ -287,6 +294,7 @@ let createNote = (notebookId: string) => {
     content: Data.TextContent(""),
     createdAt: now,
     updatedAt: now,
+    systemUpdatedAt: now,
   };
 
   getState()
@@ -314,6 +322,7 @@ let createNotebook = () => {
     title: "Untitled notebook",
     createdAt: now,
     updatedAt: now,
+    systemUpdatedAt: now,
   };
 
   getState()

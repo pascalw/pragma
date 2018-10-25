@@ -25,6 +25,7 @@ module JsonCoders = {
         ("title", string(notebook.title)),
         ("createdAt", date(notebook.createdAt)),
         ("updatedAt", date(notebook.updatedAt)),
+        ("systemUpdatedAt", date(notebook.systemUpdatedAt)),
       ])
     );
 
@@ -34,6 +35,7 @@ module JsonCoders = {
       title: json |> field("title", string),
       createdAt: json |> field("createdAt", date),
       updatedAt: json |> field("updatedAt", date),
+      systemUpdatedAt: json |> field("systemUpdatedAt", date),
     };
 
   let encodeNote = (note: Data.note) =>
@@ -45,6 +47,7 @@ module JsonCoders = {
         ("tags", jsonArray(note.tags |> List.map(string) |> Array.of_list)),
         ("createdAt", date(note.createdAt)),
         ("updatedAt", date(note.updatedAt)),
+        ("systemUpdatedAt", date(note.systemUpdatedAt)),
       ])
     );
 
@@ -56,6 +59,7 @@ module JsonCoders = {
       tags: json |> field("tags", list(string)),
       createdAt: json |> field("createdAt", date),
       updatedAt: json |> field("updatedAt", date),
+      systemUpdatedAt: json |> field("systemUpdatedAt", date),
     };
 
   let textContent = json => {
@@ -87,6 +91,7 @@ module JsonCoders = {
       content: json |> field("content", decodeContent),
       createdAt: json |> field("createdAt", date),
       updatedAt: json |> field("updatedAt", date),
+      systemUpdatedAt: json |> field("systemUpdatedAt", date),
     };
 
   let encodeContentBlock = (contentBlock: Data.contentBlock) => {
