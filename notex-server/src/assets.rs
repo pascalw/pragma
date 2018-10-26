@@ -14,7 +14,10 @@ pub fn mount(app: App<State>) -> App<State> {
     app.route("/{path:.*}", Method::GET, handler)
 }
 
-#[allow(clippy::needless_pass_by_value)]
+#[cfg_attr(
+    feature = "cargo-clippy",
+    allow(clippy::needless_pass_by_value)
+)]
 pub fn handler(req: HttpRequest<State>) -> Result<HttpResponse, Error> {
     let asset_path = asset_path(&req);
 
