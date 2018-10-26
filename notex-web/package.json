@@ -58,7 +58,8 @@
     "webpack-cli": "^3.1.0",
     "webpack-dev-server": "3.1.4",
     "webpack-hot-middleware": "^2.22.2",
-    "webpack-manifest-plugin": "^2.0.3"
+    "webpack-manifest-plugin": "^2.0.3",
+    "webpack-pwa-manifest": "^3.7.1"
   },
   "jest": {
     "collectCoverageFrom": [

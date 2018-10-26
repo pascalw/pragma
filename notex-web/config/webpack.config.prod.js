@@ -10,6 +10,7 @@ const OptimizeCSSAssetsPlugin = require("optimize-css-assets-webpack-plugin");
 const ManifestPlugin = require('webpack-manifest-plugin');
 const SWPrecacheWebpackPlugin = require('sw-precache-webpack-plugin');
 const ModuleScopePlugin = require('react-dev-utils/ModuleScopePlugin');
+const manifestPlugin = require('./manifest');
 const paths = require('./paths');
 const getClientEnvironment = require('./env');
 
@@ -78,7 +79,15 @@ module.exports = {
             loader: require.resolve('url-loader'),
             options: {
               limit: 10000,
-              name: 'static/media/[name].[hash:8].[ext]',
+              name: 'static/assets/[name].[hash:8].[ext]',
+            },
+          },
+          {
+            test: [/\.png$/, /\.ico$/],
+            include: paths.appIcons,
+            loader: require.resolve('file-loader'),
+            options: {
+              name: 'static/assets/[name].[hash:8].[ext]',
             },
           },
           {
@@ -173,6 +182,7 @@ module.exports = {
         minifyURLs: true,
       },
     }),
+    manifestPlugin,
     new webpack.DefinePlugin(env.stringified),
     new MiniCssExtractPlugin({
       filename: cssFilename,

@@ -7,6 +7,7 @@ const HtmlWebpackPlugin = require('html-webpack-plugin');
 const CaseSensitivePathsPlugin = require('case-sensitive-paths-webpack-plugin');
 const ModuleScopePlugin = require('react-dev-utils/ModuleScopePlugin');
 const getClientEnvironment = require('./env');
+const manifestPlugin = require('./manifest');
 const paths = require('./paths');
 
 const publicPath = '/';
@@ -32,7 +33,7 @@ module.exports = {
     modules: ['node_modules', paths.appNodeModules].concat(
       process.env.NODE_PATH.split(path.delimiter).filter(Boolean)
     ),
-    extensions: ['.re', '.ml', '.js', '.json', '.jsx'],
+    extensions: ['.re', '.ml', '.js', '.jsx'],
     plugins: [
       new ModuleScopePlugin(paths.appSrc, [paths.appPackageJson]),
     ],
@@ -47,7 +48,15 @@ module.exports = {
             loader: require.resolve('url-loader'),
             options: {
               limit: 10000,
-              name: 'static/media/[name].[hash:8].[ext]',
+              name: 'static/assets/[name].[hash:8].[ext]',
+            },
+          },
+          {
+            test: [/\.png$/, /\.ico$/],
+            include: paths.appIcons,
+            loader: require.resolve('file-loader'),
+            options: {
+              name: 'static/assets/[name].[hash:8].[ext]',
             },
           },
           {
@@ -111,6 +120,7 @@ module.exports = {
       inject: true,
       template: paths.appHtml,
     }),
+    manifestPlugin,
     new webpack.NamedModulesPlugin(),
     new webpack.DefinePlugin(env.stringified),
     new webpack.HotModuleReplacementPlugin(),
