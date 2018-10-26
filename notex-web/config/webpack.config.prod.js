@@ -7,7 +7,6 @@ const HtmlWebpackPlugin = require('html-webpack-plugin');
 const MiniCssExtractPlugin = require("mini-css-extract-plugin");
 const UglifyJsPlugin = require("uglifyjs-webpack-plugin");
 const OptimizeCSSAssetsPlugin = require("optimize-css-assets-webpack-plugin");
-const ManifestPlugin = require('webpack-manifest-plugin');
 const SWPrecacheWebpackPlugin = require('sw-precache-webpack-plugin');
 const ModuleScopePlugin = require('react-dev-utils/ModuleScopePlugin');
 const manifestPlugin = require('./manifest');
@@ -16,7 +15,7 @@ const getClientEnvironment = require('./env');
 
 const publicPath = "./";
 const shouldUseRelativeAssetPaths = publicPath === './';
-const shouldUseSourceMap = process.env.GENERATE_SOURCEMAP !== 'false';
+const shouldUseSourceMap = false;
 const env = getClientEnvironment();
 
 if (env.stringified['process.env'].NODE_ENV !== '"production"') {
@@ -187,9 +186,6 @@ module.exports = {
     new MiniCssExtractPlugin({
       filename: cssFilename,
     }),
-    new ManifestPlugin({
-      fileName: 'asset-manifest.json',
-    }),
     new SWPrecacheWebpackPlugin({
       // By default, a cache-busting query parameter is appended to requests
       // used to populate the caches, to ensure the responses are fresh.
@@ -209,7 +205,7 @@ module.exports = {
       minify: true,
       navigateFallback: "/",
       navigateFallbackWhitelist: [/^(?!\/__).*/],
-      staticFileGlobsIgnorePatterns: [/\.map$/, /asset-manifest\.json$/],
+      staticFileGlobsIgnorePatterns: [/\.map$/],
     }),
   ],
   node: {

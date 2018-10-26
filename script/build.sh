@@ -15,7 +15,6 @@ echo "Building frontend..."
 echo "Copying assets..."
 (cd notex-web/build && \
   tar cf - \
-    --exclude=**.map \
 .) | (rm -rf notex-server/assets && mkdir -p notex-server/assets && cd notex-server/assets && tar xvf - )
 
 case "$BUILDER" in
