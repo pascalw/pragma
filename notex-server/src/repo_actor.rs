@@ -71,7 +71,7 @@ impl Handler<UpdateNotebookMessage> for DbExecutor {
     fn handle(&mut self, msg: UpdateNotebookMessage, _: &mut Self::Context) -> Self::Result {
         let pool = &self.0;
         let connection = pool.get().unwrap();
-        repo::update_notebook(msg.id, msg.update, &connection)
+        repo::update_notebook(&msg.id, msg.update, &connection)
     }
 }
 
@@ -138,7 +138,7 @@ impl Handler<UpdateNoteMessage> for DbExecutor {
     fn handle(&mut self, msg: UpdateNoteMessage, _: &mut Self::Context) -> Self::Result {
         let pool = &self.0;
         let connection = pool.get().unwrap();
-        repo::update_note(msg.id, msg.update, &connection)
+        repo::update_note(&msg.id, msg.update, &connection)
     }
 }
 
@@ -183,7 +183,7 @@ impl Handler<UpdateContentBlockMessage> for DbExecutor {
     fn handle(&mut self, msg: UpdateContentBlockMessage, _: &mut Self::Context) -> Self::Result {
         let pool = &self.0;
         let connection = pool.get().unwrap();
-        repo::update_content_block(msg.id, msg.update, &connection)
+        repo::update_content_block(&msg.id, msg.update, &connection)
     }
 }
 

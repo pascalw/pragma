@@ -114,7 +114,7 @@ pub fn notebooks(
 
     query_result
         .map_err(|e| format!("{}", e))
-        .map(|n| map_notebooks(n))
+        .map(map_notebooks)
 }
 
 pub fn notes(
@@ -130,9 +130,7 @@ pub fn notes(
             .load::<Note>(connection),
     };
 
-    query_result
-        .map_err(|e| format!("{}", e))
-        .map(|n| map_notes(n))
+    query_result.map_err(|e| format!("{}", e)).map(map_notes)
 }
 
 fn map_notebooks(notebooks: Vec<Notebook>) -> Vec<data::Notebook> {
@@ -185,7 +183,7 @@ pub fn content_blocks(
 
     query_result
         .map_err(|e| format!("{}", e))
-        .map(|c| map_content_blocks(c))
+        .map(map_content_blocks)
 }
 
 fn map_content_blocks(content_blocks: Vec<ContentBlock>) -> Vec<data::ContentBlock> {
@@ -229,7 +227,7 @@ pub fn deletions(
 
     query_result
         .map_err(|e| format!("{}", e))
-        .map(|d| map_deletions(d))
+        .map(map_deletions)
 }
 
 fn map_deletions(deletions: Vec<Deletion>) -> Vec<data::Deletion> {
@@ -275,7 +273,7 @@ pub fn create_notebook(
 }
 
 pub fn update_notebook(
-    notebook_id: String,
+    notebook_id: &str,
     update: data::NotebookUpdate,
     connection: &SqliteConnection,
 ) -> Result<data::Notebook, String> {
@@ -333,7 +331,7 @@ pub fn create_note(note: data::NewNote, conn: &SqliteConnection) -> Result<data:
 }
 
 pub fn update_note(
-    note_id: String,
+    note_id: &str,
     update: data::NoteUpdate,
     connection: &SqliteConnection,
 ) -> Result<data::Note, String> {
@@ -400,7 +398,7 @@ pub fn create_content_block(
 }
 
 pub fn update_content_block(
-    content_block_id: String,
+    content_block_id: &str,
     update: data::ContentBlockUpdate,
     connection: &SqliteConnection,
 ) -> Result<data::ContentBlock, String> {
