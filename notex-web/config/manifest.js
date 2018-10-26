@@ -8,7 +8,7 @@ module.exports = new WebpackPwaManifest({
   orientation: "any",
   display: "standalone",
   background_color: "#fbfbfb",
-  theme_color: "#3667E2",
+  theme_color: "#5b88ef",
   crossorigin: null,
   icons: [
     {
