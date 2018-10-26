@@ -8,6 +8,7 @@ const MiniCssExtractPlugin = require("mini-css-extract-plugin");
 const UglifyJsPlugin = require("uglifyjs-webpack-plugin");
 const OptimizeCSSAssetsPlugin = require("optimize-css-assets-webpack-plugin");
 const SWPrecacheWebpackPlugin = require('sw-precache-webpack-plugin');
+const CleanWebpackPlugin = require('clean-webpack-plugin');
 const ModuleScopePlugin = require('react-dev-utils/ModuleScopePlugin');
 const manifestPlugin = require('./manifest');
 const paths = require('./paths');
@@ -149,7 +150,7 @@ module.exports = {
             loader: require.resolve('file-loader'),
             exclude: [/\.js$/, /\.html$/, /\.json$/],
             options: {
-              name: 'static/media/[name].[hash:8].[ext]',
+              name: 'static/assets/[name].[hash:8].[ext]',
             },
           },
         ],
@@ -157,6 +158,7 @@ module.exports = {
     ],
   },
   plugins: [
+    new CleanWebpackPlugin(paths.appBuild, { root: process.cwd() }),
     new HtmlWebpackPlugin({
       inject: true,
       template: paths.appHtml,
