@@ -82,14 +82,6 @@ module.exports = {
             },
           },
           {
-            test: [/\.png$/, /\.ico$/],
-            include: paths.appIcons,
-            loader: require.resolve('file-loader'),
-            options: {
-              name: 'static/assets/[name].[hash:8].[ext]',
-            },
-          },
-          {
             test: /\.(js|jsx|mjs)$/,
             include: paths.appSrc,
             loader: require.resolve('babel-loader'),
