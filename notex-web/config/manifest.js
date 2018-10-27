@@ -22,25 +22,31 @@ module.exports = new WebpackPwaManifest({
       type: "image/png",
     },
     {
-      src: "src/assets/favicons/favicon-72-precomposed.png",
+      src: "src/assets/favicons/favicon-72.png",
       sizes: "72x72",
       type: "image/png",
       ios: true
     },
     {
-      src: "src/assets/favicons/favicon-114-precomposed.png",
+      src: "src/assets/favicons/favicon-114.png",
       sizes: "114x114",
       type: "image/png",
       ios: true
     },
     {
-      src: "src/assets/favicons/favicon-144-precomposed.png",
+      src: "src/assets/favicons/favicon-144.png",
       sizes: "144x144",
       type: "image/png",
       ios: true
     },
     {
-      src: "src/assets/favicons/favicon-180-precomposed.png",
+      src: "src/assets/favicons/favicon-152.png",
+      sizes: "152x152",
+      type: "image/png",
+      ios: true
+    },
+    {
+      src: "src/assets/favicons/favicon-180.png",
       sizes: "180x180",
       type: "image/png",
       ios: true
