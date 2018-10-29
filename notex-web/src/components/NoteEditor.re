@@ -36,26 +36,20 @@ let renderContentBlocks = (note: Data.note, contentBlocks, onChange) =>
   | _ => <p> {ReasonReact.string("FIXME: unsupported content type.")} </p>
   };
 
-let make = (~note: option(Data.note), ~contentBlocks, ~onChange, _children) => {
+let make = (~note: Data.note, ~contentBlocks, ~onChange, _children) => {
   ...component,
   render: _self =>
-    switch (note) {
-    | None => <div className={style("editor")} />
-    | Some(note) =>
-      <div className={style("editor")}>
-        <input
-          className={style("note-title")}
-          placeholder="Untitled note"
-          key={note.id}
-          autoFocus={isUntitled(note)}
-          value={title(note)}
-          onChange={onChangeTitle(note, onChange)}
-        />
-        <div className="content">
-          {
-            renderContentBlocks(note, contentBlocks |> Option.getExn, onChange)
-          }
-        </div>
+    <div className={style("editor")}>
+      <input
+        className={style("note-title")}
+        placeholder="Untitled note"
+        key={note.id}
+        autoFocus={isUntitled(note)}
+        value={title(note)}
+        onChange={onChangeTitle(note, onChange)}
+      />
+      <div className="content">
+        {renderContentBlocks(note, contentBlocks, onChange)}
       </div>
-    },
+    </div>,
 };

@@ -314,17 +314,7 @@ let createNote = (notebookId: string) => {
   ->Future.flatMap(_ => Future.value((note, contentBlock)));
 };
 
-let createNotebook = () => {
-  let now = Js.Date.fromFloat(Js.Date.now());
-
-  let notebook: Data.notebook = {
-    id: Utils.generateId(),
-    title: "Untitled notebook",
-    createdAt: now,
-    updatedAt: now,
-    revision: None,
-  };
-
+let createNotebook = notebook =>
   getState()
   ->Future.map(state => {
       let newState = {
@@ -337,7 +327,6 @@ let createNotebook = () => {
   ->Future.flatMap(saveState)
   ->Future.tap(_ => DataSync.pushNewNotebook(notebook))
   ->Future.flatMap(_ => Future.value(notebook));
-};
 
 let addContentBlocks = contentBlocks =>
   Future.map(

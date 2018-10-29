@@ -7,7 +7,7 @@ let addNotebooks: list(Data.notebook) => Future.t(unit);
 let addNotes: list(Data.note) => Future.t(unit);
 
 let createNote: string => Future.t((Data.note, Data.contentBlock));
-let createNotebook: unit => Future.t(Data.notebook);
+let createNotebook: Data.notebook => Future.t(Data.notebook);
 
 let getNote: string => Future.t(option(Data.note));
 let getNotes: string => Future.t(list(Data.note));

@@ -31,3 +31,15 @@ type notebook = {
   updatedAt: Js.Date.t,
   revision: option(string),
 };
+
+let newNotebook = () => {
+  let now = Js.Date.fromFloat(Js.Date.now());
+
+  {
+    id: Utils.generateId(),
+    title: "Untitled notebook",
+    createdAt: now,
+    updatedAt: now,
+    revision: None,
+  };
+};
