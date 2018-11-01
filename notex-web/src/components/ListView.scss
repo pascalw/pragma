@@ -39,7 +39,7 @@
     }
 
     &.selected {
-      background-color: rgb(91, 136, 239);
+      background-color: $color-primary;
       color: #fff;
     }
   }
@@ -51,7 +51,7 @@
 }
 
 .selected {
-    background-color: rgb(91, 136, 239);
+    background-color: $color-primary;
     color: #fff;
 }
 

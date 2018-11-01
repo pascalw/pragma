@@ -5,5 +5,8 @@ let component = ReasonReact.statelessComponent("AddButton");
 
 let make = (~onClick, _children) => {
   ...component,
-  render: _self => <button className={style("button")} onClick />,
+  render: _self =>
+    <button className={style("button")} onClick>
+      <Icon icon=Icon.Add />
+    </button>,
 };
