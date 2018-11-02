@@ -32,27 +32,30 @@ let run = () =>
   Db.getRevision()
   ->Future.flatMap(Api.fetchChanges)
   ->(
-      Future.get(result => {
-        let apiResult = Result.getExn(result);
+      Future.get(result =>
+        switch (result) {
+        | Ok(result) =>
+          Db.withNotification(() => {
+            let revision = result.revision;
+            Db.insertRevision(revision) |> ignore;
 
-        Db.withNotification(() => {
-          let revision = apiResult.revision;
-          Db.insertRevision(revision) |> ignore;
+            result.changes.notebooks->List.forEach(upsertNotebook);
+            result.changes.notes->List.forEach(upsertNote);
+            result.changes.contentBlocks->List.forEach(upsertContentBlock);
 
-          apiResult.changes.notebooks->List.forEach(upsertNotebook);
-          apiResult.changes.notes->List.forEach(upsertNote);
-          apiResult.changes.contentBlocks->List.forEach(upsertContentBlock);
-
-          List.forEach(apiResult.deletions, deletedResource =>
-            switch (deletedResource.type_) {
-            | "notebook" =>
-              Notebooks.delete(deletedResource.id, ~sync=false, ())
-            | "note" => Notes.delete(deletedResource.id, ~sync=false, ())
-            | "contentBlock" => ContentBlocks.delete(deletedResource.id)
-            | type_ =>
-              Js.Exn.raiseError("Unsupported deletion type: " ++ type_)
-            }
-          );
-        });
-      })
+            List.forEach(result.deletions, deletedResource =>
+              switch (deletedResource.type_) {
+              | "notebook" =>
+                Notebooks.delete(deletedResource.id, ~sync=false, ())
+              | "note" => Notes.delete(deletedResource.id, ~sync=false, ())
+              | "contentBlock" => ContentBlocks.delete(deletedResource.id)
+              | type_ =>
+                Js.Exn.raiseError("Unsupported deletion type: " ++ type_)
+              }
+            );
+          })
+        | Error(reason) =>
+          Js.Console.error2("Failed to fetch changes", reason)
+        }
+      )
     );

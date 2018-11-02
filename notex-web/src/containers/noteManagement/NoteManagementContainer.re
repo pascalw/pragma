@@ -263,6 +263,7 @@ let make = (children: (state, action => unit) => ReasonReact.reactElement) => {
       fetchInitialState()
       ->Future.get(state => self.send(LoadInitialState(state)));
 
+    loadStateFromDb();
     Db.subscribe(loadStateFromDb);
     self.onUnmount(() => Db.unsubscribe(loadStateFromDb));
   },
