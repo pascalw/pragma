@@ -105,7 +105,7 @@ fn init_repo() -> repo_connection::Pool {
     let pool = repo_connection::create_pool(&database_url);
 
     let connection = pool.get().unwrap();
-    repo::run_migrations(&connection);
+    repo::setup(&connection);
 
     pool
 }

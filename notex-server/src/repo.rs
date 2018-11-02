@@ -5,6 +5,7 @@ use chrono::prelude::*;
 use data;
 use diesel;
 use diesel::prelude::*;
+use diesel::sql_query;
 use repo_id;
 use serde_json;
 use std;
@@ -95,8 +96,70 @@ struct Deletion {
     system_updated_at: NaiveDateTime,
 }
 
-pub fn run_migrations(connection: &SqliteConnection) {
+fn is_first_run(connection: &SqliteConnection) -> bool {
+    type BoolSql = ::diesel::sql_types::Bool;
+    #[derive(QueryableByName, Debug)]
+    struct TableExistsResult {
+        #[sql_type = "BoolSql"]
+        exists_: bool,
+    }
+
+    let result: QueryResult<TableExistsResult> = sql_query(
+        "SELECT 1 as exists_ FROM sqlite_master WHERE name='__diesel_schema_migrations';",
+    ).get_result(connection);
+
+    match result {
+        Ok(_) => false,
+        Err(diesel::NotFound) => true,
+        Err(_) => unreachable!(),
+    }
+}
+
+fn seed(connection: &SqliteConnection) {
+    let now = Utc::now();
+
+    let notebook_id = repo_id::generate();
+    let notebook = data::NewNotebook {
+        id: Some(notebook_id.clone()),
+        title: "Example notebook".into(),
+        created_at: now,
+        updated_at: now,
+    };
+
+    let note_id = repo_id::generate();
+    let note = data::NewNote {
+        id: Some(note_id.clone()),
+        title: "Welcome to notex!".into(),
+        tags: vec![],
+        created_at: now,
+        updated_at: now,
+        notebook_id,
+    };
+
+    let content_block_id = repo_id::generate();
+    let content_block = data::NewContentBlock {
+        id: Some(content_block_id.clone()),
+        content: data::Content::Text {
+            text: "<p>Welcome to Notex!</p>".into(),
+        }, // TODO: add more help
+        created_at: now,
+        updated_at: now,
+        note_id,
+    };
+
+    create_notebook(notebook, connection).unwrap();
+    create_note(note, connection).unwrap();
+    create_content_block(content_block, connection).unwrap();
+}
+
+pub fn setup(connection: &SqliteConnection) {
+    let is_first_run = is_first_run(connection);
+
     embedded_migrations::run_with_output(connection, &mut std::io::stdout()).unwrap();
+
+    if is_first_run {
+        seed(connection);
+    }
 }
 
 pub fn notebooks(
