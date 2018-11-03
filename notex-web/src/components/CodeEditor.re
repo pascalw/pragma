@@ -1,6 +1,43 @@
+[@bs.module] external styles: Js.Dict.t(string) = "./CodeEditor.scss";
+let style = name => Js.Dict.get(styles, name)->Belt.Option.getExn;
+
 [%bs.raw {|require('codemirror/lib/codemirror.css')|}];
 
 /* TODO: lazy loading */
+
+module SupportedLanguageMap = Belt.Map.String;
+
+let supportedLanguages: SupportedLanguageMap.t(string) =
+  SupportedLanguageMap.(
+    empty
+    ->set("go", "Go")
+    ->set("python", "Python")
+    ->set("css", "CSS")
+    ->set("clojure", "Clojure")
+    ->set("gherkin", "Gherkin")
+    ->set("dart", "Dart")
+    ->set("shell", "Shell")
+    ->set("markdown", "Markdown")
+    ->set("perl", "Perl")
+    ->set("rust", "Rust")
+    ->set("rst", "reStructuredText")
+    ->set("erlang", "Erlang")
+    ->set("elm", "Elm")
+    ->set("crystal", "Crystal")
+    ->set("html", "HTML")
+    ->set("haskell", "Haskell")
+    ->set("php", "PHP")
+    ->set("lua", "Lua")
+    ->set("xml", "XML")
+    ->set("powershell", "Powershell")
+    ->set("swift", "Swift")
+    ->set("yaml", "YAML")
+    ->set("groovy", "Groovy")
+    ->set("javascript", "JavaScript")
+    ->set("sass", "Sass")
+    ->set("ruby", "Ruby")
+    ->set("sql", "SQL")
+  );
 
 [%bs.raw {|require('codemirror/mode/go/go')|}];
 [%bs.raw {|require('codemirror/mode/python/python')|}];
@@ -34,6 +71,20 @@
 [@bs.module "react-codemirror2"]
 external codeMirrorReact: ReasonReact.reactClass = "UnControlled";
 
+let languageOptionTags = () =>
+  SupportedLanguageMap.toList(supportedLanguages)
+  ->Belt.List.map(((id, name)) =>
+      <option key=id value=id> {ReasonReact.string(name)} </option>
+    )
+  ->Belt.List.toArray
+  ->ReasonReact.array;
+
+let language = (block: Data.contentBlock) =>
+  switch (block.content) {
+  | Data.CodeContent(_code, language) when language != "" => language
+  | _ => "javascript"
+  };
+
 let mapMode = language =>
   switch (language) {
   | "sql" => "text/x-sql"
@@ -62,13 +113,13 @@ module CodeMirror = {
 
   let make = (~contentBlock: Data.contentBlock, ~onChange, children) =>
     switch (contentBlock.content) {
-    | Data.CodeContent(code, language) =>
+    | Data.CodeContent(code, _language) =>
       ReasonReact.wrapJsForReason(
         ~reactClass=codeMirrorReact,
         ~props=
           jsProps(
             ~value=code,
-            ~options=options(~mode=mapMode(language)),
+            ~options=options(~mode=mapMode(language(contentBlock))),
             ~onChange,
           ),
         children,
@@ -79,8 +130,28 @@ module CodeMirror = {
 
 let component = ReasonReact.statelessComponent("CodeEditor");
 
-let make = (~contentBlock: Data.contentBlock, ~onChange, _children) => {
+let make =
+    (
+      ~contentBlock: Data.contentBlock,
+      ~onChange,
+      ~onLanguageChange,
+      _children,
+    ) => {
   let onChange = (_, _, value) => onChange(value);
+  let onLanguageChange = e =>
+    ReactEvent.Form.target(e)##value->onLanguageChange;
 
-  {...component, render: _self => <CodeMirror contentBlock onChange />};
+  {
+    ...component,
+    render: _self =>
+      <div className={style("wrapper")}>
+        <select
+          className={style("languageSelector")}
+          value={language(contentBlock)}
+          onChange=onLanguageChange>
+          {languageOptionTags()}
+        </select>
+        <CodeMirror contentBlock onChange />
+      </div>,
+  };
 };

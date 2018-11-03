@@ -23,6 +23,7 @@ type action =
   | NoteSelected(string, list(Data.contentBlock))
   | DeleteNote(Data.note)
   | UpdateNoteText(Data.contentBlock, string)
+  | UpdateContentBlock(Data.contentBlock)
   | UpdateNoteTitle(Data.note, string);
 
 let sortDesc = (notes: list(Data.note)) =>
@@ -237,8 +238,34 @@ let make = (children: (state, action => unit) => ReasonReact.reactElement) => {
           }
         };
 
-      ReasonReact.SideEffects(
+      let updatedBlocks =
+        Belt.List.map(state.contentBlocks, existingBlock =>
+          if (existingBlock.id == updatedContentBlock.id) {
+            updatedContentBlock;
+          } else {
+            existingBlock;
+          }
+        );
+      let newState = {...state, contentBlocks: updatedBlocks};
+
+      ReasonReact.UpdateWithSideEffects(
+        newState,
         (_self => ContentBlocks.update(updatedContentBlock, ()) |> ignore),
+      );
+    | UpdateContentBlock(updatedBlock) =>
+      let updatedBlocks =
+        Belt.List.map(state.contentBlocks, existingBlock =>
+          if (existingBlock.id == updatedBlock.id) {
+            updatedBlock;
+          } else {
+            existingBlock;
+          }
+        );
+
+      let newState = {...state, contentBlocks: updatedBlocks};
+      ReasonReact.UpdateWithSideEffects(
+        newState,
+        (_self => ContentBlocks.update(updatedBlock, ()) |> ignore),
       );
     | UpdateNoteTitle(note, title) =>
       let updatedNote = {...note, title};

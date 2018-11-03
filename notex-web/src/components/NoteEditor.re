@@ -11,6 +11,7 @@ let title = note => isUntitled(note) ? "" : note.title;
 
 type change =
   | Text(Data.contentBlock, string)
+  | ContentBlock(Data.contentBlock)
   | Title(Data.note, string);
 
 let onChangeTitle = (note, onChange, e) => {
@@ -18,23 +19,51 @@ let onChangeTitle = (note, onChange, e) => {
   onChange(Title(note, value));
 };
 
+let blockStringType = contentBlock =>
+  switch (contentBlock.content) {
+  | TextContent(_) => "text"
+  | CodeContent(_, _) => "code"
+  };
+
+let onContentBlockTypeChange = (contentBlock, onChange, event) => {
+  let value = ReactEvent.Form.target(event)##value;
+  onChange(
+    ContentBlock(ContentBlocks.updateContentType(contentBlock, value)),
+  );
+};
+
 let renderContentBlock =
     (note: Data.note, onChange, contentBlock: Data.contentBlock) =>
   <div className={style("contentBlock")} key={contentBlock.id}>
+    <select
+      className={style("contentBlockType")}
+      value={blockStringType(contentBlock)}
+      onChange={onContentBlockTypeChange(contentBlock, onChange)}>
+      <option value="text"> {ReasonReact.string("Text block")} </option>
+      <option value="code"> {ReasonReact.string("Code block")} </option>
+    </select>
     {
       switch (contentBlock) {
       | {content: TextContent(text)} =>
         <TrixEditor
-          key={note.id}
+          key={contentBlock.id}
           text
           autoFocus={!isUntitled(note)}
           onChange=(value => onChange(Text(contentBlock, value)))
         />
       | {content: CodeContent(_, _)} =>
         <CodeEditor
-          key={note.id}
+          key={contentBlock.id}
           contentBlock
           onChange=(value => onChange(Text(contentBlock, value)))
+          onLanguageChange=(
+            language =>
+              onChange(
+                ContentBlock(
+                  ContentBlocks.updateCodeLanguage(contentBlock, language),
+                ),
+              )
+          )
         />
       }
     }

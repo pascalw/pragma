@@ -1,4 +1,4 @@
-@import "../styles/colors";
+@import "../styles/settings";
 $editor-padding: 0.75rem;
 
 .editor {
@@ -9,14 +9,13 @@ $editor-padding: 0.75rem;
   overflow: hidden;
 
   .note-title {
-    margin: 0.5em 0;
-    padding: 0 $editor-padding 0.25em;
+    margin: 0.5em 0 0.25em;
+    padding: 0 $editor-padding;
 
     color: inherit;
     line-height: inherit;
     font-size: 1em;
     border: none;
-    border-bottom: 1px solid $color-border-light;
   }
 
   :global(.content) {
@@ -68,12 +67,28 @@ $editor-padding: 0.75rem;
     }
   }
 
+  :global(.trix-wrapper) {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
   .contentBlock {
     display: flex;
     flex-direction: column;
     overflow: hidden;
 
     margin-bottom: 0.5em;
+    border-top: 1px solid $color-border-light;
+  }
+
+  .contentBlockType {
+    flex-shrink: 0;
+  }
+
+  select {
+    margin: .25rem $editor-padding;
+    padding: .2rem;
   }
 
   trix-toolbar {

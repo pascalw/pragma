@@ -1,6 +1,12 @@
+@import "./settings";
+
 :global {
     .CodeMirror-gutters {
         background-color: $color-background-light;
         border-color: $color-border-light;
+    }
+
+    .CodeMirror-selected {
+        background-color: lighten($color-primary, 20%) !important;
     }
 }

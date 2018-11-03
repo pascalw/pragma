@@ -1,4 +1,4 @@
-@import "../styles/colors";
+@import "../styles/settings";
 
 .toast {
   background: #202124;
@@ -11,7 +11,7 @@
 
   box-shadow: 0 1px 3px 0 rgba(60, 64, 67, 0.302),
     0 4px 8px 3px rgba(60, 64, 67, 0.149);
-  border-radius: 4px;
+  border-radius: $border-radius;
   margin: 0.75rem;
 
   display: flex;
@@ -46,6 +46,6 @@
 
   &:hover {
     background: rgba(#AEAFAF, 0.1);
-    border-radius: 4px;
+    border-radius: $border-radius;
   }
 }

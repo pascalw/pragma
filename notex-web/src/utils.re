@@ -27,3 +27,11 @@ let generateId = () => generateNanoId(nanoIdAlphabet, 10);
 
 let find = (xs: list('a), predicate: 'a => bool): option('a) =>
   Belt.List.keep(xs, predicate)->Belt.List.head;
+
+let stripHtml = string => {
+  open Webapi.Dom;
+
+  let element = Document.createElement("div", document);
+  ElementRe.setInnerHTML(element, string);
+  ElementRe.innerText(element);
+};

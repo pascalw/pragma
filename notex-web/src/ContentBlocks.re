@@ -7,6 +7,27 @@ let update = (block, ~sync=true, ()) => {
   Db.updateContentBlock({...block, updatedAt: now}, ~sync, ());
 };
 
+let updateContentType = (block: Data.contentBlock, newContentType) => {
+  let newContent =
+    switch (block.content, newContentType) {
+    | (Data.TextContent(text), "code") =>
+      Data.CodeContent(Utils.stripHtml(text), "")
+    | (Data.CodeContent(code, _), "text") => Data.TextContent(code)
+    | _ => Js.Exn.raiseError("Unsupported content type change")
+    };
+
+  {...block, content: newContent};
+};
+
+let updateCodeLanguage = (block: Data.contentBlock, language) =>
+  switch (block.content) {
+  | Data.CodeContent(code, _) => {
+      ...block,
+      content: Data.CodeContent(code, language),
+    }
+  | _ => Js.Exn.raiseError("Unsupported contentblock")
+  };
+
 let delete = id => Db.deleteContentBlock(id);
 
 DataSync.setContentBlockSyncedListener(block =>

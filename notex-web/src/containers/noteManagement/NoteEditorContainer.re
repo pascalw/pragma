@@ -26,6 +26,8 @@ let onChange = (send, onChangeNoteText, change) =>
     onChangeNoteText(contentBlock, value)
   | NoteEditor.Title(note, title) =>
     send(NoteManagementContainer.UpdateNoteTitle(note, title))
+  | NoteEditor.ContentBlock(block) =>
+    send(NoteManagementContainer.UpdateContentBlock(block))
   };
 
 let component = ReasonReact.statelessComponent("NoteEditor");
