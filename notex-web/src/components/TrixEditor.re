@@ -98,7 +98,7 @@ let make = (~text: string, ~onChange, ~autoFocus: bool, _children) => {
       },
     ),
   render: self =>
-    <div>
+    <>
       {
         ReasonReact.cloneElement(
           ReactDOMRe.createElement("trix-editor", [||]),
@@ -111,5 +111,5 @@ let make = (~text: string, ~onChange, ~autoFocus: bool, _children) => {
           [||],
         )
       }
-    </div>,
+    </>,
 };

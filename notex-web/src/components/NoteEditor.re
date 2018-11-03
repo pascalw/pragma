@@ -18,23 +18,30 @@ let onChangeTitle = (note, onChange, e) => {
   onChange(Title(note, value));
 };
 
+let renderContentBlock =
+    (note: Data.note, onChange, contentBlock: Data.contentBlock) =>
+  <div className={style("contentBlock")} key={contentBlock.id}>
+    {
+      switch (contentBlock) {
+      | {content: TextContent(text)} =>
+        <TrixEditor
+          key={note.id}
+          text
+          autoFocus={!isUntitled(note)}
+          onChange=(value => onChange(Text(contentBlock, value)))
+        />
+      | {content: CodeContent(_, _)} =>
+        <CodeEditor
+          key={note.id}
+          contentBlock
+          onChange=(value => onChange(Text(contentBlock, value)))
+        />
+      }
+    }
+  </div>;
+
 let renderContentBlocks = (note: Data.note, contentBlocks, onChange) =>
-  switch (contentBlocks |> List.head) {
-  | Some({content: TextContent(text)} as contentBlock) =>
-    <TrixEditor
-      key={note.id}
-      text
-      autoFocus={!isUntitled(note)}
-      onChange=(value => onChange(Text(contentBlock, value)))
-    />
-  | Some({content: CodeContent(_, _)} as contentBlock) =>
-    <CodeEditor
-      key={note.id}
-      contentBlock
-      onChange=(value => onChange(Text(contentBlock, value)))
-    />
-  | _ => <p> {ReasonReact.string("FIXME: unsupported content type.")} </p>
-  };
+  Belt.List.map(contentBlocks, renderContentBlock(note, onChange));
 
 let make = (~note: Data.note, ~contentBlocks, ~onChange, _children) => {
   ...component,
@@ -49,7 +56,11 @@ let make = (~note: Data.note, ~contentBlocks, ~onChange, _children) => {
         onChange={onChangeTitle(note, onChange)}
       />
       <div className="content">
-        {renderContentBlocks(note, contentBlocks, onChange)}
+        {
+          renderContentBlocks(note, contentBlocks, onChange)
+          |> Belt.List.toArray
+          |> ReasonReact.array
+        }
       </div>
     </div>,
 };

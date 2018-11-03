@@ -24,12 +24,6 @@ $editor-padding: 0.75rem;
     flex-direction: column;
     overflow: hidden;
 
-    & > div {
-      display: flex;
-      flex-direction: column;
-      overflow: hidden;
-    }
-
     h1 {
       font-weight: bold;
     }
@@ -72,6 +66,14 @@ $editor-padding: 0.75rem;
     > :last-child {
       margin-bottom: 0.5em;
     }
+  }
+
+  .contentBlock {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+
+    margin-bottom: 0.5em;
   }
 
   trix-toolbar {
