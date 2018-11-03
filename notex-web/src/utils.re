@@ -28,10 +28,41 @@ let generateId = () => generateNanoId(nanoIdAlphabet, 10);
 let find = (xs: list('a), predicate: 'a => bool): option('a) =>
   Belt.List.keep(xs, predicate)->Belt.List.head;
 
-let stripHtml = string => {
-  open Webapi.Dom;
-
-  let element = Document.createElement("div", document);
-  ElementRe.setInnerHTML(element, string);
-  ElementRe.innerText(element);
-};
+let htmlToText = [%bs.raw
+  {|
+// https://github.com/eldios/htmlToText/blob/master/jsHtmlToText.js
+function htmlToText(html) {
+  return html
+    // Remove line breaks
+    .replace(/(?:\n|\r\n|\r)/ig,"")
+    // Turn <br>'s into single line breaks.
+    .replace(/<\s*br[^>]*>/ig,"\n")
+    // Turn </li>'s into line breaks.
+     .replace(/<\s*\/li[^>]*>/ig,"\n")
+    // Turn <p>'s into double line breaks.
+     .replace(/<\s*p[^>]*>/ig,"\n\n")
+    // Remove content in script tags.
+     .replace(/<\s*script[^>]*>[\s\S]*?<\/script>/mig,"")
+    // Remove content in style tags.
+     .replace(/<\s*style[^>]*>[\s\S]*?<\/style>/mig,"")
+    // Remove content in comments.
+     .replace(/<!--.*?-->/mig,"")
+     // Format anchor tags properly.
+     // e.g.
+     // input - <a class='ahref' href='http://pinetechlabs.com/' title='asdfqwer\"><b>asdf</b></a>
+     // output - asdf (http://pinetechlabs.com/)
+     .replace(/<\s*a[^>]*href=['"](.*?)['"][^>]*>([\s\S]*?)<\/\s*a\s*>/ig, "$2 ($1)")
+    // Remove all remaining tags.
+     .replace(/(<([^>]+)>)/ig,"")
+    // Make sure there are never more than two
+    // consecutive linebreaks.
+     .replace(/\n{2,}/g,"\n\n")
+    // Remove tabs.
+     .replace(/\t/g,"")
+    // Remove newlines at the beginning of the text.
+     .replace(/^\n+/m,"")
+    // Replace multiple spaces with a single space.
+    .replace(/ {2,}/g," ");
+}
+|}
+];
