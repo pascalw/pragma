@@ -47,8 +47,7 @@ let onContentBlockTypeChange = (contentBlock, onChange, event) => {
   onChange(ContentBlock(updatedBlock));
 };
 
-let renderContentBlock =
-    (note: Data.note, onChange, contentBlock: Data.contentBlock) =>
+let renderContentBlock = (onChange, contentBlock: Data.contentBlock) =>
   <div
     className={style("contentBlock") ++ " " ++ blockClass(contentBlock)}
     key={contentBlock.id}>
@@ -65,7 +64,6 @@ let renderContentBlock =
         <TrixEditor
           key={contentBlock.id}
           text
-          autoFocus={!isUntitled(note)}
           onChange=(value => onChange(Text(contentBlock, value)))
         />
       | {content: CodeContent(_, _)} =>
@@ -78,8 +76,8 @@ let renderContentBlock =
     }
   </div>;
 
-let renderContentBlocks = (note: Data.note, contentBlocks, onChange) =>
-  Belt.List.map(contentBlocks, renderContentBlock(note, onChange));
+let renderContentBlocks = (contentBlocks, onChange) =>
+  Belt.List.map(contentBlocks, renderContentBlock(onChange));
 
 let make = (~note: Data.note, ~contentBlocks, ~onChange, _children) => {
   ...component,
@@ -95,7 +93,7 @@ let make = (~note: Data.note, ~contentBlocks, ~onChange, _children) => {
       />
       <div className="content">
         {
-          renderContentBlocks(note, contentBlocks, onChange)
+          renderContentBlocks(contentBlocks, onChange)
           |> Belt.List.toArray
           |> ReasonReact.array
         }

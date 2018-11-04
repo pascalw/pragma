@@ -37,7 +37,7 @@ let withTrix = (editorRef, fn) =>
 
 let component = ReasonReact.reducerComponent("TrixEditor");
 
-let make = (~text: string, ~onChange, ~autoFocus: bool, _children) => {
+let make = (~text: string, ~onChange, _children) => {
   ...component,
   initialState: () => ({editorRef: ref(None), text}: state),
   reducer: (_state: state, _action) => ReasonReact.NoUpdate,
@@ -104,8 +104,7 @@ let make = (~text: string, ~onChange, ~autoFocus: bool, _children) => {
           ReactDOMRe.createElement("trix-editor", [||]),
           ~props={
             "class": "trix-content",
-            "autofocus": string_of_bool(autoFocus),
-            "spellcheck": "true",
+            "spellcheck": "false",
             "ref": self.handle(setEditorRef),
           },
           [||],
