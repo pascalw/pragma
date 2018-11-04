@@ -28,7 +28,10 @@ let generateId = () => generateNanoId(nanoIdAlphabet, 10);
 let find = (xs: list('a), predicate: 'a => bool): option('a) =>
   Belt.List.keep(xs, predicate)->Belt.List.head;
 
-let htmlToText = [%bs.raw
+let textToHtml = text =>
+  Js.String.replaceByRe([%re "/(?:\\r\\n|\\r|\\n)/g"], "<br/>", text);
+
+let htmlToText: string => string = [%bs.raw
   {|
 // https://github.com/eldios/htmlToText/blob/master/jsHtmlToText.js
 function htmlToText(html) {
