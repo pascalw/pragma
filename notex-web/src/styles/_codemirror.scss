@@ -1,6 +1,11 @@
 @import "./settings";
 
 :global {
+    .CodeMirror {
+        display: flex;
+        flex-direction: column;
+    }
+
     .CodeMirror-gutters {
         background-color: $color-background-light;
         border-color: $color-border-light;

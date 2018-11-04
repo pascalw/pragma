@@ -83,7 +83,7 @@ let renderContentBlocks = (contentBlocks, onChange) =>
 let make = (~note: Data.note, ~contentBlocks, ~onChange, _children) => {
   ...component,
   render: _self =>
-    <div className={style("editor")}>
+    <div className={style("editor") ++ " " ++ style("content")}>
       <input
         className={style("note-title")}
         placeholder="Untitled note"
@@ -92,12 +92,10 @@ let make = (~note: Data.note, ~contentBlocks, ~onChange, _children) => {
         value={title(note)}
         onChange={onChangeTitle(note, onChange)}
       />
-      <div className="content">
-        {
-          renderContentBlocks(contentBlocks, onChange)
-          |> Belt.List.toArray
-          |> ReasonReact.array
-        }
-      </div>
+      {
+        renderContentBlocks(contentBlocks, onChange)
+        |> Belt.List.toArray
+        |> ReasonReact.array
+      }
     </div>,
 };
