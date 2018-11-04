@@ -19,28 +19,45 @@ let onChangeTitle = (note, onChange, e) => {
   onChange(Title(note, value));
 };
 
-let blockStringType = contentBlock =>
+let blockClass = contentBlock =>
   switch (contentBlock.content) {
   | TextContent(_) => "text"
   | CodeContent(_, _) => "code"
   };
 
+let blockStringType = contentBlock =>
+  switch (contentBlock.content) {
+  | TextContent(_) => "text"
+  | CodeContent(_, language) => language
+  };
+
 let onContentBlockTypeChange = (contentBlock, onChange, event) => {
   let value = ReactEvent.Form.target(event)##value;
-  onChange(
-    ContentBlock(ContentBlocks.updateContentType(contentBlock, value)),
-  );
+  let updatedBlock =
+    switch (value) {
+    | "text" => ContentBlocks.updateContentType(contentBlock, value)
+    | codeLanguage =>
+      ContentBlocks.(
+        contentBlock
+        ->updateContentType("code")
+        ->updateCodeLanguage(codeLanguage)
+      )
+    };
+
+  onChange(ContentBlock(updatedBlock));
 };
 
 let renderContentBlock =
     (note: Data.note, onChange, contentBlock: Data.contentBlock) =>
-  <div className={style("contentBlock")} key={contentBlock.id}>
+  <div
+    className={style("contentBlock") ++ " " ++ blockClass(contentBlock)}
+    key={contentBlock.id}>
     <select
-      className={style("contentBlockType")}
+      className={style("typeSelector")}
       value={blockStringType(contentBlock)}
       onChange={onContentBlockTypeChange(contentBlock, onChange)}>
-      <option value="text"> {ReasonReact.string("Text block")} </option>
-      <option value="code"> {ReasonReact.string("Code block")} </option>
+      <option value="text"> {ReasonReact.string("Text")} </option>
+      {CodeEditor.typeOptions()}
     </select>
     {
       switch (contentBlock) {
@@ -56,14 +73,6 @@ let renderContentBlock =
           key={contentBlock.id}
           contentBlock
           onChange=(value => onChange(Text(contentBlock, value)))
-          onLanguageChange=(
-            language =>
-              onChange(
-                ContentBlock(
-                  ContentBlocks.updateCodeLanguage(contentBlock, language),
-                ),
-              )
-          )
         />
       }
     }

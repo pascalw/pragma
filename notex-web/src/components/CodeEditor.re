@@ -1,6 +1,3 @@
-[@bs.module] external styles: Js.Dict.t(string) = "./CodeEditor.scss";
-let style = name => Js.Dict.get(styles, name)->Belt.Option.getExn;
-
 [%bs.raw {|require('codemirror/lib/codemirror.css')|}];
 
 /* TODO: lazy loading */
@@ -71,14 +68,6 @@ let supportedLanguages: SupportedLanguageMap.t(string) =
 [@bs.module "react-codemirror2"]
 external codeMirrorReact: ReasonReact.reactClass = "UnControlled";
 
-let languageOptionTags = () =>
-  SupportedLanguageMap.toList(supportedLanguages)
-  ->Belt.List.map(((id, name)) =>
-      <option key=id value=id> {ReasonReact.string(name)} </option>
-    )
-  ->Belt.List.toArray
-  ->ReasonReact.array;
-
 let language = (block: Data.contentBlock) =>
   switch (block.content) {
   | Data.CodeContent(_code, language) when language != "" => language
@@ -128,30 +117,21 @@ module CodeMirror = {
     };
 };
 
+let typeOptions = () =>
+  <optgroup label="Code">
+    {
+      SupportedLanguageMap.toList(supportedLanguages)
+      ->Belt.List.map(((id, name)) =>
+          <option key=id value=id> {ReasonReact.string(name)} </option>
+        )
+      ->Belt.List.toArray
+      ->ReasonReact.array
+    }
+  </optgroup>;
+
 let component = ReasonReact.statelessComponent("CodeEditor");
-
-let make =
-    (
-      ~contentBlock: Data.contentBlock,
-      ~onChange,
-      ~onLanguageChange,
-      _children,
-    ) => {
+let make = (~contentBlock: Data.contentBlock, ~onChange, _children) => {
   let onChange = (_, _, value) => onChange(value);
-  let onLanguageChange = e =>
-    ReactEvent.Form.target(e)##value->onLanguageChange;
 
-  {
-    ...component,
-    render: _self =>
-      <div className={style("wrapper")}>
-        <select
-          className={style("languageSelector")}
-          value={language(contentBlock)}
-          onChange=onLanguageChange>
-          {languageOptionTags()}
-        </select>
-        <CodeMirror contentBlock onChange />
-      </div>,
-  };
+  {...component, render: _self => <CodeMirror contentBlock onChange />};
 };
