@@ -52,6 +52,7 @@ let renderContentBlock = (onChange, contentBlock: Data.contentBlock) =>
     className={style("contentBlock") ++ " " ++ blockClass(contentBlock)}
     key={contentBlock.id}>
     <select
+      tabIndex=(-1)
       className={style("typeSelector")}
       value={blockStringType(contentBlock)}
       onChange={onContentBlockTypeChange(contentBlock, onChange)}>
