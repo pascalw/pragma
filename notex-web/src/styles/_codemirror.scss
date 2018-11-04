@@ -9,4 +9,10 @@
     .CodeMirror-selected {
         background-color: lighten($color-primary, 20%) !important;
     }
+
+    .react-codemirror2 {
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+    }
 }
