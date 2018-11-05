@@ -66,7 +66,7 @@ let supportedLanguages: SupportedLanguageMap.t(string) =
 [%bs.raw {|require('codemirror/mode/sql/sql')|}];
 
 [@bs.module "react-codemirror2"]
-external codeMirrorReact: ReasonReact.reactClass = "UnControlled";
+external codeMirrorReact: ReasonReact.reactClass = "Controlled";
 
 let language = (block: Data.contentBlock) =>
   switch (block.content) {
@@ -94,13 +94,13 @@ module CodeMirror = {
   type jsProps = {
     value: string,
     options: cmOptions,
-    onChange: (string, string, string) => unit,
+    onBeforeChange: (string, string, string) => unit,
   };
 
   let options =
     cmOptions(~theme="default", ~lineNumbers=true, ~lineWrapping=true);
 
-  let make = (~contentBlock: Data.contentBlock, ~onChange, children) =>
+  let make = (~contentBlock: Data.contentBlock, ~onBeforeChange, children) =>
     switch (contentBlock.content) {
     | Data.CodeContent(code, _language) =>
       ReasonReact.wrapJsForReason(
@@ -109,7 +109,7 @@ module CodeMirror = {
           jsProps(
             ~value=code,
             ~options=options(~mode=mapMode(language(contentBlock))),
-            ~onChange,
+            ~onBeforeChange,
           ),
         children,
       )
@@ -133,5 +133,8 @@ let component = ReasonReact.statelessComponent("CodeEditor");
 let make = (~contentBlock: Data.contentBlock, ~onChange, _children) => {
   let onChange = (_, _, value) => onChange(value);
 
-  {...component, render: _self => <CodeMirror contentBlock onChange />};
+  {
+    ...component,
+    render: _self => <CodeMirror contentBlock onBeforeChange=onChange />,
+  };
 };

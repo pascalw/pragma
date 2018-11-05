@@ -1,29 +1,7 @@
-let onChangeNoteTextDebounced = send => {
-  let timerId: ref(option(Js.Global.timeoutId)) = ref(None);
-
-  (contentBlock, value) => {
-    switch (timerId^) {
-    | Some(timerId) => Js.Global.clearTimeout(timerId)
-    | _ => ()
-    };
-
-    timerId :=
-      Some(
-        Js.Global.setTimeout(
-          () =>
-            send(
-              NoteManagementContainer.UpdateNoteText(contentBlock, value),
-            ),
-          1000,
-        ),
-      );
-  };
-};
-
-let onChange = (send, onChangeNoteText, change) =>
+let onChange = (send, change) =>
   switch (change) {
   | NoteEditor.Text(contentBlock, value) =>
-    onChangeNoteText(contentBlock, value)
+    send(NoteManagementContainer.UpdateNoteText(contentBlock, value))
   | NoteEditor.Title(note, title) =>
     send(NoteManagementContainer.UpdateNoteTitle(note, title))
   | NoteEditor.ContentBlock(block) =>
@@ -45,13 +23,7 @@ let make =
         switch (note) {
         | None => <NoNoteSelected />
         | Some(note) =>
-          <NoteEditor
-            note
-            contentBlocks
-            onChange={
-              onChange(dispatch, onChangeNoteTextDebounced(dispatch))
-            }
-          />
+          <NoteEditor note contentBlocks onChange={onChange(dispatch)} />
         }
       }
     </>,

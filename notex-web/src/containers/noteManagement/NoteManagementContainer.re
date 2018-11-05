@@ -26,6 +26,28 @@ type action =
   | UpdateContentBlock(Data.contentBlock)
   | UpdateNoteTitle(Data.note, string);
 
+let debouncedUpdateContentBlockInDb =
+  (
+    () => {
+      let timerId: ref(option(Js.Global.timeoutId)) = ref(None);
+
+      contentBlock => {
+        switch (timerId^) {
+        | Some(timerId) => Js.Global.clearTimeout(timerId)
+        | _ => ()
+        };
+
+        timerId :=
+          Some(
+            Js.Global.setTimeout(
+              () => ContentBlocks.update(contentBlock, ()) |> ignore,
+              500,
+            ),
+          );
+      };
+    }
+  )();
+
 let sortDesc = (notes: list(Data.note)) =>
   Belt.List.sort(notes, (a, b) =>
     Utils.compareDates(a.updatedAt, b.updatedAt) * (-1)
@@ -250,7 +272,7 @@ let make = (children: (state, action => unit) => ReasonReact.reactElement) => {
 
       ReasonReact.UpdateWithSideEffects(
         newState,
-        (_self => ContentBlocks.update(updatedContentBlock, ()) |> ignore),
+        (_self => debouncedUpdateContentBlockInDb(updatedContentBlock)),
       );
     | UpdateContentBlock(updatedBlock) =>
       let updatedBlocks =

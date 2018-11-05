@@ -7,6 +7,9 @@ type state = {
   text: string,
 };
 
+type action =
+  | UpdateText(string);
+
 let setCursorEnd = [%raw
   {|
   function(element) {
@@ -40,12 +43,15 @@ let component = ReasonReact.reducerComponent("TrixEditor");
 let make = (~text: string, ~onChange, _children) => {
   ...component,
   initialState: () => ({editorRef: ref(None), text}: state),
-  reducer: (_state: state, _action) => ReasonReact.NoUpdate,
+  reducer: (action: action, state: state) =>
+    switch (action) {
+    | UpdateText(text) => ReasonReact.Update({...state, text})
+    },
   willReceiveProps: self => {...self.state, text},
-  didUpdate: ({oldSelf, newSelf}) =>
-    if (oldSelf.state.text !== newSelf.state.text) {
-      withTrix(newSelf.state.editorRef, editor =>
-        updateTrixEditorValue(editor, newSelf.state.text)
+  didUpdate: oldAndNewSelf =>
+    if (oldAndNewSelf.oldSelf.state.text !== text) {
+      withTrix(oldAndNewSelf.newSelf.state.editorRef, editor =>
+        updateTrixEditorValue(editor, text)
       );
     },
   didMount: self =>
@@ -61,6 +67,7 @@ let make = (~text: string, ~onChange, _children) => {
           let editorText = target##value;
 
           if (editorText !== self.ReasonReact.state.text) {
+            self.send(UpdateText(editorText));
             onChange(editorText);
           };
         };
