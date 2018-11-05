@@ -1,9 +1,17 @@
 @import "./settings";
+@import "./editor";
 
 :global {
     .CodeMirror {
         display: flex;
         flex-direction: column;
+        height: auto !important;
+
+        @extend %editor;
+    }
+
+    .CodeMirror-focused {
+        @extend %editor-focused;
     }
 
     .CodeMirror-gutters {

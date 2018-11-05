@@ -10,7 +10,7 @@ let isUntitled = (note: Data.note) => note.title == "Untitled note";
 let title = note => isUntitled(note) ? "" : note.title;
 
 type change =
-  | Text(Data.contentBlock, string)
+  | Content(Data.contentBlock, Data.content)
   | ContentBlock(Data.contentBlock)
   | Title(Data.note, string);
 
@@ -61,17 +61,22 @@ let renderContentBlock = (onChange, contentBlock: Data.contentBlock) =>
     </select>
     {
       switch (contentBlock) {
-      | {content: TextContent(text)} =>
-        <TrixEditor
+      | {content: TextContent(richText)} =>
+        <RichTextEditor
           key={contentBlock.id}
-          text
-          onChange=(value => onChange(Text(contentBlock, value)))
+          onChange=(
+            value => onChange(Content(contentBlock, TextContent(value)))
+          )
+          value=richText
         />
-      | {content: CodeContent(_, _)} =>
+      | {content: CodeContent(_, language)} =>
         <CodeEditor
           key={contentBlock.id}
           contentBlock
-          onChange=(value => onChange(Text(contentBlock, value)))
+          onChange=(
+            value =>
+              onChange(Content(contentBlock, CodeContent(value, language)))
+          )
         />
       }
     }

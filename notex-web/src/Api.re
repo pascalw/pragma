@@ -64,7 +64,7 @@ module JsonCoders = {
 
   let textContent = json => {
     let text = json |> Json.Decode.field("text", Json.Decode.string);
-    Data.TextContent(text);
+    Data.TextContent(RichText.fromString(text));
   };
 
   let codeContent = json => {
@@ -103,8 +103,10 @@ module JsonCoders = {
 
     let data = (content: Data.content) =>
       switch (content) {
-      | TextContent(text) =>
-        Json.Encode.(object_([("text", string(text))]))
+      | TextContent(richText) =>
+        Json.Encode.(
+          object_([("text", string(RichText.toString(richText)))])
+        )
       | CodeContent(code, language) =>
         Json.Encode.(
           object_([

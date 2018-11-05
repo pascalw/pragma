@@ -9,7 +9,7 @@ $editor-padding: 0.75rem;
   overflow: hidden;
 
   .note-title {
-    margin: 0.5em 0;
+    margin: 0.5em 0 0.75rem;
     padding: 0 $editor-padding 0.25em;
 
     color: inherit;
@@ -18,85 +18,12 @@ $editor-padding: 0.75rem;
     border: none;
     border-bottom: 1px solid $color-border-light;
   }
-
-  trix-editor, :global(.CodeMirror) {
-    margin: 0 $editor-padding;
-    border: 1px solid transparent;
-  }
-
-  trix-editor, :global(.CodeMirror) {
-    border-color: $color-border-light;
-  }
-
-  trix-editor:focus, :global(.CodeMirror-focused) {
-    border-color: darken($color-border-light, 5%);
-  }
-
-  trix-editor {
-    overflow-y: scroll;
-    padding-bottom: 0;
-    min-height: 3em;
-
-    > :last-child {
-      margin-bottom: 0.5em;
-    }
-  }
-
-  :global(.trix-wrapper) {
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-  }
-
-  trix-toolbar {
-    border-bottom: 1px solid $color-border-light;
-    margin-bottom: 0.5em;
-    padding: 0 $editor-padding;
-
-    :global(.trix-button-group) {
-      margin-bottom: 0.5em;
-    }
-
-    :global(.trix-button.trix-active) {
-        background: #EBEDF0;
-    }
-  }
-
-  :global {
-    .CodeMirror {
-        height: auto;
-    }
-  }
 }
 
 .content {
   display: flex;
   flex-direction: column;
   overflow: hidden;
-
-  h1 {
-    font-weight: bold;
-  }
-
-  ul {
-    list-style-type: disc;
-    list-style-position: outside;
-  }
-
-  ol {
-    list-style-type: decimal;
-    list-style-position: outside;
-  }
-
-  ul ul, ol ul {
-    list-style-type: circle;
-    list-style-position: outside;
-  }
-
-  ol ol, ul ol {
-    list-style-type: lower-latin;
-    list-style-position: outside;
-  }
 }
 
 .contentBlock {
@@ -107,6 +34,7 @@ $editor-padding: 0.75rem;
 
   margin-bottom: 0.5em;
   position: relative;
+  padding: 0 $editor-padding;
 }
 
 .typeSelector {
@@ -132,9 +60,5 @@ $editor-padding: 0.75rem;
   &:-moz-focusring {
       color: transparent;
       text-shadow: 0 0 0 #000;
-  }
-
-  :global(.text) & {
-    top: 3rem;
   }
 }

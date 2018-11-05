@@ -11,9 +11,9 @@ let updateContentType = (block: Data.contentBlock, newContentType) => {
   let newContent =
     switch (block.content, newContentType) {
     | (Data.TextContent(text), "code") =>
-      Data.CodeContent(Utils.htmlToText(text), "")
+      Data.CodeContent(Utils.htmlToText(RichText.toString(text)), "")
     | (Data.CodeContent(code, _), "text") =>
-      Data.TextContent(Utils.textToHtml(code))
+      Data.TextContent(Utils.textToHtml(code) |> RichText.fromString)
     | (Data.TextContent(_), "text") => block.content
     | (Data.CodeContent(_, _), "code") => block.content
     | _ => Js.Exn.raiseError("Unsupported content type change")

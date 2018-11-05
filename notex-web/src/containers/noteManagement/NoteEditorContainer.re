@@ -1,6 +1,6 @@
 let onChange = (send, change) =>
   switch (change) {
-  | NoteEditor.Text(contentBlock, value) =>
+  | NoteEditor.Content(contentBlock, value) =>
     send(NoteManagementContainer.UpdateNoteText(contentBlock, value))
   | NoteEditor.Title(note, title) =>
     send(NoteManagementContainer.UpdateNoteTitle(note, title))

@@ -22,7 +22,7 @@ type action =
   | SelectNote(string)
   | NoteSelected(string, list(Data.contentBlock))
   | DeleteNote(Data.note)
-  | UpdateNoteText(Data.contentBlock, string)
+  | UpdateNoteText(Data.contentBlock, Data.content)
   | UpdateContentBlock(Data.contentBlock)
   | UpdateNoteTitle(Data.note, string);
 
@@ -257,16 +257,8 @@ let make = (children: (state, action => unit) => ReasonReact.reactElement) => {
             Db.withNotification(() => Notes.delete(note.id, ()) |> ignore)
         ),
       );
-    | UpdateNoteText(contentBlock, text) =>
-      let updatedContentBlock =
-        switch (contentBlock.content) {
-        | TextContent(_) => {...contentBlock, content: TextContent(text)}
-        | CodeContent(_code, language) => {
-            ...contentBlock,
-            content: CodeContent(text, language),
-          }
-        };
-
+    | UpdateNoteText(contentBlock, content) =>
+      let updatedContentBlock = {...contentBlock, content};
       let updatedBlocks =
         Belt.List.map(state.contentBlocks, existingBlock =>
           if (existingBlock.id == updatedContentBlock.id) {

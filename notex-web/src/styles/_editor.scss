@@ -1,0 +1,9 @@
+@import "./settings";
+
+%editor {
+  border: 1px solid $color-border-light;
+}
+
+%editor-focused {
+  border-color: darken($color-border-light, 5%);
+}

@@ -3,6 +3,11 @@
 [@bs.val] external accept: unit => unit = "module.hot.accept";
 [@bs.val] external import: string => Js.Promise.t('a) = "import";
 
+let dictSet = (dict, key, value) => {
+  Js.Dict.set(dict, key, value);
+  dict;
+};
+
 let log = something => {
   Js.log(something);
   something;
@@ -70,6 +75,9 @@ function htmlToText(html) {
 }
 |}
 ];
+
+[@bs.module "classnames"] [@bs.splice]
+external classnames: array(string) => string = "default";
 
 module DayJs = {
   type t;

@@ -57,7 +57,7 @@ module JsonCoders = {
   let decodeContentBlock = json: Data.contentBlock => {
     let textContent = json => {
       let text = json |> Json.Decode.field("text", Json.Decode.string);
-      Data.TextContent(text);
+      Data.TextContent(RichText.fromString(text));
     };
 
     let codeContent = json => {
@@ -97,8 +97,10 @@ module JsonCoders = {
 
     let data = content =>
       switch (content) {
-      | Data.TextContent(text) =>
-        Json.Encode.(object_([("text", string(text))]))
+      | Data.TextContent(richText) =>
+        Json.Encode.(
+          object_([("text", string(RichText.toString(richText)))])
+        )
       | Data.CodeContent(code, language) =>
         Json.Encode.(
           object_([
@@ -298,7 +300,7 @@ let createNote = (notebookId: string) => {
   let contentBlock: Data.contentBlock = {
     id: Utils.generateId(),
     noteId: note.id,
-    content: Data.TextContent(""),
+    content: Data.TextContent(RichText.create()),
     createdAt: now,
     updatedAt: now,
     revision: None,

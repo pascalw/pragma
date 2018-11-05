@@ -2,7 +2,7 @@ type tag = string;
 type language = string;
 
 type content =
-  | TextContent(string)
+  | TextContent(RichText.t)
   | CodeContent(string, language);
 
 type contentBlock = {

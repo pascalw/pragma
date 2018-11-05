@@ -7,17 +7,20 @@
     "bs-fetch": "^0.3.0",
     "bs-platform": "^4.0.5",
     "bs-webapi": "^0.10.0",
+    "classnames": "^2.2.6",
     "codemirror": "^5.40.2",
     "codemirror-mode-elixir": "^1.1.2",
     "dayjs": "^1.7.7",
+    "draft-convert": "^2.1.4",
+    "draft-js": "^0.10.5",
+    "draft-js-list-depth-plugin": "^1.0.1",
     "minireset.css": "^0.0.3",
     "nanoid": "^1.2.5",
     "promise": "8.0.1",
     "react": "^16.4.1",
     "react-codemirror2": "^5.1.0",
     "react-dom": "^16.4.1",
-    "reason-future": "^2.3.1",
-    "trix": "^1.0.0"
+    "reason-future": "^2.3.1"
   },
   "scripts": {
     "start": "node scripts/start.js",

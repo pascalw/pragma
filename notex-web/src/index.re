@@ -1,5 +1,4 @@
-[%bs.raw {|require('trix')|}];
-[%bs.raw {|require('trix/dist/trix.css')|}];
+[%bs.raw {|require('draft-js/dist/Draft.css')|}];
 
 [@bs.module "./registerServiceWorker"]
 external registerServiceWorker: (unit => unit) => unit = "default";

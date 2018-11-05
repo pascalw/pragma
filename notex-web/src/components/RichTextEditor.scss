@@ -1,0 +1,72 @@
+@import "../styles/editor";
+
+.editor {
+  position: relative;
+  padding: .4em .6em;
+
+  @extend %editor;
+
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+
+  :global(.DraftEditor-root) {
+    overflow-y: scroll;
+  }
+
+  :global {
+    .public-DraftStyleDefault-ul:first-of-type, .public-DraftStyleDefault-ol:first-of-type {
+      margin-top: 0;
+    }
+
+    .public-DraftStyleDefault-ul:last-child, .public-DraftStyleDefault-ol:last-child {
+      margin-bottom: 0;
+    }
+
+    blockquote {
+      color: lighten($color-text, 25%);
+      border-left: .2em solid #ccc;
+      margin: 0 0 0 .2em;
+      padding: 0 0 0 .4em;
+    }
+
+    .public-DraftStyleDefault-unorderedListItem.public-DraftStyleDefault-depth2,
+    .public-DraftStyleDefault-unorderedListItem.public-DraftStyleDefault-depth3 {
+      list-style-type: circle;
+    }
+    
+    .public-DraftStyleDefault-unorderedListItem.public-DraftStyleDefault-depth0.public-DraftStyleDefault-listLTR {
+      margin-left: 1em;
+    }
+    .public-DraftStyleDefault-unorderedListItem.public-DraftStyleDefault-depth1.public-DraftStyleDefault-listLTR {
+      margin-left: 2em;
+    }
+    .public-DraftStyleDefault-unorderedListItem.public-DraftStyleDefault-depth2.public-DraftStyleDefault-listLTR {
+      margin-left: 3em;
+    }
+    .public-DraftStyleDefault-unorderedListItem.public-DraftStyleDefault-depth3.public-DraftStyleDefault-listLTR {
+      margin-left: 4em;
+    }
+
+    .public-DraftStyleDefault-orderedListItem.public-DraftStyleDefault-depth0.public-DraftStyleDefault-listLTR {
+      margin-left: 1em;
+    }
+    .public-DraftStyleDefault-orderedListItem.public-DraftStyleDefault-depth1.public-DraftStyleDefault-listLTR {
+      margin-left: 2em;
+    }
+    .public-DraftStyleDefault-orderedListItem.public-DraftStyleDefault-depth2.public-DraftStyleDefault-listLTR {
+      margin-left: 3em;
+    }
+    .public-DraftStyleDefault-orderedListItem.public-DraftStyleDefault-depth3.public-DraftStyleDefault-listLTR {
+      margin-left: 4em;
+    }
+
+    .public-DraftStyleDefault-orderedListItem::before {
+      left: -30px !important;
+    }
+  }
+}
+
+.editorFocused {
+  @extend %editor-focused;
+}
