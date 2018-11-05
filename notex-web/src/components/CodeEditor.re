@@ -30,6 +30,7 @@ let supportedLanguages: SupportedLanguageMap.t(string) =
     ->set("swift", "Swift")
     ->set("yaml", "YAML")
     ->set("groovy", "Groovy")
+    ->set("java", "Java")
     ->set("javascript", "JavaScript")
     ->set("sass", "Sass")
     ->set("ruby", "Ruby")
@@ -78,6 +79,7 @@ let mapMode = language =>
   switch (language) {
   | "sql" => "text/x-sql"
   | "php" => "text/x-php"
+  | "java" => "text/x-java"
   | _ => language
   };
 
