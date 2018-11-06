@@ -31,7 +31,28 @@ const miniCssExtractluginOptions = shouldUseRelativeAssetPaths
   : {};
 
 const optimization = {
-  splitChunks: { chunks: "all" },
+  splitChunks: {
+    cacheGroups: {
+      cmModes: {
+        enforce: true,
+        name: (mod, chunks) => {
+          const builtInMode = /node_modules\/codemirror\/mode\/(\w+)\//.exec(
+            mod.resource
+          )
+          if (builtInMode) {
+            return `cm-mode/${builtInMode[1]}`
+          }
+          const external = /node_modules\/codemirror-mode-(\w+)\//.exec(
+            mod.resource
+          )
+          if (external) {
+            return `cm-ext/${external[1]}`
+          }
+          return 'cm-common';
+        },
+      },
+    },
+  },
   minimize: true,
   namedModules: false,
   minimizer: [

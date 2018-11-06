@@ -1,6 +1,7 @@
 [@bs.val] external hot: bool = "module.hot";
 
 [@bs.val] external accept: unit => unit = "module.hot.accept";
+[@bs.val] external import: string => Js.Promise.t('a) = "import";
 
 let log = something => {
   Js.log(something);
