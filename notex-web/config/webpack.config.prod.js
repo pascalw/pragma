@@ -32,10 +32,22 @@ const miniCssExtractluginOptions = shouldUseRelativeAssetPaths
 
 const optimization = {
   splitChunks: {
+    chunks: 'async',
     cacheGroups: {
+      vendors: {
+        chunks: 'all',
+        test: /[\\/]node_modules[\\/]/,
+        priority: -10
+      },
+      default: {
+        minChunks: 2,
+        priority: -20,
+        reuseExistingChunk: true
+      },
       cmModes: {
-        enforce: true,
-        name: (mod, chunks) => {
+        test: /[\\/]node_modules[\\/]codemirror/,
+        minSize: 0,
+        name: (mod, _chunks) => {
           const builtInMode = /node_modules\/codemirror\/mode\/(\w+)\//.exec(
             mod.resource
           )
@@ -51,7 +63,7 @@ const optimization = {
           return 'cm-common';
         },
       },
-    },
+    }
   },
   minimize: true,
   namedModules: false,
