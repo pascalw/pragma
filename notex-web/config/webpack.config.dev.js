@@ -33,9 +33,12 @@ module.exports = {
     modules: ['node_modules', paths.appNodeModules].concat(
       process.env.NODE_PATH.split(path.delimiter).filter(Boolean)
     ),
+    alias: {
+      "codemirror$": require.resolve("codemirror")
+    },
     extensions: ['.re', '.ml', '.js', '.jsx'],
     plugins: [
-      new ModuleScopePlugin(paths.appSrc, [paths.appPackageJson]),
+      new ModuleScopePlugin(paths.appSrc, [paths.appPackageJson])
     ],
   },
   module: {
@@ -97,7 +100,7 @@ module.exports = {
             ],
           },
           {
-            exclude: [/\.js$/, /\.html$/, /\.json$/],
+            exclude: [/\.js$/, /\.mjs$/, /\.html$/, /\.json$/],
             loader: require.resolve('file-loader'),
             options: {
               name: 'static/assets/[name].[hash:8].[ext]',

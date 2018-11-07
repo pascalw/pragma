@@ -98,6 +98,13 @@ let supportedLanguages: SupportedLanguageMap.t(cmMode) =
         },
       )
     ->set(
+        "elixir",
+        {
+          name: "Elixir",
+          install: () => Utils.import("codemirror-mode-elixir"),
+        },
+      )
+    ->set(
         "elm",
         {
           name: "Elm",
