@@ -97,9 +97,6 @@ module.exports = {
     modules: ['node_modules', paths.appNodeModules].concat(
       process.env.NODE_PATH.split(path.delimiter).filter(Boolean)
     ),
-    alias: {
-      "codemirror$": require.resolve("codemirror")
-    },
     extensions: ['.re', '.ml', '.js', '.json', '.jsx'],
     plugins: [
       new ModuleScopePlugin(paths.appSrc, [paths.appPackageJson]),

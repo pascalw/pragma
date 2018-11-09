@@ -9,7 +9,7 @@
     "bs-platform": "^4.0.5",
     "bs-webapi": "^0.10.0",
     "codemirror": "^5.40.2",
-    "codemirror-mode-elixir": "^1.1.1",
+    "codemirror-mode-elixir": "^1.1.2",
     "minireset.css": "^0.0.3",
     "nanoid": "^1.2.5",
     "promise": "8.0.1",
