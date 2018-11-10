@@ -1,5 +1,4 @@
 type state = {
-  revision: option(string),
   notebooks: list(Data.notebook),
   notes: list(Data.note),
   contentBlocks: list(Data.contentBlock),
@@ -128,87 +127,94 @@ module JsonCoders = {
       ])
     );
   };
-
-  /* State */
-  let encodeState = state =>
-    Json.Encode.(
-      object_([
-        (
-          "revision",
-          switch (state.revision) {
-          | Some(revision) => string(revision)
-          | None => null
-          },
-        ),
-        (
-          "notebooks",
-          state.notebooks
-          |> List.map(encodeNotebook)
-          |> Array.of_list
-          |> jsonArray,
-        ),
-        (
-          "notes",
-          state.notes |> List.map(encodeNote) |> Array.of_list |> jsonArray,
-        ),
-        (
-          "contentBlocks",
-          state.contentBlocks
-          |> List.map(encodeContentBlock)
-          |> Array.of_list
-          |> jsonArray,
-        ),
-      ])
-    );
-
-  let decodeState = json =>
-    Json.Decode.{
-      revision: json |> optional(field("revision", string)),
-      notebooks: json |> field("notebooks", list(decodeNotebook)),
-      notes: json |> field("notes", list(decodeNote)),
-      contentBlocks:
-        json |> field("contentBlocks", list(decodeContentBlock)),
-    };
 };
 
-let state = ref(None);
+let notebookKey = notebookId => "notex-notebook:" ++ notebookId;
+let noteKey = noteId => "notex-note:" ++ noteId;
+let blockKey = blockId => "notex-block:" ++ blockId;
+
+let keyToId = key => Js.String.split(":", key)->Belt.Array.getExn(1);
+
+let storeNotebook = (notebook: Data.notebook) =>
+  LocalStorage.setItem(
+    notebookKey(notebook.id),
+    JsonCoders.encodeNotebook(notebook) |> Json.stringify,
+  );
+
+let getStoredNotebook = notebookId =>
+  LocalStorage.getItem(notebookKey(notebookId))
+  ->Belt.Option.map(jsonString =>
+      Json.parseOrRaise(jsonString)->JsonCoders.decodeNotebook
+    );
+
+let storeNote = (note: Data.note) =>
+  LocalStorage.setItem(
+    noteKey(note.id),
+    JsonCoders.encodeNote(note) |> Json.stringify,
+  );
+
+let getStoredNote = noteId =>
+  LocalStorage.getItem(noteKey(noteId))
+  ->Belt.Option.map(jsonString =>
+      Json.parseOrRaise(jsonString)->JsonCoders.decodeNote
+    );
+
+let storeContentBlock = (contentBlock: Data.contentBlock) =>
+  LocalStorage.setItem(
+    blockKey(contentBlock.id),
+    JsonCoders.encodeContentBlock(contentBlock) |> Json.stringify,
+  );
+
+let getStoredContentBlock = blockId =>
+  LocalStorage.getItem(blockKey(blockId))
+  ->Belt.Option.map(jsonString =>
+      Json.parseOrRaise(jsonString)->JsonCoders.decodeContentBlock
+    );
+
+let localStorageKeys = LocalStorage.keys();
+
+let getStoredNotebooks = () =>
+  localStorageKeys
+  ->Belt.List.keep(key => Js.String.startsWith(notebookKey(""), key))
+  ->Belt.List.map(key => {
+      let id = keyToId(key);
+      getStoredNotebook(id) |> Belt.Option.getExn;
+    });
+
+let getStoredNotes = () =>
+  localStorageKeys
+  ->Belt.List.keep(key => Js.String.startsWith(noteKey(""), key))
+  ->Belt.List.map(key => {
+      let id = keyToId(key);
+      getStoredNote(id) |> Belt.Option.getExn;
+    });
+
+let getStoredContentBlocks = () =>
+  localStorageKeys
+  ->Belt.List.keep(key => Js.String.startsWith(blockKey(""), key))
+  ->Belt.List.map(key => {
+      let id = keyToId(key);
+      getStoredContentBlock(id) |> Belt.Option.getExn;
+    });
+
+let initialState = {
+  notebooks: getStoredNotebooks(),
+  notes: getStoredNotes(),
+  contentBlocks: getStoredContentBlocks(),
+};
+
+let state = ref(initialState);
 
 let listeners: ref(list(listener)) = ref([]);
 
-let getState = () =>
-  switch (state^) {
-  | Some(state) => Future.value(state)
-  | None =>
-    switch (LocalStorage.getItem("notex-state")) {
-    | None =>
-      Future.value({
-        revision: None,
-        notebooks: [],
-        notes: [],
-        contentBlocks: [],
-      })
-    | Some(value) =>
-      let json = Json.parseOrRaise(value);
-      let savedState = json |> JsonCoders.decodeState;
-
-      state := Some(savedState);
-      Future.value(savedState);
-    }
-  };
+let getState = () => Future.value(state^);
 
 let saveState = newState => {
-  switch (newState) {
-  | Some(state) =>
-    let json = JsonCoders.encodeState(state) |> Json.stringify;
-    LocalStorage.setItem("notex-state", json);
-  | None => LocalStorage.removeItem("notex-state")
-  };
-
   state := newState;
   Future.value();
 };
 
-let clear = () => saveState(None) |> ignore;
+let clear = () => saveState(initialState) |> ignore;
 
 let subscribe = listener => listeners := [listener, ...listeners^];
 
@@ -251,27 +257,28 @@ let getContentBlock = contentBlockId =>
     ->Belt.List.head
   );
 
-let addNotebooks = notebooks =>
+let addNotebook = notebook =>
   Future.map(
     getState(),
     state => {
       let newState = {
         ...state,
-        notebooks: state.notebooks->(Belt.List.concat(notebooks)),
+        notebooks: state.notebooks->(Belt.List.add(notebook)),
       };
-      saveState(Some(newState)) |> ignore;
+
+      storeNotebook(notebook);
+      saveState(newState) |> ignore;
     },
   );
 
-let addNotes = notes =>
+let addNote = note =>
   Future.map(
     getState(),
     state => {
-      let newState = {
-        ...state,
-        notes: state.notes->(Belt.List.concat(notes)),
-      };
-      saveState(Some(newState)) |> ignore;
+      let newState = {...state, notes: state.notes->(Belt.List.add(note))};
+
+      storeNote(note);
+      saveState(newState) |> ignore;
     },
   );
 
@@ -305,7 +312,10 @@ let createNote = (notebookId: string) => {
         contentBlocks: state.contentBlocks @ [contentBlock],
       };
 
-      saveState(Some(newState));
+      storeNote(note);
+      storeContentBlock(contentBlock);
+
+      saveState(newState);
     })
   ->Future.tap(_ => {
       DataSync.pushNewNote(note);
@@ -316,27 +326,25 @@ let createNote = (notebookId: string) => {
 
 let createNotebook = notebook =>
   getState()
-  ->Future.map(state => {
-      let newState = {
-        ...state,
-        notebooks: state.notebooks->Belt.List.concat([notebook]),
-      };
-
-      Some(newState);
-    })
+  ->Future.map(state =>
+      {...state, notebooks: state.notebooks->Belt.List.add(notebook)}
+    )
   ->Future.flatMap(saveState)
+  ->Future.tap(_ => storeNotebook(notebook))
   ->Future.tap(_ => DataSync.pushNewNotebook(notebook))
   ->Future.flatMap(_ => Future.value(notebook));
 
-let addContentBlocks = contentBlocks =>
+let addContentBlock = contentBlock =>
   Future.map(
     getState(),
     state => {
       let newState = {
         ...state,
-        contentBlocks: state.contentBlocks->(Belt.List.concat(contentBlocks)),
+        contentBlocks: state.contentBlocks->Belt.List.add(contentBlock),
       };
-      saveState(Some(newState)) |> ignore;
+
+      storeContentBlock(contentBlock);
+      saveState(newState) |> ignore;
     },
   );
 
@@ -352,9 +360,9 @@ let updateContentBlock = (contentBlock: Data.contentBlock, ~sync=true, ()) =>
           }
         );
 
-      let newState = {...state, contentBlocks: updatedContentBlocks};
-      Some(newState);
+      {...state, contentBlocks: updatedContentBlocks};
     })
+  ->Future.tap(_ => storeContentBlock(contentBlock))
   ->Future.tap(_ => sync ? DataSync.pushContentBlock(contentBlock) : ())
   ->Future.flatMap(saveState);
 
@@ -370,9 +378,9 @@ let updateNote = (note: Data.note, ~sync=true, ()) =>
           }
         );
 
-      let newState = {...state, notes: updatedNotes};
-      Some(newState);
+      {...state, notes: updatedNotes};
     })
+  ->Future.tap(_ => storeNote(note))
   ->Future.tap(_ => sync ? DataSync.pushNoteChange(note) : ())
   ->Future.flatMap(saveState);
 
@@ -388,9 +396,9 @@ let updateNotebook = (notebook: Data.notebook, ~sync=true, ()) =>
           }
         );
 
-      let newState = {...state, notebooks: updatedNotebooks};
-      Some(newState);
+      {...state, notebooks: updatedNotebooks};
     })
+  ->Future.tap(_ => storeNotebook(notebook))
   ->Future.tap(_ => sync ? DataSync.pushNotebookChange(notebook) : ())
   ->Future.flatMap(saveState);
 
@@ -402,9 +410,9 @@ let deleteNotebook = (notebookId: string, ~sync=true, ()) =>
           existingNotebook.id != notebookId
         );
 
-      let newState = {...state, notebooks: updatedNotebooks};
-      Some(newState);
+      {...state, notebooks: updatedNotebooks};
     })
+  ->Future.tap(_ => LocalStorage.removeItem(notebookKey(notebookId)))
   ->Future.tap(_ => sync ? DataSync.pushNotebookDelete(notebookId) : ())
   ->Future.flatMap(saveState);
 
@@ -414,9 +422,9 @@ let deleteNote = (noteId: string, ~sync=true, ()) =>
       let updatedNotes =
         Belt.List.keep(state.notes, existingNote => existingNote.id != noteId);
 
-      let newState = {...state, notes: updatedNotes};
-      Some(newState);
+      {...state, notes: updatedNotes};
     })
+  ->Future.tap(_ => LocalStorage.removeItem(noteKey(noteId)))
   ->Future.tap(_ => sync ? DataSync.pushNoteDelete(noteId) : ())
   ->Future.flatMap(saveState);
 
@@ -428,21 +436,15 @@ let deleteContentBlock = (contentBlockId: string) =>
           existingBlock.id != contentBlockId
         );
 
-      let newState = {...state, contentBlocks: updatedContentBlocks};
-      Some(newState);
+      {...state, contentBlocks: updatedContentBlocks};
     })
+  ->Future.tap(_ => LocalStorage.removeItem(blockKey(contentBlockId)))
   ->Future.flatMap(saveState);
 
 let insertRevision = (revision: string) =>
-  Future.map(
-    getState(),
-    state => {
-      let newState = {...state, revision: Some(revision)};
-      saveState(Some(newState)) |> ignore;
-    },
-  );
+  LocalStorage.setItem("notex-revision", revision)->Future.value;
 
-let getRevision = () => Future.map(getState(), state => state.revision);
+let getRevision = () => LocalStorage.getItem("notex-revision")->Future.value;
 
 let withNotification = fn => {
   let result = fn();

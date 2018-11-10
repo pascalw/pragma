@@ -1,6 +1,16 @@
 [@bs.scope ("window", "localStorage")] [@bs.val]
 external getItemRaw: string => Js.Nullable.t(string) = "getItem";
 
+let rawKeys: unit => array(string) = [%bs.raw
+  {|
+  function keys() {
+    return Object.keys(localStorage);
+  }
+|}
+];
+
+let keys = () => rawKeys() |> Belt.List.fromArray;
+
 let getItem = key => getItemRaw(key) |> Js.Nullable.toOption;
 
 [@bs.scope ("window", "localStorage")] [@bs.val]

@@ -1,6 +1,6 @@
 let fromNote = noteId => Db.getContentBlocks(noteId);
 let get = id => Db.getContentBlock(id);
-let add = blocks => Db.addContentBlocks(blocks);
+let add = block => Db.addContentBlock(block);
 
 let update = (block, ~sync=true, ()) => {
   let now = Js.Date.fromFloat(Js.Date.now());

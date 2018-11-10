@@ -1,6 +1,6 @@
 let fromNotebook = notebookId => Db.getNotes(notebookId);
 let get = id => Db.getNote(id);
-let add = notes => Db.addNotes(notes);
+let add = note => Db.addNote(note);
 let create = (notebookId: string) => Db.createNote(notebookId);
 
 let update = (note: Data.note, ~sync=true, ()) => {

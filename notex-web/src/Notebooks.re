@@ -1,6 +1,6 @@
 let all = () => Db.getNotebooks();
 let get = id => Db.getNotebook(id);
-let add = notebooks => Db.addNotebooks(notebooks);
+let add = notebook => Db.addNotebook(notebook);
 
 let create = notebook =>
   Db.createNotebook(notebook)->Future.tap(DataSync.pushNewNotebook);

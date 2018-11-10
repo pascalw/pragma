@@ -4,7 +4,7 @@ let upsertContentBlock = (contentBlock: Data.contentBlock) =>
   ContentBlocks.get(contentBlock.id)
   ->Future.get(storedContentBlock =>
       switch (storedContentBlock) {
-      | None => ContentBlocks.add([contentBlock]) |> ignore
+      | None => ContentBlocks.add(contentBlock) |> ignore
       | Some(_contentBlock) =>
         ContentBlocks.update(contentBlock, ~sync=false, ()) |> ignore
       }
@@ -14,7 +14,7 @@ let upsertNote = (note: Data.note) =>
   Notes.get(note.id)
   ->Future.get(storedNote =>
       switch (storedNote) {
-      | None => Notes.add([note]) |> ignore
+      | None => Notes.add(note) |> ignore
       | Some(_note) => Notes.update(note, ~sync=false, ()) |> ignore
       }
     );
@@ -23,7 +23,7 @@ let upsertNotebook = (notebook: Data.notebook) =>
   Notebooks.get(notebook.id)
   ->Future.get(storedNotebook =>
       switch (storedNotebook) {
-      | None => Notebooks.add([notebook]) |> ignore
+      | None => Notebooks.add(notebook) |> ignore
       | Some(_note) => Notebooks.update(notebook, ~sync=false, ()) |> ignore
       }
     );
