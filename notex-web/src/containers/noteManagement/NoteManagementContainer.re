@@ -48,19 +48,26 @@ let debouncedUpdateContentBlockInDb =
     }
   )();
 
-let sortDesc = (notes: list(Data.note)) =>
-  Belt.List.sort(notes, (a, b) =>
-    Utils.compareDates(a.updatedAt, b.updatedAt) * (-1)
+let sortDesc = (input: list('a), mapper: 'a => Js.Date.t) =>
+  Belt.List.sort(input, (a, b) =>
+    Utils.compareDates(mapper(a), mapper(b)) * (-1)
   );
 
+let sortNotesDesc = (notes: list(Data.note)) =>
+  sortDesc(notes, note => note.updatedAt);
+
+let sortNotebooksDesc = (notebooks: list((Data.notebook, int))) =>
+  sortDesc(notebooks, ((notebook, _)) => notebook.updatedAt);
+
 let getSortedNotes = notebookId =>
-  Notes.fromNotebook(notebookId)->Future.map(sortDesc);
+  Notes.fromNotebook(notebookId)->Future.map(sortNotesDesc);
 
 let fetchInitialState = () => {
   open Belt;
   let appState = AppState.get();
 
   Notebooks.all()
+  ->Future.map(sortNotebooksDesc)
   ->Future.flatMap(notebooks => {
       let selectedNotebookId =
         switch (appState.selectedNotebookId) {
