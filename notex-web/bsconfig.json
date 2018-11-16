@@ -4,7 +4,6 @@
   "bs-dependencies": [
     "reason-react",
     "@glennsl/bs-jest",
-    "bs-date-fns",
     "bs-webapi",
     "bs-fetch",
     "@glennsl/bs-json",

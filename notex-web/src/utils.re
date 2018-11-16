@@ -70,3 +70,11 @@ function htmlToText(html) {
 }
 |}
 ];
+
+module DayJs = {
+  type t;
+  [@bs.module "dayjs"] external make: Js.Date.t => t = "default";
+  [@bs.send] external format: (t, string) => string = "format";
+};
+
+let formatDate = (date, format) => date->DayJs.make->DayJs.format(format);

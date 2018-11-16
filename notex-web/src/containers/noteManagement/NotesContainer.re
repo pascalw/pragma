@@ -30,7 +30,7 @@ let make =
         )
       );
 
-    let formatDate = date => DateFns.format("D MMMM YYYY", date);
+    let formatDate = date => Utils.formatDate(date, "D MMMM YYYY");
     let renderNoteListItemContent = (item: ListView.listItem(Data.note)) =>
       <p>
         {ReasonReact.string(item.model.title)}
