@@ -8,16 +8,16 @@ CHANGED_REASON_FILES=$(git diff --cached --name-only --diff-filter=ACM "*.re" | 
   echo "$CHANGED_RUST_FILES" | xargs rustfmt --emit files
 
   echo "Running clippy..."
-  (cd notex-server && cargo +nightly clippy --all-targets --all-features -- -D warnings)
+  (cd server && cargo +nightly clippy --all-targets --all-features -- -D warnings)
   echo "$CHANGED_RUST_FILES" | xargs git add
 }
 
 [ ! -z "$CHANGED_REASON_FILES" ] && {
   echo "Compiling..."
-  (cd notex-web && yarn compile) || exit 1
+  (cd web && yarn compile) || exit 1
 
   echo "Running refmt..."
-  echo "$CHANGED_REASON_FILES" | xargs ./notex-web/node_modules/.bin/bsrefmt --in-place 
+  echo "$CHANGED_REASON_FILES" | xargs ./web/node_modules/.bin/bsrefmt --in-place 
 
   echo "$CHANGED_REASON_FILES" | xargs git add
 } || exit 0

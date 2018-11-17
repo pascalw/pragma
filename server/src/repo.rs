@@ -129,7 +129,7 @@ fn seed(connection: &SqliteConnection) {
     let note_id = repo_id::generate();
     let note = data::NewNote {
         id: Some(note_id.clone()),
-        title: "Welcome to notex!".into(),
+        title: "Welcome to Pragma!".into(),
         tags: vec![],
         created_at: now,
         updated_at: now,
@@ -140,7 +140,7 @@ fn seed(connection: &SqliteConnection) {
     let content_block = data::NewContentBlock {
         id: Some(content_block_id.clone()),
         content: data::Content::Text {
-            text: "<p>Welcome to Notex!</p>".into(),
+            text: "<p>Welcome to Pramga!</p>".into(),
         }, // TODO: add more help
         created_at: now,
         updated_at: now,

@@ -7,11 +7,11 @@ module JsonCoders = {
 
 let store = changeIds => {
   let json = JsonCoders.encodePendingChanges(changeIds) |> Json.stringify;
-  LocalStorage.setItem("notex-sync-state", json);
+  LocalStorage.setItem("pragma-sync-state", json);
 };
 
 let getStoredChangeIds = () =>
-  switch (LocalStorage.getItem("notex-sync-state")) {
+  switch (LocalStorage.getItem("pragma-sync-state")) {
   | None => []
   | Some(json) =>
     let json = Json.parseOrRaise(json);

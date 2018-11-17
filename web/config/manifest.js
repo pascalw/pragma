@@ -2,8 +2,8 @@ const WebpackPwaManifest = require("webpack-pwa-manifest");
 module.exports = new WebpackPwaManifest({
   ios: true,
   start_url: "/",
-  name: "Notex",
-  short_name: "Notex",
+  name: "Pragma",
+  short_name: "Pragma",
   description: "Open source personal note taking.",
   orientation: "any",
   display: "standalone",

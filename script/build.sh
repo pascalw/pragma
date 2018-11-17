@@ -3,30 +3,30 @@ BUILDER=${BUILDER:-local}
 
 function rust_musl_builder() {
   docker run --rm -it -v "$(pwd)":/home/rust/src \
-    -w /home/rust/src/notex-server \
+    -w /home/rust/src/server \
     -v cargo-git:/home/rust/.cargo/git \
     -v cargo-registry:/home/rust/.cargo/registry \
     ekidd/rust-musl-builder "$@"
 }
 
 echo "Building frontend..."
-(cd notex-web && yarn build)
+(cd web && yarn build)
 
 echo "Copying assets..."
-(cd notex-web/build && \
+(cd web/build && \
   tar cf - \
-.) | (rm -rf notex-server/assets && mkdir -p notex-server/assets && cd notex-server/assets && tar xvf - )
+.) | (rm -rf server/assets && mkdir -p server/assets && cd server/assets && tar xvf - )
 
 case "$BUILDER" in
   "local")
     echo "Building binary with local cargo"
-    (cd notex-server && cargo build --release --features=embedded_assets)
+    (cd server && cargo build --release --features=embedded_assets)
     ;;
   "docker")
     echo "Building binary in Docker"
     (rust_musl_builder sh -c '\
       cargo build --release --features=embedded_assets \
-      && strip target/x86_64-unknown-linux-musl/release/notex-server -o \
-      target/x86_64-unknown-linux-musl/release/notex-server.stripped')
+      && strip target/x86_64-unknown-linux-musl/release/pragma -o \
+      target/x86_64-unknown-linux-musl/release/pragma.stripped')
     ;;
 esac

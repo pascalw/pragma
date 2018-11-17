@@ -1,5 +1,5 @@
 [package]
-name = "notex-server"
+name = "pragma"
 version = "0.1.0"
 authors = ["Pascal Widdershoven <hello@pascalw.me>"]
 build = "build.rs"

@@ -131,9 +131,9 @@ module JsonCoders = {
   };
 };
 
-let notebookKey = notebookId => "notex-notebook:" ++ notebookId;
-let noteKey = noteId => "notex-note:" ++ noteId;
-let blockKey = blockId => "notex-block:" ++ blockId;
+let notebookKey = notebookId => "pragma-notebook:" ++ notebookId;
+let noteKey = noteId => "pragma-note:" ++ noteId;
+let blockKey = blockId => "pragma-block:" ++ blockId;
 
 let keyToId = key => Js.String.split(":", key)->Belt.Array.getExn(1);
 
@@ -444,9 +444,9 @@ let deleteContentBlock = (contentBlockId: string) =>
   ->Future.flatMap(saveState);
 
 let insertRevision = (revision: string) =>
-  LocalStorage.setItem("notex-revision", revision)->Future.value;
+  LocalStorage.setItem("pragma-revision", revision)->Future.value;
 
-let getRevision = () => LocalStorage.getItem("notex-revision")->Future.value;
+let getRevision = () => LocalStorage.getItem("pragma-revision")->Future.value;
 
 let withNotification = fn => {
   let result = fn();

@@ -33,7 +33,7 @@ module JsonCoders = {
 };
 
 let get = () =>
-  LocalStorage.getItem("notex-app-state")
+  LocalStorage.getItem("pragma-app-state")
   ->Belt.Option.map(Json.parseOrRaise)
   ->Belt.Option.map(json => JsonCoders.decodeState(json))
   ->Belt.Option.getWithDefault({
@@ -43,7 +43,7 @@ let get = () =>
 
 let saveState = state => {
   let json = JsonCoders.encodeState(state) |> Json.stringify;
-  LocalStorage.setItem("notex-app-state", json);
+  LocalStorage.setItem("pragma-app-state", json);
 };
 
 let setSelected = (notebookId, noteId) =>

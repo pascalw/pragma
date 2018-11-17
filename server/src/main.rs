@@ -58,7 +58,7 @@ fn main() {
     auth::init();
     let pool = init_repo();
 
-    let sys = actix::System::new("notex-server");
+    let sys = actix::System::new("pragma");
     let mut server = server::HttpServer::new(move || build_actix_app(pool.clone()));
 
     let mut listenfd = ListenFd::from_env();
@@ -101,7 +101,7 @@ fn configure_logger() {
 }
 
 fn init_repo() -> repo_connection::Pool {
-    let database_url = env::var("DATABASE_URL").unwrap_or_else(|_| "notex.sqlite".to_owned());
+    let database_url = env::var("DATABASE_URL").unwrap_or_else(|_| "pragma.sqlite".to_owned());
     let pool = repo_connection::create_pool(&database_url);
 
     let connection = pool.get().unwrap();
