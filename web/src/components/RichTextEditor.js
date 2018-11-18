@@ -13,11 +13,20 @@ const styleMap = {
 
 let cx = classNames.bind(styles);
 
+const spellcheckEnabled = () => {
+  return window.localStorage.getItem("pragma-spellcheck") == "true";
+};
+
+const setSpellcheck = spellcheckState => {
+  window.localStorage.setItem("pragma-spellcheck", spellcheckState);
+};
+
 export class RichTextEditor extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      value: props.value
+      value: props.value,
+      spellcheck: spellcheckEnabled()
     };
 
     this.focus = () => this.editor.focus();
@@ -77,6 +86,15 @@ export class RichTextEditor extends React.Component {
     this.onChange(RichUtils.toggleInlineStyle(this.state.value, inlineStyle));
   };
 
+  toggleSpellcheck = () => {
+    this.setState(state => {
+      const spellcheck = ! state.spellcheck;
+      setSpellcheck(spellcheck);
+
+      return { spellcheck };
+    });
+  };
+
   currentBlockType = () => {
     const editorState = this.state.value;
 
@@ -111,6 +129,7 @@ export class RichTextEditor extends React.Component {
           customStyleMap={styleMap}
           handleReturn={this.handleReturn}
           handleKeyCommand={this.handleKeyCommand}
+          spellCheck={this.state.spellcheck}
         />
 
         <ButtonBar
@@ -118,6 +137,8 @@ export class RichTextEditor extends React.Component {
           toggleBlockType={this.toggleBlockType}
           isStyleActive={currentStyle.has.bind(currentStyle)}
           currentBlockType={currentBlockType}
+          spellcheck={this.state.spellcheck}
+          toggleSpellcheck={this.toggleSpellcheck}
         />
       </div>
     );

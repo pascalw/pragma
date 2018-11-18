@@ -1,19 +1,31 @@
 [@bs.module] external styles: Js.Dict.t(string) = "./RichTextButtonBar.scss";
 let style = name => Js.Dict.get(styles, name)->Belt.Option.getExn;
 
+module Button = {
+  let component = ReasonReact.statelessComponent("Button");
+  let make = (~onMouseDown, ~isActive, children) => {
+    ...component,
+    render: _self => {
+      let className =
+        isActive ?
+          Utils.classnames([|style("button"), style("buttonActive")|]) :
+          style("button");
+
+      <button onMouseDown className> ...children </button>;
+    },
+  };
+};
+
 module InlineStyleButton = {
   let component = ReasonReact.statelessComponent("InlineStyleButton");
   let make = (~toggleInlineStyle, ~isActive, ~styleName, children) => {
     ...component,
     render: _self => {
-      let className =
-        isActive(styleName) ?
-          Utils.classnames([|style("button"), style("buttonActive")|]) :
-          style("button");
+      let isActive = isActive(styleName);
 
-      <button onMouseDown={toggleInlineStyle(styleName)} className>
+      <Button isActive onMouseDown={toggleInlineStyle(styleName)}>
         ...children
-      </button>;
+      </Button>;
     },
   };
 };
@@ -23,14 +35,11 @@ module BlockTypeButton = {
   let make = (~toggleBlockType, ~currentBlockType, ~blockType, children) => {
     ...component,
     render: _self => {
-      let className =
-        blockType == currentBlockType ?
-          Utils.classnames([|style("button"), style("buttonActive")|]) :
-          style("button");
+      let isActive = blockType == currentBlockType;
 
-      <button onMouseDown={toggleBlockType(blockType)} className>
+      <Button isActive onMouseDown={toggleBlockType(blockType)}>
         ...children
-      </button>;
+      </Button>;
     },
   };
 };
@@ -42,6 +51,8 @@ let make =
       ~toggleBlockType,
       ~isStyleActive,
       ~currentBlockType,
+      ~spellcheck,
+      ~toggleSpellcheck,
       _children,
     ) => {
   let toggleInlineStyle = (style, event) => {
@@ -53,6 +64,8 @@ let make =
     ReactEvent.Mouse.preventDefault(event);
     toggleBlockType(blockType);
   };
+
+  let toggleSpellcheck = _event => toggleSpellcheck();
 
   {
     ...component,
@@ -94,6 +107,12 @@ let make =
               <Icon icon=Icon.NumberedList />
             </BlockTypeButton>
           </div>
+          <div> <div className={style("divider")} /> </div>
+          <div>
+            <Button isActive=spellcheck onMouseDown=toggleSpellcheck>
+              <Icon icon=Icon.Spellcheck />
+            </Button>
+          </div>
         </div>
       </div>,
   };
@@ -105,6 +124,8 @@ type jsProps = {
   toggleBlockType: string => unit,
   isStyleActive: string => bool,
   currentBlockType: string,
+  spellcheck: bool,
+  toggleSpellcheck: unit => unit,
 };
 
 let jsComponent =
@@ -114,6 +135,8 @@ let jsComponent =
       ~toggleBlockType=jsProps->toggleBlockTypeGet,
       ~isStyleActive=jsProps->isStyleActiveGet,
       ~currentBlockType=jsProps->currentBlockTypeGet,
+      ~spellcheck=jsProps->spellcheckGet,
+      ~toggleSpellcheck=jsProps->toggleSpellcheckGet,
       [||],
     )
   );
