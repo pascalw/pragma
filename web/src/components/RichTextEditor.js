@@ -64,9 +64,9 @@ export class RichTextEditor extends React.Component {
 
   handleKeyCommand = (command, editorState) => {
     if (command == "backspace") {
-      // handle backspace like we handle return,
-      // acts only on empty list items.
-      return this.handleReturn(null, editorState);
+      // Don't handle backspace with RichUtils, it deletes list items and
+      // breaks lists.
+      return "not-handled";
     }
 
     const newState = RichUtils.handleKeyCommand(editorState, command);
