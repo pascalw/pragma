@@ -23,7 +23,16 @@ let make =
         switch (note) {
         | None => <NoNoteSelected />
         | Some(note) =>
-          <NoteEditor note contentBlocks onChange={onChange(dispatch)} />
+          <NoteEditor
+            note
+            contentBlocks
+            onChange={onChange(dispatch)}
+            onShiftEnter=(
+              () =>
+                dispatch(NoteManagementContainer.CreateContentBlock(note))
+            )
+            onDeleteIntent={block => dispatch(NoteManagementContainer.DeleteContentBlock(block))}
+          />
         }
       }
     </>,

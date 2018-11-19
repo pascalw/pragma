@@ -430,7 +430,7 @@ let deleteNote = (noteId: string, ~sync=true, ()) =>
   ->Future.tap(_ => sync ? DataSync.pushNoteDelete(noteId) : ())
   ->Future.flatMap(saveState);
 
-let deleteContentBlock = (contentBlockId: string) =>
+let deleteContentBlock = (contentBlockId: string, ~sync=true, ()) =>
   getState()
   ->Future.map(state => {
       let updatedContentBlocks =
@@ -441,6 +441,7 @@ let deleteContentBlock = (contentBlockId: string) =>
       {...state, contentBlocks: updatedContentBlocks};
     })
   ->Future.tap(_ => LocalStorage.removeItem(blockKey(contentBlockId)))
+  ->Future.tap(_ => sync ? DataSync.pushContentBlockDelete(contentBlockId) : ())
   ->Future.flatMap(saveState);
 
 let insertRevision = (revision: string) =>

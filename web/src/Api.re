@@ -325,3 +325,14 @@ let createContentBlock = (contentBlock: Data.contentBlock) => {
   ->toFutureJson
   ->Future.mapOk(json => JsonCoders.decodeContentBlock(json));
 };
+
+let deleteContentBlock = (blockId: string) =>
+  Fetch.fetchWithInit(
+    "/api/content_blocks/" ++ blockId,
+    Fetch.RequestInit.make(
+      ~method_=Delete,
+      ~headers=Fetch.HeadersInit.make(headers()),
+      (),
+    ),
+  )
+  ->toFuture(Js.Promise.resolve);

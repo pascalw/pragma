@@ -27,14 +27,22 @@ $editor-padding: 0.75rem;
 }
 
 .contentBlock {
-  flex: 1;
+  flex: 0 1 auto;
   display: flex;
   flex-direction: column;
   overflow: hidden;
 
-  margin-bottom: 0.5em;
+  margin-bottom: .75em;
   position: relative;
   padding: 0 $editor-padding;
+
+  &:global(.code) {
+    min-height: 2em;
+  }
+
+  &:global(.text) {
+    min-height: 5em;
+  }
 }
 
 .typeSelector {

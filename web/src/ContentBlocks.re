@@ -2,6 +2,11 @@ let fromNote = noteId => Db.getContentBlocks(noteId);
 let get = id => Db.getContentBlock(id);
 let add = block => Db.addContentBlock(block);
 
+let create = (block) => {
+  add(block)
+  ->Future.tap((_) => DataSync.pushNewContentBlock(block));
+};
+
 let update = (block, ~sync=true, ()) => {
   let now = Js.Date.fromFloat(Js.Date.now());
   Db.updateContentBlock({...block, updatedAt: now}, ~sync, ());
@@ -31,7 +36,7 @@ let updateCodeLanguage = (block: Data.contentBlock, language) =>
   | _ => Js.Exn.raiseError("Unsupported contentblock")
   };
 
-let delete = id => Db.deleteContentBlock(id);
+let delete = (id,  ~sync=true, ()) => Db.deleteContentBlock(id, ~sync, ());
 
 DataSync.setContentBlockSyncedListener(block =>
   Db.updateContentBlock(block, ~sync=false, ())

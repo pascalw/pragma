@@ -1,6 +1,7 @@
 import React from "react";
-import { Editor, RichUtils } from "draft-js";
+import { Editor, RichUtils, EditorState } from "draft-js";
 import { handleReturnInList } from "../draft-js/list-behavior";
+import { isSelectionAtStart, isSelectionAtEnd } from "../draft-js/utils";
 import classNames from "classnames/bind";
 import styles from "./RichTextEditor.scss";
 import { jsComponent as ButtonBar } from "./RichTextButtonBar.bs";
@@ -51,7 +52,12 @@ export class RichTextEditor extends React.Component {
     this.setState({ value: state });
   };
 
-  handleReturn = (_e, editorState) => {
+  handleReturn = (e, editorState) => {
+    if(e.shiftKey) {
+      this.props.onShiftEnter();
+      return "handled";
+    }
+
     const newState = handleReturnInList(editorState);
 
     if (newState) {
@@ -62,10 +68,18 @@ export class RichTextEditor extends React.Component {
     return "not-handled";
   };
 
+  testDeleteIntent = editorState => {
+    const hasText = editorState.getCurrentContent().hasText();
+    return ! hasText && isSelectionAtStart(editorState);
+  };
+
   handleKeyCommand = (command, editorState) => {
     if (command == "backspace") {
       // Don't handle backspace with RichUtils, it deletes list items and
       // breaks lists.
+      const isDeleteIntent = this.testDeleteIntent(editorState);
+      isDeleteIntent && this.props.onDeleteIntent();
+
       return "not-handled";
     }
 
@@ -110,6 +124,23 @@ export class RichTextEditor extends React.Component {
     return this.state.value.getCurrentInlineStyle();
   };
 
+  onFocus = (e) => {
+    // this happens when focused is moved via tab, for some reason the
+    // .DraftEditor-root div takes focus in this case.
+    if(e.target.className.indexOf("DraftEditor-root") != -1) {
+      this.focus();
+      this.onChange(EditorState.moveFocusToEnd(this.state.value));
+    }
+  };
+
+  onDownArrow = () => {
+    console.log(isSelectionAtEnd(this.state.value));
+  }
+
+  onUpArrow = () => {
+    console.log(isSelectionAtStart(this.state.value));
+  }
+
   render() {
     const className = cx({
       editor: true,
@@ -120,7 +151,7 @@ export class RichTextEditor extends React.Component {
     const currentBlockType = this.currentBlockType();
 
     return (
-      <div className={className} onClick={this.focus}>
+      <div className={className} onClick={this.focus} onFocus={this.onFocus}>
         <Editor
           ref={ref => (this.editor = ref)}
           editorState={this.state.value}
@@ -130,6 +161,8 @@ export class RichTextEditor extends React.Component {
           handleReturn={this.handleReturn}
           handleKeyCommand={this.handleKeyCommand}
           spellCheck={this.state.spellcheck}
+          onDownArrow={this.onDownArrow}
+          onUpArrow={this.onUpArrow}
         />
 
         <ButtonBar

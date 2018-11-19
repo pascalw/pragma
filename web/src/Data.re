@@ -32,7 +32,7 @@ type notebook = {
   revision: option(string),
 };
 
-let newNotebook = () => {
+let newNotebook = () : notebook => {
   let now = Js.Date.fromFloat(Js.Date.now());
 
   {
@@ -42,4 +42,17 @@ let newNotebook = () => {
     updatedAt: now,
     revision: None,
   };
+};
+
+let newContentBlock = (noteId) : contentBlock => {
+  let now = Js.Date.fromFloat(Js.Date.now());
+
+  {
+    id: Utils.generateId(),
+    noteId,
+    content: TextContent(RichText.create()),
+    createdAt: now,
+    updatedAt: now,
+    revision: None
+  }
 };

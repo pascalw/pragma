@@ -1,6 +1,7 @@
 type changeValue =
   | ContentBlockCreated(Data.contentBlock)
   | ContentBlockUpdated(Data.contentBlock)
+  | ContentBlockDeleted(string)
   | NoteCreated(Data.note)
   | NoteUpdated(Data.note)
   | NotebookCreated(Data.notebook)
@@ -68,6 +69,7 @@ let syncChange = change =>
   | NotebookDeleted(notebookId) =>
     Api.deleteNotebook(notebookId)->Future.mapOk(ignore)
   | NoteDeleted(noteId) => Api.deleteNote(noteId)->Future.mapOk(ignore)
+  | ContentBlockDeleted(blockId) => Api.deleteContentBlock(blockId)->Future.mapOk(ignore)
   };
 
 let storePendingChanges = () =>
@@ -146,6 +148,13 @@ let pushNotebookDelete = (notebookId: string) => {
 let pushNoteDelete = (noteId: string) => {
   let id = "note:deleted:" ++ noteId;
   let change = {id, change: NoteDeleted(noteId)};
+
+  pushChange(change);
+};
+
+let pushContentBlockDelete = (blockId: string) => {
+  let id = "contentBlock:deleted:" ++ blockId;
+  let change = {id, change: ContentBlockDeleted(blockId)};
 
   pushChange(change);
 };

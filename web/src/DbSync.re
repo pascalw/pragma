@@ -48,7 +48,7 @@ let run = () =>
               | "notebook" =>
                 Notebooks.delete(deletedResource.id, ~sync=false, ())
               | "note" => Notes.delete(deletedResource.id, ~sync=false, ())
-              | "contentBlock" => ContentBlocks.delete(deletedResource.id)
+              | "contentBlock" => ContentBlocks.delete(deletedResource.id, ~sync=false, ())
               | type_ =>
                 Js.Exn.raiseError("Unsupported deletion type: " ++ type_)
               }

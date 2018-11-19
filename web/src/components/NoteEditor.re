@@ -47,7 +47,7 @@ let onContentBlockTypeChange = (contentBlock, onChange, event) => {
   onChange(ContentBlock(updatedBlock));
 };
 
-let renderContentBlock = (onChange, contentBlock: Data.contentBlock) =>
+let renderContentBlock = (onChange, onShiftEnter, onDeleteIntent, contentBlock: Data.contentBlock) =>
   <div
     className={style("contentBlock") ++ " " ++ blockClass(contentBlock)}
     key={contentBlock.id}>
@@ -67,6 +67,8 @@ let renderContentBlock = (onChange, contentBlock: Data.contentBlock) =>
           onChange=(
             value => onChange(Content(contentBlock, TextContent(value)))
           )
+          onShiftEnter
+          onDeleteIntent={() => onDeleteIntent(contentBlock)}
           value=richText
         />
       | {content: CodeContent(_, language)} =>
@@ -82,10 +84,18 @@ let renderContentBlock = (onChange, contentBlock: Data.contentBlock) =>
     }
   </div>;
 
-let renderContentBlocks = (contentBlocks, onChange) =>
-  Belt.List.map(contentBlocks, renderContentBlock(onChange));
+let sortAsc = (input: list('a), mapper: 'a => Js.Date.t) =>
+Belt.List.sort(input, (a, b) =>
+  Utils.compareDates(mapper(a), mapper(b))
+);
 
-let make = (~note: Data.note, ~contentBlocks, ~onChange, _children) => {
+let renderContentBlocks = (contentBlocks: list(Data.contentBlock), onChange, onShiftEnter, onDeleteIntent) => {
+  contentBlocks
+  ->sortAsc(block => block.createdAt)
+  ->Belt.List.map(renderContentBlock(onChange, onShiftEnter, onDeleteIntent));
+};
+
+let make = (~note: Data.note, ~contentBlocks, ~onChange, ~onShiftEnter, ~onDeleteIntent, _children) => {
   ...component,
   render: _self =>
     <div className={style("editor") ++ " " ++ style("content")}>
@@ -98,7 +108,7 @@ let make = (~note: Data.note, ~contentBlocks, ~onChange, _children) => {
         onChange={onChangeTitle(note, onChange)}
       />
       {
-        renderContentBlocks(contentBlocks, onChange)
+        renderContentBlocks(contentBlocks, onChange, onShiftEnter, onDeleteIntent)
         |> Belt.List.toArray
         |> ReasonReact.array
       }

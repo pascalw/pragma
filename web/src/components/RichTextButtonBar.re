@@ -11,7 +11,7 @@ module Button = {
           Utils.classnames([|style("button"), style("buttonActive")|]) :
           style("button");
 
-      <button onMouseDown className> ...children </button>;
+      <button onMouseDown className tabIndex={-1}> ...children </button>;
     },
   };
 };

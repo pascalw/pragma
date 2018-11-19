@@ -23,7 +23,9 @@ type action =
   | NoteSelected(string, list(Data.contentBlock))
   | DeleteNote(Data.note)
   | UpdateNoteText(Data.contentBlock, Data.content)
+  | CreateContentBlock(Data.note)
   | UpdateContentBlock(Data.contentBlock)
+  | DeleteContentBlock(Data.contentBlock)
   | UpdateNoteTitle(Data.note, string);
 
 let debouncedUpdateContentBlockInDb =
@@ -273,6 +275,19 @@ let make = (children: (state, action => unit) => ReasonReact.reactElement) => {
         newState,
         (_self => debouncedUpdateContentBlockInDb(updatedContentBlock)),
       );
+    | CreateContentBlock(note) =>
+      let newBlock = Data.newContentBlock(note.id);
+      let updatedBlocks = Belt.List.add(state.contentBlocks, newBlock);
+
+      ReasonReact.UpdateWithSideEffects(
+        {...state, contentBlocks: updatedBlocks},
+        (
+          _self =>
+            Db.withNotification(() =>
+              ContentBlocks.create(newBlock) |> ignore
+            )
+        ),
+      );
     | UpdateContentBlock(updatedBlock) =>
       let updatedBlocks =
         Belt.List.map(state.contentBlocks, existingBlock =>
@@ -288,6 +303,26 @@ let make = (children: (state, action => unit) => ReasonReact.reactElement) => {
         newState,
         (_self => ContentBlocks.update(updatedBlock, ()) |> ignore),
       );
+    | DeleteContentBlock(deletedBlock) =>
+      if (Belt.List.length(state.contentBlocks) > 1) {
+        let updatedBlocks =
+          Belt.List.keep(state.contentBlocks, existingBlock =>
+            existingBlock.id != deletedBlock.id
+          );
+
+        let newState = {...state, contentBlocks: updatedBlocks};
+        ReasonReact.UpdateWithSideEffects(
+          newState,
+          (
+            _self =>
+              Db.withNotification(() => ContentBlocks.delete(deletedBlock.id, ~sync=true, ()))
+              |> ignore
+          ),
+        );
+      } else {
+        ReasonReact.NoUpdate;
+      }
+
     | UpdateNoteTitle(note, title) =>
       let updatedNote = {...note, title};
 
