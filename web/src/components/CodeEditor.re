@@ -267,6 +267,7 @@ module CodeMirror = {
     value: string,
     options: cmOptions,
     onBeforeChange: (string, string, string) => unit,
+    onKeyDown: string => unit,
     editorDidMount: editor => unit,
   };
 
@@ -279,6 +280,7 @@ module CodeMirror = {
         ~code: string,
         ~editorDidMount,
         ~onBeforeChange,
+        ~onKeyDown,
         children,
       ) =>
     ReasonReact.wrapJsForReason(
@@ -289,6 +291,7 @@ module CodeMirror = {
           ~options=options(~mode),
           ~onBeforeChange,
           ~editorDidMount,
+          ~onKeyDown
         ),
       children,
     );
@@ -322,6 +325,7 @@ module CodeMirrorWrapper = {
         code
         onBeforeChange=onChange
         editorDidMount={editor => self.send(SetEditor(editor))}
+        onKeyDown=Js.log
       />;
     },
   };
