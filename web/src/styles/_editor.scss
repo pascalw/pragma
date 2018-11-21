@@ -2,6 +2,10 @@
 
 %editor {
   border: 1px solid $color-border-light;
+
+  @media print {
+    border: none;
+  }
 }
 
 %editor-focused {

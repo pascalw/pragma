@@ -62,3 +62,19 @@ $editor-padding: 0.75rem;
       text-shadow: 0 0 0 #000;
   }
 }
+
+@media print {
+  .typeSelector {
+    display: none !important;
+  }
+
+  .note-title {
+    font-size: 1.5em !important;
+    font-weight: bold !important;
+    border-bottom: none !important;
+  }
+
+  .contentBlock {
+    padding: 0 !important;
+  }
+}

@@ -1,6 +1,11 @@
 @import "../styles/settings";
 
+
 .listView {
+  @media print {
+    display: none !important;
+  }
+
   display: flex;
   flex-direction: column;
   max-width: 10%;
