@@ -15,7 +15,7 @@
   }
 
   :global {
-    .public-DraftStyleDefault-ul:first-of-type, .public-DraftStyleDefault-ol:first-of-type {
+    .public-DraftStyleDefault-ul:first-child .public-DraftStyleDefault-ol:first-child {
       margin-top: 0;
     }
 
