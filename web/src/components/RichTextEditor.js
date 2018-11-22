@@ -1,5 +1,9 @@
 import React from "react";
 import { Editor, RichUtils } from "draft-js";
+import {
+  registerCopySource,
+  handleDraftEditorPastedText,
+} from "draftjs-conductor";
 import { handleReturnInList } from "../draft-js/list-behavior";
 import classNames from "classnames/bind";
 import styles from "./RichTextEditor.scss";
@@ -33,6 +37,27 @@ export class RichTextEditor extends React.Component {
     this.isFocused = () => {
       return this.state.value.getSelection().getHasFocus();
     };
+  }
+
+  componentDidMount() {
+    this.copySource = registerCopySource(this.editor);
+  }
+
+  componentWillUnmount() {
+    if (this.copySource) {
+      this.copySource.unregister();
+    }
+  }
+
+  handlePastedText = (_text, html, editorState) => {
+    let newState = handleDraftEditorPastedText(html, editorState);
+ 
+    if (newState) {
+      this.onChange(newState);
+      return true;
+    }
+ 
+    return false;
   }
 
   onTab = e => {
@@ -130,6 +155,7 @@ export class RichTextEditor extends React.Component {
           handleReturn={this.handleReturn}
           handleKeyCommand={this.handleKeyCommand}
           spellCheck={this.state.spellcheck}
+          handlePastedText={this.handlePastedText}
         />
 
         <ButtonBar

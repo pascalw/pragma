@@ -3012,6 +3012,11 @@ draft-js@^0.10.5:
     immutable "~3.7.4"
     object-assign "^4.1.0"
 
+draftjs-conductor@^0.3.0:
+  version "0.3.0"
+  resolved "https://registry.yarnpkg.com/draftjs-conductor/-/draftjs-conductor-0.3.0.tgz#dd1224e33ddd61446653f7c6179021c0133b4256"
+  integrity sha512-pLq+f4CR2APmuZREabum9GYVhzp20Gxpa4bP9OCmwQSyrT24qbCqGf243wQwfhwhmstj/4foU+VyPofQ9wbYag==
+
 duplexer3@^0.1.4:
   version "0.1.4"
   resolved "https://registry.yarnpkg.com/duplexer3/-/duplexer3-0.1.4.tgz#ee01dd1cac0ed3cbc7fdbea37dc0a8f1ce002ce2"
