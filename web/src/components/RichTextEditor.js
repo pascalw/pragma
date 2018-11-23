@@ -5,6 +5,7 @@ import {
   handleDraftEditorPastedText,
 } from "draftjs-conductor";
 import { handleReturnInList } from "../draft-js/list-behavior";
+import { isSelectionAtStart } from "../draft-js/utils";
 import classNames from "classnames/bind";
 import styles from "./RichTextEditor.scss";
 import { jsComponent as ButtonBar } from "./RichTextButtonBar.bs";
@@ -88,9 +89,10 @@ export class RichTextEditor extends React.Component {
   };
 
   handleKeyCommand = (command, editorState) => {
-    if (command == "backspace") {
+    if (command == "backspace" && ! isSelectionAtStart(editorState)) {
       // Don't handle backspace with RichUtils, it deletes list items and
-      // breaks lists.
+      // breaks lists, unless we're at the very start of the selection
+      // so the last remaining bullet can be deleted by backspace.
       return "not-handled";
     }
 
