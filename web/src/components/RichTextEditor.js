@@ -1,5 +1,5 @@
 import React from "react";
-import { Editor, RichUtils } from "draft-js";
+import { Editor, RichUtils, CompositeDecorator, EditorState } from "draft-js";
 import {
   registerCopySource,
   handleDraftEditorPastedText,
@@ -9,6 +9,7 @@ import { isSelectionAtStart } from "../draft-js/utils";
 import classNames from "classnames/bind";
 import styles from "./RichTextEditor.scss";
 import { jsComponent as ButtonBar } from "./RichTextButtonBar.bs";
+import { jsComponent as LinkComponent } from "./editor/Link.bs";
 
 const styleMap = {
   STRIKETHROUGH: {
@@ -26,17 +27,44 @@ const setSpellcheck = spellcheckState => {
   window.localStorage.setItem("pragma-spellcheck", spellcheckState);
 };
 
+const findLinkEntities = (contentBlock, callback, contentState) => {
+  contentBlock.findEntityRanges(
+    (character) => {
+      const entityKey = character.getEntity();
+      return (
+        entityKey !== null &&
+        contentState.getEntity(entityKey).getType() === 'LINK'
+      );
+    },
+    callback
+  );
+}
+const Link = (props) => {
+  const {url} = props.contentState.getEntity(props.entityKey).getData();
+  return <LinkComponent url={url}>{props.children}</LinkComponent>;
+};
+
 export class RichTextEditor extends React.Component {
   constructor(props) {
     super(props);
-    this.state = {
-      value: props.value,
-      spellcheck: spellcheckEnabled()
-    };
 
     this.focus = () => this.editor.focus();
     this.isFocused = () => {
       return this.state.value.getSelection().getHasFocus();
+    };
+
+    const decorator = new CompositeDecorator([
+      {
+        strategy: findLinkEntities,
+        component: Link
+      },
+    ]);
+
+    const editorState = EditorState.set(props.value, { decorator });
+
+    this.state = {
+      value: editorState,
+      spellcheck: spellcheckEnabled()
     };
   }
 
