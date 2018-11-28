@@ -44,6 +44,17 @@ const Link = (props) => {
   return <LinkComponent url={url}>{props.children}</LinkComponent>;
 };
 
+const decorator = new CompositeDecorator([
+  {
+    strategy: findLinkEntities,
+    component: Link
+  },
+]);
+
+const editorStateFromValue = value => {
+  return EditorState.set(value, { decorator });
+};
+
 export class RichTextEditor extends React.Component {
   constructor(props) {
     super(props);
@@ -53,19 +64,16 @@ export class RichTextEditor extends React.Component {
       return this.state.value.getSelection().getHasFocus();
     };
 
-    const decorator = new CompositeDecorator([
-      {
-        strategy: findLinkEntities,
-        component: Link
-      },
-    ]);
-
-    const editorState = EditorState.set(props.value, { decorator });
-
     this.state = {
-      value: editorState,
+      value: editorStateFromValue(props.value),
       spellcheck: spellcheckEnabled()
     };
+  }
+
+  UNSAFE_componentWillReceiveProps(nextProps) {
+    this.setState({
+      value: editorStateFromValue(nextProps.value)
+    });
   }
 
   componentDidMount() {

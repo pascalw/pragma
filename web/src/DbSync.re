@@ -4,9 +4,12 @@ let upsertContentBlock = (contentBlock: Data.contentBlock) =>
   ContentBlocks.get(contentBlock.id)
   ->Future.get(storedContentBlock =>
       switch (storedContentBlock) {
-      | None => ContentBlocks.add(contentBlock) |> ignore
+      | None =>
+        ContentBlocks.add(contentBlock) |> Utils.log(~label="add") |> ignore
       | Some(_contentBlock) =>
-        ContentBlocks.update(contentBlock, ~sync=false, ()) |> ignore
+        ContentBlocks.update(contentBlock, ~sync=false, ())
+        |> Utils.log(~label="update")
+        |> ignore
       }
     );
 

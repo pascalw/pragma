@@ -8,8 +8,8 @@ let dictSet = (dict, key, value) => {
   dict;
 };
 
-let log = something => {
-  Js.log(something);
+let log = (something, ~label="", ()) => {
+  Js.log2(label, something);
   something;
 };
 

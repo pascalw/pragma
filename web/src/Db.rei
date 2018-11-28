@@ -28,7 +28,5 @@ let deleteContentBlock: (string) => Future.t(unit);
 
 let withNotification: (unit => 'a) => 'a;
 
-let clear: unit => unit;
-
 let insertRevision: string => Future.t(unit);
 let getRevision: unit => Future.t(option(string));
