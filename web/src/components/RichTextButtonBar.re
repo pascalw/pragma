@@ -3,7 +3,7 @@ let style = name => Js.Dict.get(styles, name)->Belt.Option.getExn;
 
 module Button = {
   let component = ReasonReact.statelessComponent("Button");
-  let make = (~onMouseDown, ~isActive, children) => {
+  let make = (~onMouseDown, ~isActive, ~title, children) => {
     ...component,
     render: _self => {
       let className =
@@ -11,19 +11,19 @@ module Button = {
           Utils.classnames([|style("button"), style("buttonActive")|]) :
           style("button");
 
-      <button onMouseDown className> ...children </button>;
+      <button onMouseDown className title> ...children </button>;
     },
   };
 };
 
 module InlineStyleButton = {
   let component = ReasonReact.statelessComponent("InlineStyleButton");
-  let make = (~toggleInlineStyle, ~isActive, ~styleName, children) => {
+  let make = (~toggleInlineStyle, ~isActive, ~styleName, ~title, children) => {
     ...component,
     render: _self => {
       let isActive = isActive(styleName);
 
-      <Button isActive onMouseDown={toggleInlineStyle(styleName)}>
+      <Button isActive title onMouseDown={toggleInlineStyle(styleName)}>
         ...children
       </Button>;
     },
@@ -32,12 +32,13 @@ module InlineStyleButton = {
 
 module BlockTypeButton = {
   let component = ReasonReact.statelessComponent("BlockTypeButton");
-  let make = (~toggleBlockType, ~currentBlockType, ~blockType, children) => {
+  let make =
+      (~toggleBlockType, ~currentBlockType, ~blockType, ~title, children) => {
     ...component,
     render: _self => {
       let isActive = blockType == currentBlockType;
 
-      <Button isActive onMouseDown={toggleBlockType(blockType)}>
+      <Button title isActive onMouseDown={toggleBlockType(blockType)}>
         ...children
       </Button>;
     },
@@ -74,18 +75,28 @@ let make =
         <div className={style("buttonBar")}>
           <div>
             <InlineStyleButton
-              styleName="BOLD" toggleInlineStyle isActive=isStyleActive>
+              title="Bold"
+              styleName="BOLD"
+              toggleInlineStyle
+              isActive=isStyleActive>
               <Icon icon=Icon.FormatBold />
             </InlineStyleButton>
             <InlineStyleButton
-              styleName="ITALIC" toggleInlineStyle isActive=isStyleActive>
+              title="Italic"
+              styleName="ITALIC"
+              toggleInlineStyle
+              isActive=isStyleActive>
               <Icon icon=Icon.FormatItalic />
             </InlineStyleButton>
             <InlineStyleButton
-              styleName="UNDERLINE" toggleInlineStyle isActive=isStyleActive>
+              title="Underline"
+              styleName="UNDERLINE"
+              toggleInlineStyle
+              isActive=isStyleActive>
               <Icon icon=Icon.FormatUnderline />
             </InlineStyleButton>
             <InlineStyleButton
+              title="Strikethrough"
               styleName="STRIKETHROUGH"
               toggleInlineStyle
               isActive=isStyleActive>
@@ -95,21 +106,33 @@ let make =
           <div> <div className={style("divider")} /> </div>
           <div>
             <BlockTypeButton
-              blockType="blockquote" toggleBlockType currentBlockType>
+              title="Quote"
+              blockType="blockquote"
+              toggleBlockType
+              currentBlockType>
               <Icon icon=Icon.FormatQuote />
             </BlockTypeButton>
             <BlockTypeButton
-              blockType="unordered-list-item" toggleBlockType currentBlockType>
+              title="Unordered list"
+              blockType="unordered-list-item"
+              toggleBlockType
+              currentBlockType>
               <Icon icon=Icon.BulletList />
             </BlockTypeButton>
             <BlockTypeButton
-              blockType="ordered-list-item" toggleBlockType currentBlockType>
+              title="Ordered list"
+              blockType="ordered-list-item"
+              toggleBlockType
+              currentBlockType>
               <Icon icon=Icon.NumberedList />
             </BlockTypeButton>
           </div>
           <div> <div className={style("divider")} /> </div>
           <div>
-            <Button isActive=spellcheck onMouseDown=toggleSpellcheck>
+            <Button
+              title="Spellcheck"
+              isActive=spellcheck
+              onMouseDown=toggleSpellcheck>
               <Icon icon=Icon.Spellcheck />
             </Button>
           </div>
