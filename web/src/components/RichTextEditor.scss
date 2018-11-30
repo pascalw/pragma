@@ -1,5 +1,7 @@
 @import "../styles/editor";
 
+$item-margin: .5em;
+
 .editor {
   position: relative;
   padding: .4em .6em;
@@ -15,19 +17,35 @@
   }
 
   :global {
-    .public-DraftStyleDefault-ul:first-child, .public-DraftStyleDefault-ol:first-child {
+    ul, ol {
+      margin: $item-margin 0;
+    }
+
+    ul:first-child, ol:first-child {
       margin-top: 0;
     }
 
-    .public-DraftStyleDefault-ul:last-child, .public-DraftStyleDefault-ol:last-child {
+    ul:last-child, ol:last-child {
       margin-bottom: 0;
     }
 
     blockquote {
       color: lighten($color-text, 25%);
       border-left: .2em solid #ccc;
-      margin: .5em 0 .5em .2em;
+      margin: 0 0 0 .2em;
       padding: 0 0 0 .4em;
+    }
+
+    blockquote + blockquote {
+      margin-top: 0;
+    }
+
+    blockquote + :not(blockquote), * + blockquote, blockquote:first-child {
+      margin-top: $item-margin;
+    }
+
+    blockquote:last-child {
+      margin-bottom: $item-margin;
     }
 
     .public-DraftStyleDefault-unorderedListItem.public-DraftStyleDefault-depth2,
