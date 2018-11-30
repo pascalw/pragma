@@ -47,6 +47,27 @@ let notifyNotebookSyncedListener = notifyListener(notebookSyncedListener);
 let notifyContentBlockSyncedListener =
   notifyListener(contentBlockSyncedListener);
 
+type pendingChangesListener = int => unit;
+let pendingChangesListener: ref(option(pendingChangesListener)) = ref(None);
+
+let setPendingChangesListener = listener =>
+  pendingChangesListener := Some(listener);
+
+let removePendingChangesListener = () => pendingChangesListener := None;
+
+let notifyPendingChangesListener = pendingChanges => {
+  /* FIXME: pendingChanges can currently contain duplicates because it consists of pending changes
+     + the retry queue. */
+  let uniqueCount =
+    Belt.Set.String.fromArray(Belt.List.toArray(pendingChanges))
+    ->Belt.Set.String.size;
+
+  switch (pendingChangesListener^) {
+  | None => ()
+  | Some(listener) => listener(uniqueCount)
+  };
+};
+
 let syncChange = change =>
   switch (change.change) {
   | NoteCreated(note) =>
@@ -70,11 +91,15 @@ let syncChange = change =>
   | NoteDeleted(noteId) => Api.deleteNote(noteId)->Future.mapOk(ignore)
   };
 
-let storePendingChanges = () =>
-  (pendingChanges^)
-  ->Belt.List.concat(retryQueue^)
-  ->Belt.List.map(change => change.id)
-  ->DataSyncPersistence.store;
+let storePendingChanges = () => {
+  let pendingChangeIds =
+    (pendingChanges^)
+    ->Belt.List.concat(retryQueue^)
+    ->Belt.List.map(change => change.id);
+
+  DataSyncPersistence.store(pendingChangeIds);
+  notifyPendingChangesListener(pendingChangeIds);
+};
 
 let removePendingChange = change => {
   pendingChanges :=

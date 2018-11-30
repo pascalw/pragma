@@ -75,7 +75,10 @@
 
 .footer {
   display: flex;
-  flex-direction: column;
+
+  button {
+    margin-left: auto;
+  }
 
   margin-top: auto;
   padding: 0 0.5rem;

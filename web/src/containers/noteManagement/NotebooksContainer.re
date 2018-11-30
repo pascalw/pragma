@@ -27,7 +27,11 @@ let make =
       },
     render: self => {
       let listFooter =
-        <> <AddButton onClick={createNotebook(self.send)} /> </>;
+        <>
+          <SyncStateContainer />
+          <AddButton onClick={createNotebook(self.send)} />
+        </>;
+
       let listItems =
         Belt.List.map(notebooks, ((notebook, noteCount)) =>
           (
