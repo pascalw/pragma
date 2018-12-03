@@ -1,5 +1,9 @@
 @import "../../styles/settings";
 
+.wrapper {
+  display: inline;
+}
+
 .panel {
   position: fixed;
   z-index: 10;

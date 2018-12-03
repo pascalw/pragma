@@ -89,7 +89,7 @@ let make = (~url, children) => {
     | TogglePanel(visible) => ReasonReact.Update({panelVisible: visible})
     },
   render: self =>
-    <div>
+    <div className={style("wrapper")}>
       <a
         href=url
         onClick={_ => self.send(TogglePanel(!self.state.panelVisible))}>
