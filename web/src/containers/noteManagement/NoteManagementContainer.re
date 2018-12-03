@@ -307,6 +307,9 @@ let make = (children: (state, action => unit) => ReasonReact.reactElement) => {
       );
     },
   didMount: self => {
+    DbSync.run();
+    DataSyncRetry.getPendingChanges()->Future.get(DataSync.start);
+
     let loadStateFromDb = () =>
       fetchInitialState()
       ->Future.get(state => self.send(LoadInitialState(state)));

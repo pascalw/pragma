@@ -1,7 +1,7 @@
 @import "minireset.css/minireset.sass";
 @import "styles/codemirror";
 
-html, body {
+html, body, :global(#root) {
   height: 100%;
   overflow: hidden;
 }

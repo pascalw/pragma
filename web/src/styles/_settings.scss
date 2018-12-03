@@ -1,6 +1,8 @@
 $color-primary: rgb(91, 136, 239);
+$color-error: #EF5B5B;
 $color-text: #363636;
 $color-background-light: #fbfbfb;
 $color-border-light: darken($color-background-light, 5%);
 
 $border-radius: 4px;
+$transition-style: .2s ease, border-color .2s ease, opacity .2s ease;

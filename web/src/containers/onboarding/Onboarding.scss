@@ -1,0 +1,14 @@
+@import "../../styles/settings";
+
+.container {
+  background-color: $color-background-light;
+  height: 100%;
+  display: flex;
+}
+
+.inner {
+  margin: 5% auto;
+  padding: 1em;
+  max-width: 500px;
+  width: 100%;
+}

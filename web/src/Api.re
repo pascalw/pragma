@@ -187,6 +187,8 @@ let toFuture =
 
 let toFutureJson = toFuture(_, Fetch.Response.json);
 
+let authHeader = token => {"Authorization": "bearer " ++ token};
+
 let headers = () => {
   "Content-Type": "application/json",
   "Authorization": "bearer " ++ Belt.Option.getExn(Auth.getToken()),
@@ -325,3 +327,14 @@ let createContentBlock = (contentBlock: Data.contentBlock) => {
   ->toFutureJson
   ->Future.mapOk(json => JsonCoders.decodeContentBlock(json));
 };
+
+let checkAuth = token =>
+  Fetch.fetchWithInit(
+    "/api/auth",
+    Fetch.RequestInit.make(
+      ~method_=Post,
+      ~headers=Fetch.HeadersInit.make(authHeader(token)),
+      (),
+    ),
+  )
+  ->toFuture(Js.Promise.resolve);

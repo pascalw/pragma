@@ -5,3 +5,7 @@ let check = () =>
     let token = WindowRe.prompt("Enter token", Webapi.Dom.window);
     LocalStorage.setItem("pragma-token", token);
   };
+
+let checkToken = (checkFn, token) =>
+  checkFn(token)
+  ->Future.tapOk(_ => LocalStorage.setItem("pragma-token", token));

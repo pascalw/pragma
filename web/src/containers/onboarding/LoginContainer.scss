@@ -1,0 +1,121 @@
+@import "../../styles/settings";
+
+$color-text-dark: darken($color-primary, 50%);
+
+@keyframes shake {
+  10%, 90% {
+    transform: translate3d(-1px, 0, 0);
+  }
+  
+  20%, 80% {
+    transform: translate3d(2px, 0, 0);
+  }
+
+  30%, 50%, 70% {
+    transform: translate3d(-4px, 0, 0);
+  }
+
+  40%, 60% {
+    transform: translate3d(4px, 0, 0);
+  }
+}
+
+.container {
+  h1 {
+    font-size: 2em;
+    font-weight: bold;
+    color: $color-text-dark;
+  }
+
+  h2 {
+    font-size: 1.2em;
+    margin-top: -5px;
+  }
+
+  a {
+    color: $color-primary;
+    transition: color $transition-style;
+
+    &:hover {
+      color: darken($color-primary, 40%);
+    }
+  }
+
+  button {
+    border-radius: $border-radius;
+    padding: .75rem 1.5rem;
+    font-weight: 700;
+    color: #fff;
+    border-width: 1px;
+    border-style: solid;
+    white-space: nowrap;
+    cursor: pointer;
+    text-align: center;
+    display: inline-block;
+    transition: background-color $transition-style;
+    line-height: 1.15;
+
+    background: darken($color-primary, 5%);
+    border-color: darken($color-primary, 10%);
+    width: 100%;
+
+    &:hover {
+      background: darken($color-primary, 20%);
+      border-color: darken($color-primary, 20%);
+    }
+
+    &:disabled {
+      background: lighten($color-primary, 5%);
+      border-color: $color-primary;
+      cursor: not-allowed;
+    }
+  }
+}
+
+.form {
+  margin-top: 1em;
+}
+
+.docs {
+  font-size: .8em;
+  margin-top: 1em;
+}
+
+.passwordField {
+  font-family: inherit;
+  box-shadow: none;
+  color: $color-text-dark;
+  border-radius: $border-radius;
+  border-width: 1px;
+  border-color: rgb(218, 218, 218);
+  border-style: solid;
+  padding: .75rem;
+  width: 100%;
+  font-size: 100%;
+  line-height: 1.15em;
+
+  margin-bottom: .5em;
+  transition: border-color $transition-style;
+  transition-duration: .1s;
+
+  &::placeholder {
+    opacity: .4;
+    color: $color-text-dark;
+  }
+
+  &:focus {
+    border-color: $color-primary;
+  }
+}
+
+.passwordErrorText {
+  color: $color-error;
+  margin-bottom: .1em;
+}
+
+.passwordFieldError, .passwordFieldError:focus {
+  border-color: $color-error;
+
+  animation: shake 0.82s cubic-bezier(.36,.07,.19,.97) both;
+  transform: translate3d(0, 0, 0);
+}
