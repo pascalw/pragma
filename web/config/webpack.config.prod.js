@@ -23,7 +23,7 @@ if (env.stringified['process.env'].NODE_ENV !== '"production"') {
   throw new Error('Production builds must have NODE_ENV=production.');
 }
 
-const cssFilename = 'static/css/[name].[contenthash:8].css';
+const cssFilename = 'css/[name].[contenthash:8].css';
 
 const miniCssExtractluginOptions = shouldUseRelativeAssetPaths
   ? // Making sure that the publicPath goes back to to build folder.
@@ -85,8 +85,8 @@ module.exports = {
   entry: [require.resolve('./polyfills'), paths.appIndexJs],
   output: {
     path: paths.appBuild,
-    filename: 'static/js/[name].[chunkhash:8].js',
-    chunkFilename: 'static/js/[name].[chunkhash:8].chunk.js',
+    filename: 'js/[name].[chunkhash:8].js',
+    chunkFilename: 'js/[name].[chunkhash:8].chunk.js',
     publicPath: publicPath,
     devtoolModuleFilenameTemplate: info =>
       path
@@ -112,7 +112,7 @@ module.exports = {
             loader: require.resolve('url-loader'),
             options: {
               limit: 10000,
-              name: 'static/assets/[name].[hash:8].[ext]',
+              name: 'assets/[name].[hash:8].[ext]',
             },
           },
           {
@@ -183,7 +183,7 @@ module.exports = {
             loader: require.resolve('file-loader'),
             exclude: [/\.js$/, /\.mjs$/, /\.html$/, /\.json$/],
             options: {
-              name: 'static/assets/[name].[hash:8].[ext]',
+              name: 'assets/[name].[hash:8].[ext]',
             },
           },
         ],
