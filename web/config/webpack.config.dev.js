@@ -23,8 +23,8 @@ module.exports = {
   ],
   output: {
     pathinfo: true,
-    filename: 'static/js/bundle.js',
-    chunkFilename: 'static/js/[name].chunk.js',
+    filename: 'js/bundle.js',
+    chunkFilename: 'js/[name].chunk.js',
     publicPath: publicPath,
     devtoolModuleFilenameTemplate: info =>
       path.resolve(info.absoluteResourcePath).replace(/\\/g, '/'),
@@ -48,7 +48,7 @@ module.exports = {
             loader: require.resolve('url-loader'),
             options: {
               limit: 10000,
-              name: 'static/assets/[name].[hash:8].[ext]',
+              name: 'assets/[name].[hash:8].[ext]',
             },
           },
           {
@@ -100,7 +100,7 @@ module.exports = {
             exclude: [/\.js$/, /\.mjs$/, /\.html$/, /\.json$/],
             loader: require.resolve('file-loader'),
             options: {
-              name: 'static/assets/[name].[hash:8].[ext]',
+              name: 'assets/[name].[hash:8].[ext]',
             },
           },
         ],
