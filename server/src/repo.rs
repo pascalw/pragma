@@ -15,6 +15,7 @@ use schema::notebooks;
 use schema::notes;
 
 embed_migrations!("./migrations");
+static WELCOME_TEXT: &str = include_str!("./static/welcome.html");
 
 #[derive(Queryable)]
 struct Notebook {
@@ -140,8 +141,8 @@ fn seed(connection: &SqliteConnection) {
     let content_block = data::NewContentBlock {
         id: Some(content_block_id.clone()),
         content: data::Content::Text {
-            text: "<p>Welcome to Pramga!</p>".into(),
-        }, // TODO: add more help
+            text: WELCOME_TEXT.into(),
+        },
         created_at: now,
         updated_at: now,
         note_id,
