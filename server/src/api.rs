@@ -6,7 +6,7 @@ use chrono::prelude::*;
 
 use self::futures::future::Future;
 use actix_state::State;
-use auth::AuthMiddleware;
+use auth;
 use build_info;
 use data::*;
 use repo_actor::*;
@@ -44,7 +44,8 @@ struct GetDataQuery {
 pub fn mount(app: App<State>) -> App<State> {
     #[cfg_attr(rustfmt, rustfmt_skip)]
     app.scope("/api", |scope| {
-       scope.middleware(AuthMiddleware)
+       scope.middleware(auth::AuthMiddleware)
+            .route("/auth", Method::POST, auth::check_token)
             .route("/data", Method::GET, get_data)
             .route("/notes", Method::POST, create_note)
             .route("/notes/{id}", Method::PUT, update_note)

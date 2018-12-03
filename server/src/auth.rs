@@ -2,6 +2,7 @@ use rand::distributions::Alphanumeric;
 use rand::{thread_rng, Rng};
 use std::env;
 
+use actix_web::http::StatusCode;
 use actix_web::middleware::{Middleware, Response, Started};
 use actix_web::{error, HttpRequest, HttpResponse, Result};
 
@@ -21,6 +22,15 @@ pub fn init() {
     // Force avaluation of the AUTH_TOKEN, so it's printed on the console
     // if no value was specified.
     let _ = *AUTH_TOKEN;
+}
+
+#[cfg_attr(
+    feature = "cargo-clippy",
+    allow(clippy::needless_pass_by_value)
+)]
+/* Dummy route that will return OK, and unauthorized by below middleware. */
+pub fn check_token<S>(_req: HttpRequest<S>) -> HttpResponse {
+    HttpResponse::Ok().status(StatusCode::NO_CONTENT).finish()
 }
 
 fn extract_bearer_token<S>(req: &HttpRequest<S>) -> Option<String> {
