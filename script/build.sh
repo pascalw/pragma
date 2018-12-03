@@ -1,4 +1,5 @@
-#!/usr/bin/env sh
+#!/usr/bin/env sh -e
+
 function rust_musl_builder() {
   docker run --rm -it -v "$(pwd)":/home/rust/src \
     -w /home/rust/src/server \
