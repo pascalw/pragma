@@ -28,6 +28,7 @@ module PasswordField = {
           placeholder="Password"
           className
           required=true
+          autoFocus=true
           ref=inputRef
         />
       </>;
