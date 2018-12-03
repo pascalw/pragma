@@ -37,6 +37,6 @@ esac
 case "$TARGET" in
   "docker-image")
     echo "Building Docker image"
-    docker build -t pragma:$(git rev-parse --short HEAD) -t pragma:latest .
+    docker build -t pascalw/pragma:$(git rev-parse --short HEAD) -t pascalw/pragma:latest .
     ;;
 esac
