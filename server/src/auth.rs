@@ -10,7 +10,7 @@ lazy_static! {
     static ref AUTH_TOKEN: String = env::var("AUTH_TOKEN").unwrap_or_else(|_| {
         let token = thread_rng().sample_iter(&Alphanumeric).take(32).collect();
 
-        warn!("No AUTH_TOKEN was specified, using random token {}.", token);
+        warn!("No AUTH_TOKEN was specified, using random token {}", token);
 
         token
     });
