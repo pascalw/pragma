@@ -65,10 +65,11 @@ fn main() {
     server = if let Ok(Some(listener)) = listenfd.take_tcp_listener(0) {
         server.listen(listener)
     } else {
+        let host = host();
         let port = port();
         server
-            .bind(format!("127.0.0.1:{}", port))
-            .unwrap_or_else(|_| panic!("Can not bind to port {}", port))
+            .bind(format!("{}:{}", host, port))
+            .unwrap_or_else(|_| panic!("Can not bind to {}:{}", host, port))
     };
 
     server.start();
@@ -112,4 +113,8 @@ fn init_repo() -> repo_connection::Pool {
 
 fn port() -> String {
     env::var("PORT").unwrap_or_else(|_| "8000".to_string())
+}
+
+fn host() -> String {
+    env::var("HOST").unwrap_or_else(|_| "127.0.0.1".to_string())
 }
