@@ -29,6 +29,7 @@ nanoid = "0.2.0"
 rand = "0.5.5"
 listenfd = "0.3.3"
 libsqlite3-sys = { version = "*", features = ["bundled"] }
+regex = "1"
 
 [features]
 embedded_assets = []

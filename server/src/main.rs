@@ -31,6 +31,7 @@ extern crate nanoid;
 #[cfg(feature = "embedded_assets")]
 #[macro_use]
 extern crate rust_embed;
+extern crate regex;
 #[cfg(feature = "embedded_assets")]
 mod assets;
 
