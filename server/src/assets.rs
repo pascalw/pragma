@@ -2,9 +2,15 @@ extern crate mime_guess;
 
 use self::mime_guess::guess_mime_type;
 use actix_state::State;
+use actix_web::dev::HttpResponseBuilder;
 use actix_web::http::Method;
 use actix_web::http::{header, StatusCode};
 use actix_web::{App, Error, HttpRequest, HttpResponse};
+use regex::Regex;
+
+lazy_static! {
+    static ref RE_IS_CACHABLE_ASSET: Regex = Regex::new(r"\.(?:jpg|jpeg|png|svg|css|js)$").unwrap();
+}
 
 #[derive(RustEmbed)]
 #[folder = "assets/"]
@@ -24,9 +30,11 @@ pub fn handler(req: HttpRequest<State>) -> Result<HttpResponse, Error> {
     match Asset::get(asset_path) {
         Some(asset) => {
             let mime = guess_mime_type(asset_path);
-            Ok(HttpResponse::Ok()
-                .header(header::CONTENT_TYPE, mime)
-                .body(asset))
+
+            let mut response = HttpResponse::Ok();
+            with_caching_headers(asset_path, &mut response);
+
+            Ok(response.header(header::CONTENT_TYPE, mime).body(asset))
         }
         None => Ok(HttpResponse::Ok().status(StatusCode::NOT_FOUND).finish()),
     }
@@ -38,5 +46,23 @@ fn asset_path<'a>(req: &'a HttpRequest<State>) -> &'a str {
     match path {
         "" => "index.html",
         _ => path,
+    }
+}
+
+fn with_caching_headers<'a>(
+    path: &str,
+    response: &'a mut HttpResponseBuilder,
+) -> &'a mut HttpResponseBuilder {
+    match path {
+        "service-worker.js" => response
+            .header(header::CACHE_CONTROL, "no-cache, no-store, must-revalidate")
+            .header(header::EXPIRES, "0"),
+        _ => {
+            if RE_IS_CACHABLE_ASSET.is_match(path) {
+                response.header(header::CACHE_CONTROL, "max-age=31536000, public")
+            } else {
+                response
+            }
+        }
     }
 }
