@@ -5,5 +5,5 @@ CMD ["/usr/bin/pragma"]
 
 WORKDIR /data
 
-ENV HOST=0.0.0.0
+ENV LISTEN_HOST=0.0.0.0
 EXPOSE 8000

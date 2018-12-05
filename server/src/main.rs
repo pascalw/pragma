@@ -117,5 +117,5 @@ fn port() -> String {
 }
 
 fn host() -> String {
-    env::var("HOST").unwrap_or_else(|_| "127.0.0.1".to_string())
+    env::var("LISTEN_HOST").unwrap_or_else(|_| "127.0.0.1".to_string())
 }
