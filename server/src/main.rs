@@ -2,6 +2,7 @@ extern crate listenfd;
 
 extern crate actix;
 extern crate actix_web;
+extern crate openssl;
 
 extern crate chrono;
 extern crate env_logger;
@@ -41,6 +42,7 @@ use actix::prelude::*;
 use actix_state::State;
 use actix_web::{server, App};
 use listenfd::ListenFd;
+use openssl::ssl::{SslAcceptor, SslAcceptorBuilder, SslFiletype, SslMethod};
 use std::env;
 
 mod actix_state;
@@ -63,14 +65,20 @@ fn main() {
     let mut server = server::HttpServer::new(move || build_actix_app(pool.clone()));
 
     let mut listenfd = ListenFd::from_env();
+
     server = if let Ok(Some(listener)) = listenfd.take_tcp_listener(0) {
-        server.listen(listener)
+        match env::var("SSL") {
+            Ok(_) => server.listen_ssl(listener, ssl_acceptor()).unwrap(),
+            Err(_) => server.listen(listener),
+        }
     } else {
         let host = host();
         let port = port();
-        server
-            .bind(format!("{}:{}", host, port))
-            .unwrap_or_else(|_| panic!("Can not bind to {}:{}", host, port))
+
+        match env::var("SSL") {
+            Ok(_) => server.bind_ssl(format!("{}:{}", host, port), ssl_acceptor()),
+            Err(_) => server.bind(format!("{}:{}", host, port)),
+        }.unwrap_or_else(|_| panic!("Can not bind to {}:{}", host, port))
     };
 
     server.start();
@@ -110,6 +118,19 @@ fn init_repo() -> repo_connection::Pool {
     repo::setup(&connection);
 
     pool
+}
+
+fn ssl_acceptor() -> SslAcceptorBuilder {
+    let key_file = env::var("SSL_KEY").expect("Missing SSL_KEY environment variable.");
+    let cert_file = env::var("SSL_CERT").expect("Missing SSL_CERT environment variable");
+
+    let mut builder = SslAcceptor::mozilla_intermediate(SslMethod::tls()).unwrap();
+    builder
+        .set_private_key_file(key_file, SslFiletype::PEM)
+        .unwrap();
+    builder.set_certificate_chain_file(cert_file).unwrap();
+
+    builder
 }
 
 fn port() -> String {
