@@ -9,6 +9,7 @@ let make =
       ~dispatch,
       ~notebooks: list((Data.notebook, int)),
       ~selectedNotebook: option(string),
+      ~hidden,
       _children,
     ) => {
   let createNotebook = (send, _) => {
@@ -88,6 +89,7 @@ let make =
         }
         renderItemContent=renderNotebookListItemContent
         renderFooter={() => listFooter}
+        hidden
       />;
     },
   };

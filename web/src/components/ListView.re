@@ -69,8 +69,12 @@ let defaultRenderItemContent = (item: listItem('a)) =>
     }
   </div>;
 
-let component = ReasonReact.statelessComponent("ListView");
+let className = hidden =>
+  hidden ?
+    Utils.classnames([|style("listView"), style("hidden")|]) :
+    style("listView");
 
+let component = ReasonReact.statelessComponent("ListView");
 let make =
     (
       ~items: list(listItem('a)),
@@ -81,6 +85,7 @@ let make =
       ~minWidth=?,
       ~renderItemContent=?,
       ~renderFooter=?,
+      ~hidden=false,
       _children,
     ) => {
   ...component,
@@ -126,7 +131,7 @@ let make =
         ReactDOMRe.Style.make();
       };
 
-    <div className={style("listView")} style=inlineStyle>
+    <div className={className(hidden)} style=inlineStyle>
       <ul>
         {List.map(items, renderItem) |> List.toArray |> ReasonReact.array}
       </ul>

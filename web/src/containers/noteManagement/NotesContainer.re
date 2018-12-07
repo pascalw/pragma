@@ -5,6 +5,7 @@ let make =
       ~notes: list(Data.note),
       ~selectedNote,
       ~selectedNotebook,
+      ~hidden,
       _children,
     ) => {
   ...component,
@@ -58,6 +59,7 @@ let make =
       }
       renderItemContent=renderNoteListItemContent
       renderFooter
+      hidden
     />;
   },
 };

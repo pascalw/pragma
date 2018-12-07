@@ -16,6 +16,7 @@
     "draft-js-list-depth-plugin": "^1.0.1",
     "draftjs-conductor": "^0.3.0",
     "minireset.css": "^0.0.3",
+    "mousetrap": "^1.6.2",
     "nanoid": "^1.2.5",
     "promise": "8.0.1",
     "react": "^16.4.1",

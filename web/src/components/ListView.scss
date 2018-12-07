@@ -17,8 +17,8 @@
   transition: min-width 250ms, max-width 250ms;
 
   &.hidden {
-    max-width: 0;
-    min-width: 0;
+    max-width: 0 !important;
+    min-width: 0 !important;
     border-right: 0;
   }
 
