@@ -6,7 +6,7 @@ let component = ReasonReact.statelessComponent("AddButton");
 let make = (~onClick, _children) => {
   ...component,
   render: _self =>
-    <button className={style("button")} onClick>
+    <button className={style("button")} onClick tabIndex=(-1)>
       <Icon icon=Icon.Add />
     </button>,
 };
