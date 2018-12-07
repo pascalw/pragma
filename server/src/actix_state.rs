@@ -1,5 +1,5 @@
-use actix::prelude::*;
-use repo_actor;
+use crate::repo_actor;
+use ::actix::prelude::*;
 
 pub struct State {
     pub db: Addr<repo_actor::DbExecutor>,

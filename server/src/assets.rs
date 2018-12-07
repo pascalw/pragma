@@ -1,11 +1,10 @@
-extern crate mime_guess;
-
-use self::mime_guess::guess_mime_type;
-use actix_state::State;
+use crate::actix_state::State;
 use actix_web::dev::HttpResponseBuilder;
 use actix_web::http::Method;
 use actix_web::http::{header, StatusCode};
 use actix_web::{App, Error, HttpRequest, HttpResponse};
+use lazy_static::lazy_static;
+use mime_guess::guess_mime_type;
 use regex::Regex;
 
 lazy_static! {
@@ -20,10 +19,7 @@ pub fn mount(app: App<State>) -> App<State> {
     app.route("/{path:.*}", Method::GET, handler)
 }
 
-#[cfg_attr(
-    feature = "cargo-clippy",
-    allow(clippy::needless_pass_by_value)
-)]
+#[allow(clippy::needless_pass_by_value)]
 pub fn handler(req: HttpRequest<State>) -> Result<HttpResponse, Error> {
     let asset_path = asset_path(&req);
 

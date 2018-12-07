@@ -1,6 +1,8 @@
 #![allow(dead_code)]
 include!(concat!(env!("OUT_DIR"), "/version.rs"));
 
+use lazy_static::lazy_static;
+
 lazy_static! {
     static ref BUILD_VERSION: String = format!("{}-{}", env!("CARGO_PKG_VERSION"), short_sha());
     static ref BUILD_VERSION_SHORT: String =

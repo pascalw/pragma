@@ -3,6 +3,7 @@ name = "pragma"
 version = "0.1.0"
 authors = ["Pascal Widdershoven <hello@pascalw.me>"]
 build = "build.rs"
+edition = "2018"
 
 [build-dependencies]
 vergen = "~0.1.0"

@@ -1,3 +1,5 @@
+use lazy_static::lazy_static;
+use log::warn;
 use rand::distributions::Alphanumeric;
 use rand::{thread_rng, Rng};
 use std::env;
@@ -24,10 +26,7 @@ pub fn init() {
     let _ = *AUTH_TOKEN;
 }
 
-#[cfg_attr(
-    feature = "cargo-clippy",
-    allow(clippy::needless_pass_by_value)
-)]
+#[allow(clippy::needless_pass_by_value)]
 /* Dummy route that will return OK, and unauthorized by below middleware. */
 pub fn check_token<S>(_req: HttpRequest<S>) -> HttpResponse {
     HttpResponse::Ok().status(StatusCode::NO_CONTENT).finish()

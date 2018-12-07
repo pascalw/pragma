@@ -5,7 +5,7 @@ function rust_musl_builder() {
     -w /home/rust/src/server \
     -v cargo-git:/home/rust/.cargo/git \
     -v cargo-registry:/home/rust/.cargo/registry \
-    ekidd/rust-musl-builder "$@"
+    ekidd/rust-musl-builder:1.31.0 "$@"
 }
 
 function build_frontend() {

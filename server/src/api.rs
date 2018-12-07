@@ -1,15 +1,13 @@
-extern crate futures;
-
 use actix_web::http::Method;
 use actix_web::{App, AsyncResponder, Error, HttpRequest, HttpResponse, Json, Path, Query};
 use chrono::prelude::*;
 
-use self::futures::future::Future;
-use actix_state::State;
-use auth;
-use build_info;
-use data::*;
-use repo_actor::*;
+use crate::actix_state::State;
+use crate::auth;
+use crate::build_info;
+use crate::data::*;
+use crate::repo_actor::*;
+use futures::future::Future;
 
 #[derive(Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -69,11 +67,13 @@ fn create_notebook(
 
     db.send(CreateNotebookMessage {
         new_notebook: new_notebook.into_inner(),
-    }).from_err()
+    })
+    .from_err()
     .and_then(move |res| match res {
         Ok(notebook) => Ok(HttpResponse::Ok().json(notebook)),
         Err(reason) => Ok(HttpResponse::InternalServerError().body(reason)),
-    }).responder()
+    })
+    .responder()
 }
 
 fn create_note(
@@ -83,11 +83,13 @@ fn create_note(
 
     db.send(CreateNoteMessage {
         new_note: new_note.into_inner(),
-    }).from_err()
+    })
+    .from_err()
     .and_then(move |res| match res {
         Ok(note) => Ok(HttpResponse::Ok().json(note)),
         Err(reason) => Ok(HttpResponse::InternalServerError().body(reason)),
-    }).responder()
+    })
+    .responder()
 }
 
 fn create_content_block(
@@ -97,11 +99,13 @@ fn create_content_block(
 
     db.send(CreateContentBlockMessage {
         new_content_block: new_content_block.into_inner(),
-    }).from_err()
+    })
+    .from_err()
     .and_then(move |res| match res {
         Ok(content_block) => Ok(HttpResponse::Ok().json(content_block)),
         Err(reason) => Ok(HttpResponse::InternalServerError().body(reason)),
-    }).responder()
+    })
+    .responder()
 }
 
 fn update_content_block(
@@ -118,11 +122,13 @@ fn update_content_block(
     db.send(UpdateContentBlockMessage {
         id,
         update: content_block_update.into_inner(),
-    }).from_err()
+    })
+    .from_err()
     .and_then(move |res| match res {
         Ok(updated_content_block) => Ok(HttpResponse::Ok().json(updated_content_block)),
         Err(reason) => Ok(HttpResponse::InternalServerError().body(reason)),
-    }).responder()
+    })
+    .responder()
 }
 
 fn delete_content_block(
@@ -137,7 +143,8 @@ fn delete_content_block(
         .and_then(move |res| match res {
             Ok(_) => Ok(HttpResponse::Ok().finish()),
             Err(reason) => Ok(HttpResponse::InternalServerError().body(reason)),
-        }).responder()
+        })
+        .responder()
 }
 
 fn update_note(
@@ -150,11 +157,13 @@ fn update_note(
     db.send(UpdateNoteMessage {
         id,
         update: note_update.into_inner(),
-    }).from_err()
+    })
+    .from_err()
     .and_then(move |res| match res {
         Ok(updated_note) => Ok(HttpResponse::Ok().json(updated_note)),
         Err(reason) => Ok(HttpResponse::InternalServerError().body(reason)),
-    }).responder()
+    })
+    .responder()
 }
 
 fn delete_note(
@@ -169,7 +178,8 @@ fn delete_note(
         .and_then(move |res| match res {
             Ok(_) => Ok(HttpResponse::Ok().finish()),
             Err(reason) => Ok(HttpResponse::InternalServerError().body(reason)),
-        }).responder()
+        })
+        .responder()
 }
 
 fn update_notebook(
@@ -182,11 +192,13 @@ fn update_notebook(
     db.send(UpdateNotebookMessage {
         id,
         update: notebook_update.into_inner(),
-    }).from_err()
+    })
+    .from_err()
     .and_then(move |res| match res {
         Ok(updated_notebook) => Ok(HttpResponse::Ok().json(updated_notebook)),
         Err(reason) => Ok(HttpResponse::InternalServerError().body(reason)),
-    }).responder()
+    })
+    .responder()
 }
 
 fn delete_notebook(
@@ -201,7 +213,8 @@ fn delete_notebook(
         .and_then(move |res| match res {
             Ok(_) => Ok(HttpResponse::Ok().finish()),
             Err(reason) => Ok(HttpResponse::InternalServerError().body(reason)),
-        }).responder()
+        })
+        .responder()
 }
 
 fn get_data(
@@ -232,7 +245,8 @@ fn get_data(
                 Ok(HttpResponse::Ok().json(data_response))
             }
             _ => Ok(HttpResponse::InternalServerError().into()),
-        }).responder()
+        })
+        .responder()
 }
 
 fn build_response(
@@ -246,7 +260,8 @@ fn build_response(
         .map(|d| Resource {
             id: d.resource_id,
             type_: d.type_,
-        }).collect();
+        })
+        .collect();
 
     let revision = revision(&notebooks, &notes, &content_blocks);
 

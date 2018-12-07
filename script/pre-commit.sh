@@ -4,11 +4,10 @@ CHANGED_REASON_FILES=$(git diff --cached --name-only --diff-filter=ACM "*.re" | 
 
 [ ! -z "$CHANGED_RUST_FILES" ] && {
   echo "Running rustfmt..."
-
-  echo "$CHANGED_RUST_FILES" | xargs rustfmt --emit files
+  (cd server && cargo fmt)
 
   echo "Running clippy..."
-  (cd server && cargo +nightly clippy --all-targets --all-features -- -D warnings)
+  (cd server && cargo clippy --all-targets --all-features -- -D warnings)
   echo "$CHANGED_RUST_FILES" | xargs git add
 }
 

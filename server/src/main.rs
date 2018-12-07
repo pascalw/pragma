@@ -1,45 +1,23 @@
-extern crate listenfd;
-
-extern crate actix;
-extern crate actix_web;
-extern crate openssl;
-
-extern crate chrono;
-extern crate env_logger;
-
-#[macro_use]
-extern crate log;
-extern crate num_cpus;
-extern crate rand;
-
-#[macro_use]
-extern crate lazy_static;
-
 #[macro_use]
 extern crate serde_derive;
-extern crate serde_json;
 
 #[macro_use]
 extern crate diesel;
 #[macro_use]
 extern crate diesel_migrations;
-extern crate r2d2;
-
-extern crate nanoid;
 
 // <EMBEDDED ASSETS>
 
 #[cfg(feature = "embedded_assets")]
 #[macro_use]
 extern crate rust_embed;
-extern crate regex;
 #[cfg(feature = "embedded_assets")]
 mod assets;
 
 // </EMBEDDED ASSETS>
 
-use actix::prelude::*;
-use actix_state::State;
+use crate::actix_state::State;
+use ::actix::prelude::*;
 use actix_web::{server, App};
 use listenfd::ListenFd;
 use openssl::ssl::{SslAcceptor, SslAcceptorBuilder, SslFiletype, SslMethod};
@@ -78,7 +56,8 @@ fn main() {
         match env::var("SSL") {
             Ok(_) => server.bind_ssl(format!("{}:{}", host, port), ssl_acceptor()),
             Err(_) => server.bind(format!("{}:{}", host, port)),
-        }.unwrap_or_else(|_| panic!("Can not bind to {}:{}", host, port))
+        }
+        .unwrap_or_else(|_| panic!("Can not bind to {}:{}", host, port))
     };
 
     server.start();
