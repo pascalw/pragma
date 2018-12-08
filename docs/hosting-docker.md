@@ -23,10 +23,11 @@ If your Pragma instance is internet facing you should enable HTTPS. Pragma suppo
 If you're using Letsencrypt for example that could look like this:
 
 ```sh
-docker run -p 127.0.0.1:8000:8000 \
+docker run -p 443:443 \
 		   -v /srv/pragma/data:/data \
 		   -v /etc/letsencrypt/:/etc/letsencrypt \
 		   -e AUTH_TOKEN=changeme \
+		   -e PORT=443 \
 		   -e SSL=true \
 		   -e SSL_KEY=/etc/letsencrypt/live/example.org/privkey.pem \
 		   -e SSL_CERT=/etc/letsencrypt/live/example.org/fullchain.pem \
