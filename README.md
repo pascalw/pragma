@@ -18,7 +18,7 @@ All your notes are also available offline in your browser, so always available t
 
 ## Public demo
 
-A demo instance is available at [pragma-demo.pascalw.me](https://pragma-demo.pascalw.me). Data in this instance is reset every 24 hours.
+A demo instance is available at [pragma-demo.pascalw.me](https://pragma-demo.pascalw.me), login with password `demo`. Data in this instance is reset every 24 hours.
 
 ## Hosting
 
