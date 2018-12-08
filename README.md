@@ -16,6 +16,14 @@ All your notes are also available offline in your browser, so always available t
 * WYSIWYG editor for text notes.
 * Code editor with syntax highlighting for code snippets.
 
+## Public demo
+
+A demo instance is available at [pragma-demo.pascalw.me](https://pragma-demo.pascalw.me). Data in this instance is reset every 24 hours.
+
+## Hosting
+
+Pragma is designed to be hosted on a server and accessed via your webbrowser. Instructions are available for hosting on [Linux](./docs/hosting-linux.md) and [Docker](./docs/hosting-docker.md).
+
 ## Roadmap
 
 - [ ] Keyboard shortcuts.

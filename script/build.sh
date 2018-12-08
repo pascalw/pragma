@@ -30,7 +30,7 @@ case "$BUILDER" in
     (rust_musl_builder sh -c '\
       cargo build --release --features=embedded_assets \
       && strip target/x86_64-unknown-linux-musl/release/pragma -o \
-      target/x86_64-unknown-linux-musl/release/pragma.stripped')
+      target/x86_64-unknown-linux-musl/release/pragma-x86_64-unknown-linux-musl')
     ;;
 esac
 
