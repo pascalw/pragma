@@ -125,93 +125,98 @@ module JsonCoders = {
   };
 };
 
-let notebookKey = notebookId => "pragma-notebook:" ++ notebookId;
-let noteKey = (noteId, notebookId) =>
-  "pragma-note:" ++ noteId ++ ":" ++ notebookId;
-let blockKey = (blockId, noteId) =>
-  "pragma-block:" ++ blockId ++ ":" ++ noteId;
-
-let keyToId = key => Js.String.split(":", key)->Belt.Array.getExn(1);
-
-let findBlockKey = blockId =>
-  LocalStorage.keys()
-  ->Belt.List.getBy(key =>
-      Js.String.startsWith("pragma-block:" ++ blockId, key)
+let unwrapResult = promise => {
+  FutureJs.fromPromise(promise, Js.String.make)
+  ->Future.map(
+      fun
+      | Belt.Result.Ok(value) => {
+        value
+      }
+      | Belt.Result.Error(error) =>
+        Js.Exn.raiseError("IndexedDB result error: " ++ error),
     );
-
-let findNoteKey = noteId =>
-  LocalStorage.keys()
-  ->Belt.List.getBy(key =>
-      Js.String.startsWith("pragma-note:" ++ noteId, key)
-    );
-
-let findBlockKeysForNote = noteId => {
-  let re = Js.Re.fromString("pragma-block:[^:]*:" ++ noteId);
-
-  LocalStorage.keys()
-  ->Belt.List.keep(key => Js.Re.exec(key, re) |> Belt.Option.isSome);
 };
 
-let findNoteKeysForNotebook = notebookId => {
-  let re = Js.Re.fromString("pragma-note:[^:]*:" ++ notebookId);
-
-  LocalStorage.keys()
-  ->Belt.List.keep(key => Js.Re.exec(key, re) |> Belt.Option.isSome);
-};
-
-let storeNotebook = (notebook: Data.notebook) =>
-  LocalStorage.setItem(
-    notebookKey(notebook.id),
-    JsonCoders.encodeNotebook(notebook) |> Json.stringify,
-  );
-
-let getStoredNotebook = notebookId =>
-  LocalStorage.getItem(notebookKey(notebookId))
-  ->Belt.Option.map(jsonString =>
-      Json.parseOrRaise(jsonString)->JsonCoders.decodeNotebook
+let awaitTransaction = (transaction: IndexedDB.Transaction.t) =>
+  IndexedDB.Transaction.complete(transaction)
+  ->FutureJs.fromPromise(Js.String.make)
+  ->Future.map(
+      fun
+      | Belt.Result.Ok(_) => ()
+      | Belt.Result.Error(error) =>
+        Js.Exn.raiseError("IndexedDB transaction failed: " ++ error),
     );
 
-let storeNote = (note: Data.note) =>
-  LocalStorage.setItem(
-    noteKey(note.id, note.notebookId),
-    JsonCoders.encodeNote(note) |> Json.stringify,
-  );
+let notebooksStore = "notebooks";
+let notesStore = "notes";
+let contentBlocksStore = "contentBlocks";
 
-let getStoredNoteByKey = key =>
-  LocalStorage.getItem(key)
-  ->Belt.Option.map(jsonString =>
-      Json.parseOrRaise(jsonString)->JsonCoders.decodeNote
-    );
+let iDb: ref(option(IndexedDB.DB.t)) = ref(None);
+let initDb = () =>
+  IndexedDB.(
+    open_("pragma", 1, upgradeDb =>
+      switch (UpgradeDb.oldVersion(upgradeDb)) {
+      | version when version <= 1 =>
+        UpgradeDb.createObjectStore(
+          upgradeDb,
+          notebooksStore,
+          ObjectStoreParams.make(~keyPath="id"),
+        )
+        |> ignore;
 
-let getStoredNote = noteId =>
-  findNoteKey(noteId)
-  ->Belt.Option.flatMap(LocalStorage.getItem)
-  ->Belt.Option.map(jsonString =>
-      Json.parseOrRaise(jsonString)->JsonCoders.decodeNote
-    );
+        UpgradeDb.createObjectStore(
+          upgradeDb,
+          notesStore,
+          ObjectStoreParams.make(~keyPath="id"),
+        )
+        |> ignore;
 
-let storeContentBlock = (contentBlock: Data.contentBlock) =>
-  LocalStorage.setItem(
-    blockKey(contentBlock.id, contentBlock.noteId),
-    JsonCoders.encodeContentBlock(contentBlock) |> Json.stringify,
-  );
+        let tx = UpgradeDb.transaction(upgradeDb);
 
-let getStoredContentBlockByKey = key =>
-  LocalStorage.getItem(key)
-  ->Belt.Option.map(jsonString =>
-      Json.parseOrRaise(jsonString)->JsonCoders.decodeContentBlock
-    );
+        Transaction.objectStore(tx, notesStore)
+        ->ObjectStore.createIndex(
+            "forNotebook",
+            "notebookId",
+            CreateIndexParams.make(~unique=false, ~multiEntry=false),
+          )
+        |> ignore;
 
-let getStoredContentBlock = blockId =>
-  findBlockKey(blockId)->Belt.Option.flatMap(getStoredContentBlockByKey);
+        UpgradeDb.createObjectStore(
+          upgradeDb,
+          contentBlocksStore,
+          ObjectStoreParams.make(~keyPath="id"),
+        )
+        |> ignore;
 
-let getStoredNotebooks = () =>
-  LocalStorage.keys()
-  ->Belt.List.keep(key => Js.String.startsWith(notebookKey(""), key))
-  ->Belt.List.map(key => {
-      let id = keyToId(key);
-      getStoredNotebook(id) |> Belt.Option.getExn;
-    });
+        Transaction.objectStore(tx, contentBlocksStore)
+        ->ObjectStore.createIndex(
+            "forNote",
+            "noteId",
+            CreateIndexParams.make(~unique=false, ~multiEntry=false),
+          )
+        |> ignore;
+      | _ => () /* No upgrade needed */
+      }
+    )
+  )
+  ->FutureJs.fromPromise(Js.String.make);
+
+let db = () =>
+  switch (iDb^) {
+  | None =>
+    initDb()
+    ->Future.map(
+        fun
+        | Belt.Result.Ok(db) => {
+            iDb := Some(db);
+            db;
+          }
+        | Belt.Result.Error(error) =>
+          Js.Exn.raiseError("Failed to open IndexedDB: " ++ error),
+      )
+  | Some(db) => Future.value(db)
+  };
+
 
 let listeners: ref(list(listener)) = ref([]);
 
@@ -220,41 +225,128 @@ let subscribe = listener => listeners := [listener, ...listeners^];
 let unsubscribe = listener =>
   listeners := Belt.List.keep(listeners^, l => l !== listener);
 
-let getNotes' = notebookId =>
-  findNoteKeysForNotebook(notebookId)
-  ->Belt.List.map(key => getStoredNoteByKey(key) |> Belt.Option.getExn);
+let getNotes = (notebookId: string) => {
+  db()
+  ->Future.flatMap(db => {
+    IndexedDB.({
+      DB.transaction(db, notesStore, Transaction.ReadOnly)
+      ->Transaction.objectStore(notesStore)
+      ->ObjectStore.index("forNotebook")
+      ->IndexedDB.Index.getAllByKey(notebookId)
+      ->unwrapResult
+      ->Future.map(Belt.List.fromArray)
+      ->Future.map(List.map(JsonCoders.decodeNote))
+    });
+  });
+};
 
-let getNotes = notebookId => getNotes'(notebookId)->Future.value;
-
-let getNote = noteId => getStoredNote(noteId)->Future.value;
+let getNote = (noteId: string) =>
+  db()
+  ->Future.flatMap(db => {
+    IndexedDB.({
+      DB.transaction(db, notesStore, Transaction.ReadOnly)
+      ->Transaction.objectStore(notesStore)
+      ->ObjectStore.get(noteId)
+      ->unwrapResult
+      ->Future.map(v => Belt.Option.map(v, JsonCoders.decodeNote))
+    });
+  });
 
 let getNotebooks = () =>
-  getStoredNotebooks()
-  |> List.map((notebook: Data.notebook) =>
-       (notebook, getNotes'(notebook.id)->List.length)
-     )
-  |> Future.value;
+  db()
+  ->Future.flatMap(db => {
+    IndexedDB.({
+      DB.transaction(db, notebooksStore, Transaction.ReadOnly)
+      ->Transaction.objectStore(notebooksStore)
+      ->ObjectStore.getAll
+      ->unwrapResult
+      ->Future.map(Belt.List.fromArray)
+      ->Future.map(List.map(n => (JsonCoders.decodeNotebook(n), 0))) /* FIXME: */
+    });
+  });
 
-let getNotebook = notebookId => getStoredNotebook(notebookId)->Future.value;
+let getNotebook = (notebookId: string) => 
+  db()
+  ->Future.flatMap(db => {
+    IndexedDB.({
+      DB.transaction(db, notebooksStore, Transaction.ReadOnly)
+      ->Transaction.objectStore(notebooksStore)
+      ->ObjectStore.get(notebookId)
+      ->unwrapResult
+      ->Future.map(v => Belt.Option.map(v, JsonCoders.decodeNotebook))
+    });
+  });
 
 let getContentBlocks = noteId =>
-  findBlockKeysForNote(noteId)
-  ->Belt.List.map(key =>
-      getStoredContentBlockByKey(key) |> Belt.Option.getExn
-    )
-  ->Future.value;
+  db()
+  ->Future.flatMap(db => {
+    IndexedDB.({
+      DB.transaction(db, contentBlocksStore, Transaction.ReadOnly)
+      ->Transaction.objectStore(contentBlocksStore)
+      ->ObjectStore.index("forNote")
+      ->IndexedDB.Index.getAllByKey(noteId)
+      ->unwrapResult
+      ->Future.map(Belt.List.fromArray)
+      ->Future.map(List.map(JsonCoders.decodeContentBlock))
+    });
+  });
 
-let getContentBlock = blockId => getStoredContentBlock(blockId)->Future.value;
+let getContentBlock = blockId => 
+  db()
+  ->Future.flatMap(db => {
+    IndexedDB.({
+      DB.transaction(db, contentBlocksStore, Transaction.ReadOnly)
+      ->Transaction.objectStore(contentBlocksStore)
+      ->ObjectStore.get(blockId)
+      ->unwrapResult
+      ->Future.map(v => Belt.Option.map(v, JsonCoders.decodeContentBlock))
+    });
+  });
 
-let addNotebook = notebook => {
-  storeNotebook(notebook);
-  Future.value();
-};
+let addNotebook = notebook =>
+  IndexedDB.(
+    db()
+    ->Future.flatMap(db => {
+        let tx = DB.transaction(db, notebooksStore, Transaction.ReadWrite);
+        let data = JsonCoders.encodeNotebook(notebook);
 
-let addNote = note => {
-  storeNote(note);
-  Future.value();
-};
+        Transaction.objectStore(tx, notebooksStore)
+        ->ObjectStore.put(data)
+        ->ignore;
+
+        awaitTransaction(tx);
+      })
+  );
+
+let addNote = note =>
+  IndexedDB.(
+    db()
+    ->Future.flatMap(db => {
+        let tx = DB.transaction(db, notesStore, Transaction.ReadWrite);
+        let data = JsonCoders.encodeNote(note);
+
+        Transaction.objectStore(tx, notesStore)
+        ->ObjectStore.put(data)
+        ->ignore;
+
+        awaitTransaction(tx);
+      })
+  );
+
+let addContentBlock = block =>
+  IndexedDB.(
+    db()
+    ->Future.flatMap(db => {
+        let tx = DB.transaction(db, contentBlocksStore, Transaction.ReadWrite);
+        let data = JsonCoders.encodeContentBlock(block);
+
+        Transaction.objectStore(tx, contentBlocksStore)
+        ->ObjectStore.put(data)
+        ->ignore;
+
+        awaitTransaction(tx);
+      })
+  );
 
 let createNote = (notebookId: string) => {
   let now = Js.Date.fromFloat(Js.Date.now());
@@ -278,8 +370,8 @@ let createNote = (notebookId: string) => {
     revision: None,
   };
 
-  storeNote(note);
-  storeContentBlock(contentBlock);
+  addNote(note) |> ignore;
+  addContentBlock(contentBlock) |> ignore;
 
   DataSync.pushNewNote(note);
   DataSync.pushNewContentBlock(contentBlock);
@@ -288,65 +380,91 @@ let createNote = (notebookId: string) => {
 };
 
 let createNotebook = notebook => {
-  storeNotebook(notebook);
-  DataSync.pushNewNotebook(notebook);
+  addNotebook(notebook)
+  ->Future.map(_ => {
+    DataSync.pushNewNotebook(notebook);
+  }) |> ignore;
+
   Future.value(notebook);
 };
 
-let addContentBlock = block => {
-  storeContentBlock(block);
-  Future.value();
-};
-
 let updateContentBlock = (contentBlock: Data.contentBlock, ~sync=true, ()) => {
-  storeContentBlock(contentBlock);
-  if (sync) {
-    DataSync.pushContentBlock(contentBlock);
-  };
-  Future.value();
+  addContentBlock(contentBlock)
+  ->Future.map(_ => {
+    if (sync) {
+      DataSync.pushContentBlock(contentBlock);
+    };
+  });
 };
 
 let updateNote = (note: Data.note, ~sync=true, ()) => {
-  storeNote(note);
-  if (sync) {
-    DataSync.pushNoteChange(note);
-  };
-  Future.value();
+  addNote(note)
+  ->Future.map(_ => {
+    if (sync) {
+      DataSync.pushNoteChange(note);
+    };
+  });
 };
 
 let updateNotebook = (notebook: Data.notebook, ~sync=true, ()) => {
-  storeNotebook(notebook);
-  if (sync) {
-    DataSync.pushNotebookChange(notebook);
-  };
-  Future.value();
+  addNotebook(notebook)
+  ->Future.map(_ => {
+    if (sync) {
+      DataSync.pushNotebookChange(notebook);
+    };
+  });
 };
 
 let deleteNotebook = (notebookId: string, ~sync=true, ()) => {
-  LocalStorage.removeItem(notebookKey(notebookId));
+  IndexedDB.({
+    db()
+    ->Future.get(db => {
+      let tx = DB.transaction(db, notebooksStore, Transaction.ReadWrite);
+
+      Transaction.objectStore(tx, notebooksStore)
+      ->ObjectStore.delete(notebookId)
+      ->ignore;
+    });
+  });
+
   if (sync) {
     DataSync.pushNotebookDelete(notebookId);
   };
+
   Future.value();
 };
 
 let deleteNote = (noteId: string, ~sync=true, ()) => {
-  switch (findNoteKey(noteId)) {
-  | None => ()
-  | Some(key) =>
-    LocalStorage.removeItem(key);
-    if (sync) {
-      DataSync.pushNoteDelete(noteId);
-    };
+  IndexedDB.({
+    db()
+    ->Future.get(db => {
+      let tx = DB.transaction(db, notesStore, Transaction.ReadWrite);
+
+      Transaction.objectStore(tx, notesStore)
+      ->ObjectStore.delete(noteId)
+      ->ignore;
+    });
+  });
+
+  if (sync) {
+    DataSync.pushNoteDelete(noteId);
   };
+
   Future.value();
 };
 
 let deleteContentBlock = (contentBlockId: string) => {
-  switch (findBlockKey(contentBlockId)) {
-  | None => ()
-  | Some(key) => LocalStorage.removeItem(key)
-  };
+  IndexedDB.({
+    db()
+    ->Future.get(db => {
+      let tx = DB.transaction(db, contentBlocksStore, Transaction.ReadWrite);
+
+      Transaction.objectStore(tx, contentBlocksStore)
+      ->ObjectStore.delete(contentBlockId)
+      ->ignore;
+    });
+  });
+
   Future.value();
 };
 

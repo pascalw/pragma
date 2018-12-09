@@ -15,6 +15,7 @@
     "draft-js": "^0.10.5",
     "draft-js-list-depth-plugin": "^1.0.1",
     "draftjs-conductor": "^0.3.0",
+    "idb": "^2.1.3",
     "minireset.css": "^0.0.3",
     "mousetrap": "^1.6.2",
     "nanoid": "^1.2.5",
