@@ -28,6 +28,7 @@ let deleteNote: (string, ~sync: bool=?, unit) => Repromise.t(result(unit));
 let deleteContentBlock: (string) => Repromise.t(result(unit));
 
 let withNotification: (unit => 'a) => 'a;
+let withPromiseNotification: Repromise.t('a) => unit; 
 
 let insertRevision: string => Repromise.t(unit);
 let getRevision: unit => Repromise.t(option(string));

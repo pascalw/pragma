@@ -238,6 +238,19 @@ let getNotes = (notebookId: string) =>
        )
      );
 
+let countNotes = (notebookId: string) =>
+  dbPromise()
+  |> Repromise.andThen(db =>
+       IndexedDB.(
+         DB.transaction(db, notesStore, Transaction.ReadOnly)
+         ->Transaction.objectStore(notesStore)
+         ->ObjectStore.index("forNotebook")
+         ->IndexedDB.Index.countByKey(notebookId)
+         ->Promises.toResultPromise
+         |> Repromise.map(Belt.Result.getWithDefault(_, 0))
+       )
+     );
+
 let getNote = (noteId: string) =>
   dbPromise()
   |> Repromise.andThen(db =>
@@ -258,13 +271,17 @@ let getNotebooks = () =>
          ->Transaction.objectStore(notebooksStore)
          ->ObjectStore.getAll
          ->Promises.toResultPromise
-         |> Repromise.map(
+         |> Repromise.andThen(
               fun
               | Ok(array) =>
                 array
                 ->Belt.List.fromArray
-                ->Belt.List.map(n => (JsonCoders.decodeNotebook(n), 0)) /* FIXME */
-              | Error(_) => [],
+                ->Belt.List.map(JsonCoders.decodeNotebook)
+                ->Belt.List.map(n =>
+                    countNotes(n.id) |> Repromise.map(count => (n, count))
+                  )
+                ->Repromise.all
+              | Error(_) => Repromise.resolved([]),
             )
        )
      );
@@ -498,3 +515,6 @@ let withNotification = fn => {
 
   result;
 };
+
+let withPromiseNotification = promise =>
+  promise |> Repromise.wait(_ => Belt.List.forEach(listeners^, l => l()));

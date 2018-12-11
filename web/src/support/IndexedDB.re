@@ -11,6 +11,9 @@ module Index = {
   [@bs.send]
   external getAllByKey: (t, validKey) => Js.Promise.t(Js.Array.t(value)) =
     "getAll";
+
+  [@bs.send]
+  external countByKey: (t, validKey) => Js.Promise.t(int) = "count";
 };
 
 module ObjectStoreParams = {
@@ -39,14 +42,15 @@ module ObjectStore = {
   [@bs.send] external delete: (t, validKey) => Js.Promise.t(unit) = "";
   [@bs.send] external clear: t => Js.Promise.t(unit) = "";
 
-  [@bs.send] external get: (t, validKey) => Js.Promise.t(Js.Nullable.t(value)) = "";
-  let get = (store, key) => {
-    get(store, key)
-    |> Js.Promise.then_(value => Js.Promise.resolve(Js.Nullable.toOption(value)))
-  };
-
   [@bs.send]
-  external getAll: t => Js.Promise.t(Js.Array.t(value)) = "";
+  external get: (t, validKey) => Js.Promise.t(Js.Nullable.t(value)) = "";
+  let get = (store, key) =>
+    get(store, key)
+    |> Js.Promise.then_(value =>
+         Js.Promise.resolve(Js.Nullable.toOption(value))
+       );
+
+  [@bs.send] external getAll: t => Js.Promise.t(Js.Array.t(value)) = "";
 
   type indexName = string;
   [@bs.send]

@@ -2,29 +2,29 @@ open Belt;
 
 let upsertContentBlock = (contentBlock: Data.contentBlock) =>
   ContentBlocks.get(contentBlock.id)
-  |> Repromise.wait(storedContentBlock =>
+  |> Repromise.andThen(storedContentBlock =>
        switch (storedContentBlock) {
-       | None => ContentBlocks.add(contentBlock) |> ignore
+       | None => ContentBlocks.add(contentBlock)
        | Some(_contentBlock) =>
-         ContentBlocks.update(contentBlock, ~sync=false, ()) |> ignore
+         ContentBlocks.update(contentBlock, ~sync=false, ())
        }
      );
 
 let upsertNote = (note: Data.note) =>
   Notes.get(note.id)
-  |> Repromise.wait(storedNote =>
+  |> Repromise.andThen(storedNote =>
        switch (storedNote) {
-       | None => Notes.add(note) |> ignore
-       | Some(_note) => Notes.update(note, ~sync=false, ()) |> ignore
+       | None => Notes.add(note)
+       | Some(_note) => Notes.update(note, ~sync=false, ())
        }
      );
 
 let upsertNotebook = (notebook: Data.notebook) =>
   Notebooks.get(notebook.id)
-  |> Repromise.wait(storedNotebook =>
+  |> Repromise.andThen(storedNotebook =>
        switch (storedNotebook) {
-       | None => Notebooks.add(notebook) |> ignore
-       | Some(_note) => Notebooks.update(notebook, ~sync=false, ()) |> ignore
+       | None => Notebooks.add(notebook)
+       | Some(_note) => Notebooks.update(notebook, ~sync=false, ())
        }
      );
 
@@ -34,26 +34,37 @@ let run = () =>
   |> Repromise.wait((result: Belt.Result.t(Api.apiResponse, _)) =>
        switch (result) {
        | Result.Ok(result) =>
-         Db.withNotification(() => {
-           let revision = result.revision;
-           Db.insertRevision(revision) |> ignore;
+         let revision = result.revision;
+         Db.insertRevision(revision) |> ignore;
 
-           /* FIXME: wait on all promises */
-           result.changes.notebooks->List.forEach(upsertNotebook);
-           result.changes.notes->List.forEach(upsertNote);
-           result.changes.contentBlocks->List.forEach(upsertContentBlock);
+         let notebookResults =
+           result.changes.notebooks->List.map(upsertNotebook);
+         let noteResults = result.changes.notes->List.map(upsertNote);
+         let contentBlockResults =
+           result.changes.contentBlocks->List.map(upsertContentBlock);
+         let deletionResults =
+           result.deletions
+           ->List.map(deletedResource =>
+               switch (deletedResource.type_) {
+               | "notebook" =>
+                 Notebooks.delete(deletedResource.id, ~sync=false, ())
+               | "note" => Notes.delete(deletedResource.id, ~sync=false, ())
+               | "contentBlock" => ContentBlocks.delete(deletedResource.id)
+               | type_ =>
+                 Js.Exn.raiseError("Unsupported deletion type: " ++ type_)
+               }
+             );
 
-           List.forEach(result.deletions, deletedResource =>
-             switch (deletedResource.type_) {
-             | "notebook" =>
-               Notebooks.delete(deletedResource.id, ~sync=false, ())
-             | "note" => Notes.delete(deletedResource.id, ~sync=false, ())
-             | "contentBlock" => ContentBlocks.delete(deletedResource.id)
-             | type_ =>
-               Js.Exn.raiseError("Unsupported deletion type: " ++ type_)
-             }
+         let promise =
+           Repromise.all(
+             List.concatMany([|
+               notebookResults,
+               noteResults,
+               contentBlockResults,
+               deletionResults,
+             |]),
            );
-         })
+         Db.withPromiseNotification(promise);
        | Result.Error(reason) =>
          Js.Console.error2("Failed to fetch changes", reason)
        }
