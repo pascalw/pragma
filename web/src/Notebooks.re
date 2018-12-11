@@ -3,7 +3,7 @@ let get = id => Db.getNotebook(id);
 let add = notebook => Db.addNotebook(notebook);
 
 let create = notebook =>
-  Db.createNotebook(notebook)->Future.tap(DataSync.pushNewNotebook);
+  Db.createNotebook(notebook) |> Promises.tapOk(DataSync.pushNewNotebook);
 
 let update = (notebook: Data.notebook, ~sync=true, ()) => {
   let now = Js.Date.fromFloat(Js.Date.now());
@@ -13,5 +13,5 @@ let update = (notebook: Data.notebook, ~sync=true, ()) => {
 let delete = (id, ~sync=true, ()) => Db.deleteNotebook(id, ~sync, ());
 
 DataSync.setNotebookSyncedListener(notebook =>
-  update(notebook, ~sync=false, ())
-);
+  update(notebook, ~sync=false, ()) |> Repromise.map(_ => ())
+); /* FIXME: error handling? */

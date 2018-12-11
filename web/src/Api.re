@@ -164,29 +164,6 @@ let fetchUrl = (revision: option(string)) =>
   | None => "/api/data"
   };
 
-let toFuture =
-    (promise, mapper: Fetch.Response.t => Js.Promise.t('b))
-    : Future.t(Belt.Result.t('b, string)) => {
-  let promise =
-    promise
-    |> Js.Promise.then_(response =>
-         if (!Fetch.Response.ok(response)) {
-           Js.Promise.reject(
-             Js.Exn.raiseError(
-               "Request failed with " ++ Fetch.Response.statusText(response),
-             ),
-           );
-         } else {
-           Js.Promise.resolve(response);
-         }
-       )
-    |> Js.Promise.then_(mapper);
-
-  FutureJs.fromPromise(promise, Js.String.make);
-};
-
-let toFutureJson = toFuture(_, Fetch.Response.json);
-
 let authHeader = token => {"Authorization": "bearer " ++ token};
 
 let headers = () => {
@@ -194,38 +171,43 @@ let headers = () => {
   "Authorization": "bearer " ++ Belt.Option.getExn(Auth.getToken()),
 };
 
-let fetchChanges = (revision: option(string)) =>
-  (
-    Fetch.fetchWithInit(
-      fetchUrl(revision),
-      Fetch.RequestInit.make(
-        ~method_=Get,
-        ~headers=Fetch.HeadersInit.make(headers()),
-        (),
-      ),
-    )
-    |> Js.Promise.then_(Fetch.Response.json)
-  )
-  ->(FutureJs.fromPromise(Js.String.make)) /* FIXME */
-  ->(Future.mapOk(JsonCoders.decodeChangesResponse));
+let toResult =
+    (mapper: Fetch.Response.t => Js.Promise.t('b), promise)
+    : Repromise.t(Belt.Result.t('b, Js.Promise.error)) =>
+  promise
+  |> Js.Promise.then_(response =>
+       if (!Fetch.Response.ok(response)) {
+         Js.Promise.reject(
+           Js.Exn.raiseError(
+             "Request failed with " ++ Fetch.Response.statusText(response),
+           ),
+         );
+       } else {
+         Js.Promise.resolve(response);
+       }
+     )
+  |> Js.Promise.then_(mapper)
+  |> Promises.toResultPromise;
 
-let updateContentBlock = (contentBlock: Data.contentBlock) => {
-  let json = JsonCoders.encodeContentBlock(contentBlock);
+let toJsonResult = (mapper: Js.Json.t => 'a, promise) =>
+  promise |> toResult(Fetch.Response.json) |> Promises.mapOk(mapper);
 
+let fetchChanges =
+    (revision: option(string))
+    : Repromise.t(Belt.Result.t(apiResponse, Js.Promise.error)) =>
   Fetch.fetchWithInit(
-    "/api/content_blocks/" ++ contentBlock.id,
+    fetchUrl(revision),
     Fetch.RequestInit.make(
-      ~method_=Put,
-      ~body=Fetch.BodyInit.make(Js.Json.stringify(json)),
+      ~method_=Get,
       ~headers=Fetch.HeadersInit.make(headers()),
       (),
     ),
   )
-  ->toFutureJson
-  ->Future.mapOk(json => JsonCoders.decodeContentBlock(json));
-};
+  |> toJsonResult(JsonCoders.decodeChangesResponse);
 
-let createNote = (note: Data.note) => {
+let createNote =
+    (note: Data.note)
+    : Repromise.t(Belt.Result.t(Data.note, Js.Promise.error)) => {
   let json = JsonCoders.encodeNote(note);
 
   Fetch.fetchWithInit(
@@ -237,8 +219,7 @@ let createNote = (note: Data.note) => {
       (),
     ),
   )
-  ->toFutureJson
-  ->Future.mapOk(json => JsonCoders.decodeNote(json));
+  |> toJsonResult(JsonCoders.decodeNote);
 };
 
 let createNotebook = (notebook: Data.notebook) => {
@@ -253,8 +234,7 @@ let createNotebook = (notebook: Data.notebook) => {
       (),
     ),
   )
-  ->toFutureJson
-  ->Future.mapOk(json => JsonCoders.decodeNotebook(json));
+  |> toJsonResult(JsonCoders.decodeNotebook);
 };
 
 let updateNotebook = (notebook: Data.notebook) => {
@@ -269,12 +249,12 @@ let updateNotebook = (notebook: Data.notebook) => {
       (),
     ),
   )
-  ->toFutureJson
-  ->Future.mapOk(json => JsonCoders.decodeNotebook(json));
+  |> toJsonResult(JsonCoders.decodeNotebook);
 };
 
 let deleteNotebook =
-    (notebookId: string): Future.t(Belt.Result.t(Fetch.Response.t, string)) =>
+    (notebookId: string)
+    : Repromise.t(Belt.Result.t(Fetch.Response.t, Js.Promise.error)) =>
   Fetch.fetchWithInit(
     "/api/notebooks/" ++ notebookId,
     Fetch.RequestInit.make(
@@ -283,7 +263,7 @@ let deleteNotebook =
       (),
     ),
   )
-  ->toFuture(Js.Promise.resolve);
+  |> toResult(Js.Promise.resolve);
 
 let updateNote = (note: Data.note) => {
   let json = JsonCoders.encodeNote(note);
@@ -297,8 +277,7 @@ let updateNote = (note: Data.note) => {
       (),
     ),
   )
-  ->toFutureJson
-  ->Future.mapOk(json => JsonCoders.decodeNote(json));
+  |> toJsonResult(JsonCoders.decodeNote);
 };
 
 let deleteNote = (noteId: string) =>
@@ -310,7 +289,7 @@ let deleteNote = (noteId: string) =>
       (),
     ),
   )
-  ->toFuture(Js.Promise.resolve);
+  |> toResult(Js.Promise.resolve);
 
 let createContentBlock = (contentBlock: Data.contentBlock) => {
   let json = JsonCoders.encodeContentBlock(contentBlock);
@@ -324,8 +303,22 @@ let createContentBlock = (contentBlock: Data.contentBlock) => {
       (),
     ),
   )
-  ->toFutureJson
-  ->Future.mapOk(json => JsonCoders.decodeContentBlock(json));
+  |> toJsonResult(JsonCoders.decodeContentBlock);
+};
+
+let updateContentBlock = (contentBlock: Data.contentBlock) => {
+  let json = JsonCoders.encodeContentBlock(contentBlock);
+
+  Fetch.fetchWithInit(
+    "/api/content_blocks/" ++ contentBlock.id,
+    Fetch.RequestInit.make(
+      ~method_=Put,
+      ~body=Fetch.BodyInit.make(Js.Json.stringify(json)),
+      ~headers=Fetch.HeadersInit.make(headers()),
+      (),
+    ),
+  )
+  |> toJsonResult(JsonCoders.decodeContentBlock);
 };
 
 let checkAuth = token =>
@@ -337,4 +330,4 @@ let checkAuth = token =>
       (),
     ),
   )
-  ->toFuture(Js.Promise.resolve);
+  |> toResult(Js.Promise.resolve);

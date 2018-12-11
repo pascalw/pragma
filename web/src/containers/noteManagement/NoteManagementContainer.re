@@ -60,77 +60,79 @@ let sortNotebooksDesc = (notebooks: list((Data.notebook, int))) =>
   sortDesc(notebooks, ((notebook, _)) => notebook.updatedAt);
 
 let getSortedNotes = notebookId =>
-  Notes.fromNotebook(notebookId)->Future.map(sortNotesDesc);
+  Notes.fromNotebook(notebookId) |> Repromise.map(sortNotesDesc);
 
 let fetchInitialState = () => {
   open Belt;
   let appState = AppState.get();
 
   Notebooks.all()
-  ->Future.map(sortNotebooksDesc)
-  ->Future.flatMap(notebooks => {
-      let selectedNotebookId =
-        switch (appState.selectedNotebookId) {
-        | Some(id) =>
-          notebooks
-          ->List.map(((notebook, _count)) => notebook)
-          ->Utils.find(notebook => notebook.id == id)
-          ->Belt.Option.map(notebook => notebook.id)
-        | None =>
-          List.head(notebooks)
-          ->Option.map(((notebook, _count)) => notebook.id)
-        };
+  |> Repromise.map(sortNotebooksDesc)
+  |> Repromise.andThen((notebooks: list((Data.notebook, int))) => {
+       let selectedNotebookId =
+         switch (appState.selectedNotebookId) {
+         | Some(id) =>
+           notebooks
+           ->List.map(((notebook, _count)) => notebook)
+           ->Utils.find(notebook => notebook.id == id)
+           ->Belt.Option.map(notebook => notebook.id)
+         | None =>
+           List.head(notebooks)
+           ->Option.map(((notebook, _count)) => notebook.id)
+         };
 
-      switch (selectedNotebookId) {
-      | None => Future.value((notebooks, None, []))
-      | Some(notebookId) =>
-        getSortedNotes(notebookId)
-        ->Future.map(notes => (notebooks, Some(notebookId), notes))
-      };
-    })
-  ->Future.flatMap(((notebooksWithCounts, selectedNotebook, notes)) => {
-      let selectedNoteId =
-        switch (appState.selectedNoteId) {
-        | Some(id) => Some(id)
-        | None => List.head(notes)->Option.map(note => note.id)
-        };
+       switch (selectedNotebookId) {
+       | None => Repromise.resolved((notebooks, None, []))
+       | Some(notebookId) =>
+         getSortedNotes(notebookId)
+         |> Repromise.map(notes => (notebooks, Some(notebookId), notes))
+       };
+     })
+  |> Repromise.andThen(
+       ((notebooksWithCounts, selectedNotebook, notes: list(Data.note))) => {
+       let selectedNoteId =
+         switch (appState.selectedNoteId) {
+         | Some(id) => Some(id)
+         | None => List.head(notes)->Option.map(note => note.id)
+         };
 
-      let contentBlocksFuture =
-        switch (selectedNoteId) {
-        | None => Future.value([])
-        | Some(noteId) => ContentBlocks.fromNote(noteId)
-        };
+       let contentBlocksPromise =
+         switch (selectedNoteId) {
+         | None => Repromise.resolved([])
+         | Some(noteId) => ContentBlocks.fromNote(noteId)
+         };
 
-      contentBlocksFuture->Future.map(contentBlocks =>
-        {
-          initialStateLoaded: true,
-          notebooks: notebooksWithCounts,
-          notes,
-          contentBlocks,
-          selectedNotebook,
-          selectedNote: selectedNoteId,
-        }
-      );
-    });
+       contentBlocksPromise
+       |> Repromise.map(contentBlocks =>
+            {
+              initialStateLoaded: true,
+              notebooks: notebooksWithCounts,
+              notes,
+              contentBlocks,
+              selectedNotebook,
+              selectedNote: selectedNoteId,
+            }
+          );
+     });
 };
 
 let getNotes = notebookId =>
   getSortedNotes(notebookId)
-  ->Future.map(notes => {
-      let selectedNoteId =
-        Belt.List.head(notes)->Belt.Option.map(note => note.id);
-      (notes, selectedNoteId);
-    })
-  ->Future.flatMap(((notes, selectedNoteId)) =>
-      switch (selectedNoteId) {
-      | None => Future.value((notes, selectedNoteId, None))
-      | Some(noteId) =>
-        ContentBlocks.fromNote(noteId)
-        ->Future.map(contentBlocks =>
-            (notes, selectedNoteId, Some(contentBlocks))
-          )
-      }
-    );
+  |> Repromise.map((notes: list(Data.note)) => {
+       let selectedNoteId =
+         Belt.List.head(notes)->Belt.Option.map(note => note.id);
+       (notes, selectedNoteId);
+     })
+  |> Repromise.andThen(((notes, selectedNoteId)) =>
+       switch (selectedNoteId) {
+       | None => Repromise.resolved((notes, selectedNoteId, None))
+       | Some(noteId) =>
+         ContentBlocks.fromNote(noteId)
+         |> Repromise.map(contentBlocks =>
+              (notes, selectedNoteId, Some(contentBlocks))
+            )
+       }
+     );
 
 let component = ReasonReact.reducerComponent("NoteManagementContainer");
 let make = (children: (state, action => unit) => ReasonReact.reactElement) => {
@@ -152,15 +154,15 @@ let make = (children: (state, action => unit) => ReasonReact.reactElement) => {
         (
           self =>
             getNotes(notebook.id)
-            ->Future.get(((notes, selectedNoteId, contentBlocks)) =>
-                self.send(
-                  NotebookSelected(
-                    notes,
-                    selectedNoteId,
-                    Belt.Option.getWithDefault(contentBlocks, []),
-                  ),
-                )
-              )
+            |> Repromise.wait(((notes, selectedNoteId, contentBlocks)) =>
+                 self.send(
+                   NotebookSelected(
+                     notes,
+                     selectedNoteId,
+                     Belt.Option.getWithDefault(contentBlocks, []),
+                   ),
+                 )
+               )
         ),
       )
     | NotebookSelected(notes, selectedNoteId, contentBlocks) =>
@@ -179,8 +181,10 @@ let make = (children: (state, action => unit) => ReasonReact.reactElement) => {
         (
           self =>
             Db.withNotification(() => Notebooks.create(notebook))
-            ->Future.map(notebook => self.send(SelectNotebook(notebook)))
-            ->ignore
+            |> Promises.mapOk(notebook =>
+                 self.send(SelectNotebook(notebook))
+               )
+            |> ignore
         ),
       );
     | DeleteNotebook(notebook) =>
@@ -219,9 +223,9 @@ let make = (children: (state, action => unit) => ReasonReact.reactElement) => {
         (
           self =>
             ContentBlocks.fromNote(noteId)
-            ->Future.get(contentBlocks =>
-                self.send(NoteSelected(noteId, contentBlocks))
-              )
+            |> Repromise.wait(contentBlocks =>
+                 self.send(NoteSelected(noteId, contentBlocks))
+               )
         ),
       )
     | NoteSelected(noteId, contentBlocks) =>
@@ -237,10 +241,10 @@ let make = (children: (state, action => unit) => ReasonReact.reactElement) => {
             Db.withNotification(() =>
               Notes.create(self.state.selectedNotebook |> Belt.Option.getExn)
             )
-            ->Future.map(((note, _contentBlock)) =>
-                self.send(SelectNote(note.id))
-              )
-            ->ignore
+            |> Promises.tapOk(((note: Data.note, _contentBlock)) =>
+                 self.send(SelectNote(note.id))
+               )
+            |> ignore
         ),
       )
     | DeleteNote(note) =>
@@ -308,11 +312,11 @@ let make = (children: (state, action => unit) => ReasonReact.reactElement) => {
     },
   didMount: self => {
     DbSync.run();
-    DataSyncRetry.getPendingChanges()->Future.get(DataSync.start);
+    DataSyncRetry.getPendingChanges() |> Repromise.wait(DataSync.start);
 
     let loadStateFromDb = () =>
       fetchInitialState()
-      ->Future.get(state => self.send(LoadInitialState(state)));
+      |> Repromise.wait(state => self.send(LoadInitialState(state)));
 
     loadStateFromDb();
     Db.subscribe(loadStateFromDb);

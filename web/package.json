@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
+    "@aantron/repromise": "^0.6.0",
     "@glennsl/bs-json": "^3.0.0",
     "bs-fetch": "^0.3.0",
     "bs-platform": "^4.0.5",
@@ -22,8 +23,7 @@
     "promise": "8.0.1",
     "react": "^16.4.1",
     "react-codemirror2": "^5.1.0",
-    "react-dom": "^16.4.1",
-    "reason-future": "^2.3.1"
+    "react-dom": "^16.4.1"
   },
   "scripts": {
     "start": "node scripts/start.js",

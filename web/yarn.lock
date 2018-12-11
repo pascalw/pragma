@@ -2,6 +2,11 @@
 # yarn lockfile v1
 
 
+"@aantron/repromise@^0.6.0":
+  version "0.6.0"
+  resolved "https://registry.yarnpkg.com/@aantron/repromise/-/repromise-0.6.0.tgz#45bea66e593b7e0f968bc0fd03f0b6578003e698"
+  integrity sha512-nxNUWKQQhRJKmsExKi2qyZUryvpEz07H17fEhRaZC3wXkxCtjcdx9j5LMnV0+anbU+EyG/X+UnfATReerBZgMA==
+
 "@babel/code-frame@7.0.0-beta.46":
   version "7.0.0-beta.46"
   resolved "https://registry.yarnpkg.com/@babel/code-frame/-/code-frame-7.0.0-beta.46.tgz#e0d002100805daab1461c0fcb32a07e304f3a4f4"
@@ -7804,11 +7809,6 @@ realpath-native@^1.0.0:
   integrity sha512-W14EcXuqUvKP8dkWkD7B95iMy77lpMnlFXbbk409bQtNCbeu0kvRE5reo+yIZ3JXxg6frbGsz2DLQ39lrCB40g==
   dependencies:
     util.promisify "^1.0.0"
-
-reason-future@^2.3.1:
-  version "2.3.1"
-  resolved "https://registry.yarnpkg.com/reason-future/-/reason-future-2.3.1.tgz#e86a5b835e542caa7c140ba2379be6d06ff0d2d0"
-  integrity sha512-+LkXZ/6fuV+LYBnB58V82nUdKRnYBeHQ49PcCODCR7hR4Qs3+IGPEHagOaZOrM5g+sEdaQCYBGvAuSKHFVr03w==
 
 reason-react@^0.5.3:
   version "0.5.3"

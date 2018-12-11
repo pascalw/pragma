@@ -1,3 +1,6 @@
+open Belt.Result;
+type result('a) = Belt.Result.t('a, Js.Promise.error);
+
 type listener = unit => unit;
 
 module JsonCoders = {
@@ -125,28 +128,6 @@ module JsonCoders = {
   };
 };
 
-let unwrapResult = promise => {
-  FutureJs.fromPromise(promise, Js.String.make)
-  ->Future.map(
-      fun
-      | Belt.Result.Ok(value) => {
-        value
-      }
-      | Belt.Result.Error(error) =>
-        Js.Exn.raiseError("IndexedDB result error: " ++ error),
-    );
-};
-
-let awaitTransaction = (transaction: IndexedDB.Transaction.t) =>
-  IndexedDB.Transaction.complete(transaction)
-  ->FutureJs.fromPromise(Js.String.make)
-  ->Future.map(
-      fun
-      | Belt.Result.Ok(_) => ()
-      | Belt.Result.Error(error) =>
-        Js.Exn.raiseError("IndexedDB transaction failed: " ++ error),
-    );
-
 let notebooksStore = "notebooks";
 let notesStore = "notes";
 let contentBlocksStore = "contentBlocks";
@@ -199,24 +180,36 @@ let initDb = () =>
       }
     )
   )
-  ->FutureJs.fromPromise(Js.String.make);
+  |> Promises.toResultPromise;
 
-let db = () =>
+let dbPromise = () =>
   switch (iDb^) {
   | None =>
     initDb()
-    ->Future.map(
-        fun
-        | Belt.Result.Ok(db) => {
-            iDb := Some(db);
-            db;
-          }
-        | Belt.Result.Error(error) =>
-          Js.Exn.raiseError("Failed to open IndexedDB: " ++ error),
-      )
-  | Some(db) => Future.value(db)
+    |> Repromise.map(result => {
+         let db = Belt.Result.getExn(result);
+
+         iDb := Some(db);
+         db;
+       })
+  | Some(db) => Repromise.resolved(db)
   };
 
+let toOptionPromise = (jsPromise: Js.Promise.t(option('a))) =>
+  jsPromise
+  |> Repromise.Rejectable.fromJsPromise
+  |> Repromise.Rejectable.map(
+       fun
+       | None => None
+       | Some(value) => Some(value),
+     )
+  |> Repromise.Rejectable.catch(error => {
+       Js.Console.error2("Db promise failed: ", error);
+       Repromise.resolved(None);
+     });
+
+let awaitTransactionPromise = (transaction: IndexedDB.Transaction.t) =>
+  IndexedDB.Transaction.complete(transaction)->Promises.toResultPromise;
 
 let listeners: ref(list(listener)) = ref([]);
 
@@ -225,127 +218,147 @@ let subscribe = listener => listeners := [listener, ...listeners^];
 let unsubscribe = listener =>
   listeners := Belt.List.keep(listeners^, l => l !== listener);
 
-let getNotes = (notebookId: string) => {
-  db()
-  ->Future.flatMap(db => {
-    IndexedDB.({
-      DB.transaction(db, notesStore, Transaction.ReadOnly)
-      ->Transaction.objectStore(notesStore)
-      ->ObjectStore.index("forNotebook")
-      ->IndexedDB.Index.getAllByKey(notebookId)
-      ->unwrapResult
-      ->Future.map(Belt.List.fromArray)
-      ->Future.map(List.map(JsonCoders.decodeNote))
-    });
-  });
-};
+let getNotes = (notebookId: string) =>
+  dbPromise()
+  |> Repromise.andThen(db =>
+       IndexedDB.(
+         DB.transaction(db, notesStore, Transaction.ReadOnly)
+         ->Transaction.objectStore(notesStore)
+         ->ObjectStore.index("forNotebook")
+         ->IndexedDB.Index.getAllByKey(notebookId)
+         ->Promises.toResultPromise
+         |> Repromise.map(
+              fun
+              | Ok(array) =>
+                array
+                ->Belt.List.fromArray
+                ->Belt.List.map(JsonCoders.decodeNote)
+              | Error(_) => [],
+            )
+       )
+     );
 
 let getNote = (noteId: string) =>
-  db()
-  ->Future.flatMap(db => {
-    IndexedDB.({
-      DB.transaction(db, notesStore, Transaction.ReadOnly)
-      ->Transaction.objectStore(notesStore)
-      ->ObjectStore.get(noteId)
-      ->unwrapResult
-      ->Future.map(v => Belt.Option.map(v, JsonCoders.decodeNote))
-    });
-  });
+  dbPromise()
+  |> Repromise.andThen(db =>
+       IndexedDB.(
+         DB.transaction(db, notesStore, Transaction.ReadOnly)
+         ->Transaction.objectStore(notesStore)
+         ->ObjectStore.get(noteId)
+         ->toOptionPromise
+         |> Repromise.map(v => Belt.Option.map(v, JsonCoders.decodeNote))
+       )
+     );
 
 let getNotebooks = () =>
-  db()
-  ->Future.flatMap(db => {
-    IndexedDB.({
-      DB.transaction(db, notebooksStore, Transaction.ReadOnly)
-      ->Transaction.objectStore(notebooksStore)
-      ->ObjectStore.getAll
-      ->unwrapResult
-      ->Future.map(Belt.List.fromArray)
-      ->Future.map(List.map(n => (JsonCoders.decodeNotebook(n), 0))) /* FIXME: */
-    });
-  });
+  dbPromise()
+  |> Repromise.andThen(db =>
+       IndexedDB.(
+         DB.transaction(db, notebooksStore, Transaction.ReadOnly)
+         ->Transaction.objectStore(notebooksStore)
+         ->ObjectStore.getAll
+         ->Promises.toResultPromise
+         |> Repromise.map(
+              fun
+              | Ok(array) =>
+                array
+                ->Belt.List.fromArray
+                ->Belt.List.map(n => (JsonCoders.decodeNotebook(n), 0)) /* FIXME */
+              | Error(_) => [],
+            )
+       )
+     );
 
-let getNotebook = (notebookId: string) => 
-  db()
-  ->Future.flatMap(db => {
-    IndexedDB.({
-      DB.transaction(db, notebooksStore, Transaction.ReadOnly)
-      ->Transaction.objectStore(notebooksStore)
-      ->ObjectStore.get(notebookId)
-      ->unwrapResult
-      ->Future.map(v => Belt.Option.map(v, JsonCoders.decodeNotebook))
-    });
-  });
+let getNotebook = (notebookId: string) =>
+  dbPromise()
+  |> Repromise.andThen(db =>
+       IndexedDB.(
+         DB.transaction(db, notebooksStore, Transaction.ReadOnly)
+         ->Transaction.objectStore(notebooksStore)
+         ->ObjectStore.get(notebookId)
+         ->toOptionPromise
+         |> Repromise.map(v => Belt.Option.map(v, JsonCoders.decodeNotebook))
+       )
+     );
 
 let getContentBlocks = noteId =>
-  db()
-  ->Future.flatMap(db => {
-    IndexedDB.({
-      DB.transaction(db, contentBlocksStore, Transaction.ReadOnly)
-      ->Transaction.objectStore(contentBlocksStore)
-      ->ObjectStore.index("forNote")
-      ->IndexedDB.Index.getAllByKey(noteId)
-      ->unwrapResult
-      ->Future.map(Belt.List.fromArray)
-      ->Future.map(List.map(JsonCoders.decodeContentBlock))
-    });
-  });
+  dbPromise()
+  |> Repromise.andThen(db =>
+       IndexedDB.(
+         DB.transaction(db, contentBlocksStore, Transaction.ReadOnly)
+         ->Transaction.objectStore(contentBlocksStore)
+         ->ObjectStore.index("forNote")
+         ->IndexedDB.Index.getAllByKey(noteId)
+         ->Promises.toResultPromise
+         |> Repromise.map(
+              fun
+              | Ok(array) =>
+                array
+                ->Belt.List.fromArray
+                ->Belt.List.map(JsonCoders.decodeContentBlock)
+              | Error(_) => [],
+            )
+       )
+     );
 
-let getContentBlock = blockId => 
-  db()
-  ->Future.flatMap(db => {
-    IndexedDB.({
-      DB.transaction(db, contentBlocksStore, Transaction.ReadOnly)
-      ->Transaction.objectStore(contentBlocksStore)
-      ->ObjectStore.get(blockId)
-      ->unwrapResult
-      ->Future.map(v => Belt.Option.map(v, JsonCoders.decodeContentBlock))
-    });
-  });
+let getContentBlock = blockId =>
+  dbPromise()
+  |> Repromise.andThen(db =>
+       IndexedDB.(
+         DB.transaction(db, contentBlocksStore, Transaction.ReadOnly)
+         ->Transaction.objectStore(contentBlocksStore)
+         ->ObjectStore.get(blockId)
+         ->toOptionPromise
+         |> Repromise.map(v =>
+              Belt.Option.map(v, JsonCoders.decodeContentBlock)
+            )
+       )
+     );
 
 let addNotebook = notebook =>
   IndexedDB.(
-    db()
-    ->Future.flatMap(db => {
-        let tx = DB.transaction(db, notebooksStore, Transaction.ReadWrite);
-        let data = JsonCoders.encodeNotebook(notebook);
+    dbPromise()
+    |> Repromise.andThen(db => {
+         let tx = DB.transaction(db, notebooksStore, Transaction.ReadWrite);
+         let data = JsonCoders.encodeNotebook(notebook);
 
-        Transaction.objectStore(tx, notebooksStore)
-        ->ObjectStore.put(data)
-        ->ignore;
+         Transaction.objectStore(tx, notebooksStore)
+         ->ObjectStore.put(data)
+         ->ignore;
 
-        awaitTransaction(tx);
-      })
+         awaitTransactionPromise(tx);
+       })
   );
 
 let addNote = note =>
   IndexedDB.(
-    db()
-    ->Future.flatMap(db => {
-        let tx = DB.transaction(db, notesStore, Transaction.ReadWrite);
-        let data = JsonCoders.encodeNote(note);
+    dbPromise()
+    |> Repromise.andThen(db => {
+         let tx = DB.transaction(db, notesStore, Transaction.ReadWrite);
+         let data = JsonCoders.encodeNote(note);
 
-        Transaction.objectStore(tx, notesStore)
-        ->ObjectStore.put(data)
-        ->ignore;
+         Transaction.objectStore(tx, notesStore)
+         ->ObjectStore.put(data)
+         ->ignore;
 
-        awaitTransaction(tx);
-      })
+         awaitTransactionPromise(tx);
+       })
   );
 
 let addContentBlock = block =>
   IndexedDB.(
-    db()
-    ->Future.flatMap(db => {
-        let tx = DB.transaction(db, contentBlocksStore, Transaction.ReadWrite);
-        let data = JsonCoders.encodeContentBlock(block);
+    dbPromise()
+    |> Repromise.andThen(db => {
+         let tx =
+           DB.transaction(db, contentBlocksStore, Transaction.ReadWrite);
+         let data = JsonCoders.encodeContentBlock(block);
 
-        Transaction.objectStore(tx, contentBlocksStore)
-        ->ObjectStore.put(data)
-        ->ignore;
+         Transaction.objectStore(tx, contentBlocksStore)
+         ->ObjectStore.put(data)
+         ->ignore;
 
-        awaitTransaction(tx);
-      })
+         awaitTransactionPromise(tx);
+       })
   );
 
 let createNote = (notebookId: string) => {
@@ -370,108 +383,114 @@ let createNote = (notebookId: string) => {
     revision: None,
   };
 
-  addNote(note) |> ignore;
-  addContentBlock(contentBlock) |> ignore;
+  Repromise.all([addNote(note), addContentBlock(contentBlock)])
+  |> Repromise.map(_ => {
+       /* FIXME: only push when succesful */
+       DataSync.pushNewNote(note);
+       DataSync.pushNewContentBlock(contentBlock);
 
-  DataSync.pushNewNote(note);
-  DataSync.pushNewContentBlock(contentBlock);
-
-  Future.value((note, contentBlock));
+       Ok((note, contentBlock));
+     });
 };
 
-let createNotebook = notebook => {
+let createNotebook = notebook =>
   addNotebook(notebook)
-  ->Future.map(_ => {
-    DataSync.pushNewNotebook(notebook);
-  }) |> ignore;
+  |> Repromise.map(_result => {
+       /* FIXME: only push when create is succesfull */
+       DataSync.pushNewNotebook(notebook) |> ignore;
+       Ok(notebook);
+     });
 
-  Future.value(notebook);
-};
-
-let updateContentBlock = (contentBlock: Data.contentBlock, ~sync=true, ()) => {
+let updateContentBlock = (contentBlock: Data.contentBlock, ~sync=true, ()) =>
   addContentBlock(contentBlock)
-  ->Future.map(_ => {
-    if (sync) {
-      DataSync.pushContentBlock(contentBlock);
-    };
-  });
-};
+  |> Repromise.map(result => {
+       /* FIXME: only push when create is succesfull */
+       if (sync) {
+         DataSync.pushContentBlock(contentBlock);
+       };
 
-let updateNote = (note: Data.note, ~sync=true, ()) => {
+       result;
+     });
+
+let updateNote = (note: Data.note, ~sync=true, ()) =>
   addNote(note)
-  ->Future.map(_ => {
-    if (sync) {
-      DataSync.pushNoteChange(note);
-    };
-  });
-};
+  |> Repromise.map(result => {
+       /* FIXME: only push when create is succesfull */
+       if (sync) {
+         DataSync.pushNoteChange(note);
+       };
 
-let updateNotebook = (notebook: Data.notebook, ~sync=true, ()) => {
+       result;
+     });
+
+let updateNotebook = (notebook: Data.notebook, ~sync=true, ()) =>
   addNotebook(notebook)
-  ->Future.map(_ => {
-    if (sync) {
-      DataSync.pushNotebookChange(notebook);
-    };
-  });
-};
+  |> Repromise.map(result => {
+       /* FIXME: only push when create is succesfull */
+       if (sync) {
+         DataSync.pushNotebookChange(notebook);
+       };
 
-let deleteNotebook = (notebookId: string, ~sync=true, ()) => {
-  IndexedDB.({
-    db()
-    ->Future.get(db => {
-      let tx = DB.transaction(db, notebooksStore, Transaction.ReadWrite);
+       result;
+     });
 
-      Transaction.objectStore(tx, notebooksStore)
-      ->ObjectStore.delete(notebookId)
-      ->ignore;
-    });
-  });
+let deleteNotebook = (notebookId: string, ~sync=true, ()) =>
+  dbPromise()
+  |> Repromise.andThen(db => {
+       open IndexedDB;
+       let tx = DB.transaction(db, notebooksStore, Transaction.ReadWrite);
 
-  if (sync) {
-    DataSync.pushNotebookDelete(notebookId);
-  };
+       Transaction.objectStore(tx, notebooksStore)
+       ->ObjectStore.delete(notebookId)
+       ->Promises.toResultPromise;
+     })
+  |> Repromise.map(_result => {
+       /* FIXME: only push when succesfull */
+       if (sync) {
+         DataSync.pushNotebookDelete(notebookId);
+       };
 
-  Future.value();
-};
+       Ok();
+     });
 
-let deleteNote = (noteId: string, ~sync=true, ()) => {
-  IndexedDB.({
-    db()
-    ->Future.get(db => {
-      let tx = DB.transaction(db, notesStore, Transaction.ReadWrite);
+let deleteNote = (noteId: string, ~sync=true, ()) =>
+  dbPromise()
+  |> Repromise.andThen(db => {
+       open IndexedDB;
+       let tx = DB.transaction(db, notesStore, Transaction.ReadWrite);
 
-      Transaction.objectStore(tx, notesStore)
-      ->ObjectStore.delete(noteId)
-      ->ignore;
-    });
-  });
+       Transaction.objectStore(tx, notesStore)
+       ->ObjectStore.delete(noteId)
+       ->Promises.toResultPromise;
+     })
+  |> Repromise.map(_result => {
+       /* FIXME: only push when succesfull */
+       if (sync) {
+         DataSync.pushNotebookDelete(noteId);
+       };
 
-  if (sync) {
-    DataSync.pushNoteDelete(noteId);
-  };
+       Ok();
+     });
 
-  Future.value();
-};
+let deleteContentBlock = (contentBlockId: string) =>
+  dbPromise()
+  |> Repromise.andThen(db => {
+       open IndexedDB;
+       let tx = DB.transaction(db, contentBlocksStore, Transaction.ReadWrite);
 
-let deleteContentBlock = (contentBlockId: string) => {
-  IndexedDB.({
-    db()
-    ->Future.get(db => {
-      let tx = DB.transaction(db, contentBlocksStore, Transaction.ReadWrite);
-
-      Transaction.objectStore(tx, contentBlocksStore)
-      ->ObjectStore.delete(contentBlockId)
-      ->ignore;
-    });
-  });
-
-  Future.value();
-};
+       Transaction.objectStore(tx, contentBlocksStore)
+       ->ObjectStore.delete(contentBlockId)
+       ->Promises.toResultPromise;
+     })
+  |> Repromise.map(_result
+       /* FIXME: only push when succesfull */
+       => Ok());
 
 let insertRevision = (revision: string) =>
-  LocalStorage.setItem("pragma-revision", revision)->Future.value;
+  LocalStorage.setItem("pragma-revision", revision)->Repromise.resolved;
 
-let getRevision = () => LocalStorage.getItem("pragma-revision")->Future.value;
+let getRevision = () =>
+  LocalStorage.getItem("pragma-revision")->Repromise.resolved;
 
 let withNotification = fn => {
   let result = fn();
