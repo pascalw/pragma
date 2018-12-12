@@ -15,8 +15,14 @@ let make =
   let createNotebook = (send, _) => {
     let notebook = Data.newNotebook();
 
-    dispatch(NoteManagementContainer.CreateNotebook(notebook));
-    send(EditTitle(Some(notebook.id)));
+    let promise =
+      Notebooks.create(notebook)
+      |> Promises.tapOk(_ => {
+           dispatch(NoteManagementContainer.SelectNotebook(notebook));
+           send(EditTitle(Some(notebook.id)));
+         });
+
+    Db.withPromiseNotification(promise);
   };
 
   {

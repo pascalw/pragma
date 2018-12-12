@@ -62,7 +62,7 @@ let sortNotebooksDesc = (notebooks: list((Data.notebook, int))) =>
 let getSortedNotes = notebookId =>
   Notes.fromNotebook(notebookId) |> Repromise.map(sortNotesDesc);
 
-let fetchInitialState = () => {
+let fetchAllData = () => {
   open Belt;
   let appState = AppState.get();
 
@@ -238,12 +238,18 @@ let make = (children: (state, action => unit) => ReasonReact.reactElement) => {
       ReasonReact.SideEffects(
         (
           self =>
-            Db.withNotification(() =>
-              Notes.create(self.state.selectedNotebook |> Belt.Option.getExn)
-            )
-            |> Promises.tapOk(((note: Data.note, _contentBlock)) =>
-                 self.send(SelectNote(note.id))
-               )
+            Notes.create(self.state.selectedNotebook |> Belt.Option.getExn)
+            |> Promises.tapOk(((note: Data.note, _contentBlock)) => {
+                 AppState.setSelected(
+                   self.state.selectedNotebook,
+                   Some(note.id),
+                 );
+
+                 fetchAllData()
+                 |> Repromise.wait(state =>
+                      self.send(LoadInitialState(state))
+                    );
+               })
             |> ignore
         ),
       )
@@ -315,7 +321,7 @@ let make = (children: (state, action => unit) => ReasonReact.reactElement) => {
     DataSyncRetry.getPendingChanges() |> Repromise.wait(DataSync.start);
 
     let loadStateFromDb = () =>
-      fetchInitialState()
+      fetchAllData()
       |> Repromise.wait(state => self.send(LoadInitialState(state)));
 
     loadStateFromDb();
