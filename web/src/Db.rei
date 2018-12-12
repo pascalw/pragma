@@ -32,3 +32,4 @@ let withPromiseNotification: Repromise.t('a) => unit;
 
 let insertRevision: string => Repromise.t(unit);
 let getRevision: unit => Repromise.t(option(string));
+let clear: unit => unit;

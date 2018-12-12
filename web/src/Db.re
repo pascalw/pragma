@@ -518,3 +518,8 @@ let withNotification = fn => {
 
 let withPromiseNotification = promise =>
   promise |> Repromise.wait(_ => Belt.List.forEach(listeners^, l => l()));
+
+let clear = () => {
+  IndexedDB.delete("pragma") |> ignore;
+  LocalStorage.clear();
+};
