@@ -150,7 +150,7 @@ let make = (children: (state, action => unit) => ReasonReact.reactElement) => {
     | LoadInitialState(state) => ReasonReact.Update(state)
     | SelectNotebook(notebook) =>
       ReasonReact.UpdateWithSideEffects(
-        {...state, selectedNotebook: Some(notebook.id)},
+        {...state, selectedNotebook: Some(notebook.id), notes: []},
         (
           self =>
             getNotes(notebook.id)
@@ -219,7 +219,8 @@ let make = (children: (state, action => unit) => ReasonReact.reactElement) => {
         (_self => Notebooks.update(notebook, ()) |> ignore),
       );
     | SelectNote(noteId) =>
-      ReasonReact.SideEffects(
+      ReasonReact.UpdateWithSideEffects(
+        {...state, selectedNote: Some(noteId), contentBlocks: []},
         (
           self =>
             ContentBlocks.fromNote(noteId)
