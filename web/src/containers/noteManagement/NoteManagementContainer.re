@@ -12,11 +12,7 @@ type action =
   | CreateNotebook(Data.notebook)
   | UpdateNotebook(Data.notebook)
   | SelectNotebook(Data.notebook)
-  | NotebookSelected(
-      list(Data.note),
-      option(string),
-      list(Data.contentBlock),
-    )
+  | NotebookSelected(list(Data.note), option(string))
   | DeleteNotebook(Data.notebook)
   | CreateNote
   | SelectNote(string)
@@ -122,17 +118,7 @@ let getNotes = notebookId =>
        let selectedNoteId =
          Belt.List.head(notes)->Belt.Option.map(note => note.id);
        (notes, selectedNoteId);
-     })
-  |> Repromise.andThen(((notes, selectedNoteId)) =>
-       switch (selectedNoteId) {
-       | None => Repromise.resolved((notes, selectedNoteId, None))
-       | Some(noteId) =>
-         ContentBlocks.fromNote(noteId)
-         |> Repromise.map(contentBlocks =>
-              (notes, selectedNoteId, Some(contentBlocks))
-            )
-       }
-     );
+     });
 
 let component = ReasonReact.reducerComponent("NoteManagementContainer");
 let make = (children: (state, action => unit) => ReasonReact.reactElement) => {
@@ -150,26 +136,22 @@ let make = (children: (state, action => unit) => ReasonReact.reactElement) => {
     | LoadInitialState(state) => ReasonReact.Update(state)
     | SelectNotebook(notebook) =>
       ReasonReact.UpdateWithSideEffects(
-        {...state, selectedNotebook: Some(notebook.id), notes: []},
+        {...state, selectedNotebook: Some(notebook.id)},
         (
           self =>
             getNotes(notebook.id)
-            |> Repromise.wait(((notes, selectedNoteId, contentBlocks)) =>
-                 self.send(
-                   NotebookSelected(
-                     notes,
-                     selectedNoteId,
-                     Belt.Option.getWithDefault(contentBlocks, []),
-                   ),
-                 )
-               )
+            |> Repromise.wait(((notes, selectedNoteId)) => {
+                 self.send(NotebookSelected(notes, selectedNoteId));
+
+                 self.send(SelectNote(Belt.Option.getExn(selectedNoteId)));
+               })
         ),
       )
-    | NotebookSelected(notes, selectedNoteId, contentBlocks) =>
+    | NotebookSelected(notes, selectedNoteId) =>
       ReasonReact.Update({
         ...state,
         notes,
-        contentBlocks,
+        contentBlocks: [],
         selectedNote: selectedNoteId,
       })
     | CreateNotebook(notebook) =>
@@ -220,7 +202,7 @@ let make = (children: (state, action => unit) => ReasonReact.reactElement) => {
       );
     | SelectNote(noteId) =>
       ReasonReact.UpdateWithSideEffects(
-        {...state, selectedNote: Some(noteId), contentBlocks: []},
+        {...state, selectedNote: Some(noteId)},
         (
           self =>
             ContentBlocks.fromNote(noteId)
