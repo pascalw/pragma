@@ -36,11 +36,7 @@ Pragma is designed to be hosted on a server and accessed via your webbrowser. In
 
 ## Known issues
 
-- Only tested on Chrome and Firefox.
-- Currently uses `localstorage` in the browser.
-  - Some browsers like Safari have very small limits on `localstorage` so you'll start hitting quota issues around 500 notes.
-  - Chrome and Firefox have much bigger quota limits.
-  - Will be fixed by switching to IndexedDB.
+- Only tested on Chrome, Firefox and Safari.
 - No sync conflict resolution yet (see roadmap).
   - Currently, last write wins. You'll only run into this if you edit the same note from multiple devices at the same time.
 
