@@ -249,8 +249,8 @@ let loadMode = (contentBlock, editor) => {
   let mode = SupportedLanguageMap.getExn(supportedLanguages, language);
 
   mode.install()
-  ->FutureJs.fromPromise(Js.String.make)
-  ->Future.get(_ => setOption(editor, "mode", mapMode(language)));
+  |> Promises.toResultPromise
+  |> Promises.tapOk(_ => setOption(editor, "mode", mapMode(language)));
 };
 
 module CodeMirror = {
@@ -311,7 +311,7 @@ module CodeMirrorWrapper = {
     didUpdate: oldAndNewSelf =>
       switch (oldAndNewSelf.newSelf.state.editor) {
       | None => ()
-      | Some(editor) => loadMode(contentBlock, editor)
+      | Some(editor) => loadMode(contentBlock, editor) |> ignore
       },
     render: self => {
       let code = code(contentBlock);

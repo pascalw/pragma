@@ -2,63 +2,70 @@ open Belt;
 
 let upsertContentBlock = (contentBlock: Data.contentBlock) =>
   ContentBlocks.get(contentBlock.id)
-  ->Future.get(storedContentBlock =>
-      switch (storedContentBlock) {
-      | None =>
-        ContentBlocks.add(contentBlock) |> Utils.log(~label="add") |> ignore
-      | Some(_contentBlock) =>
-        ContentBlocks.update(contentBlock, ~sync=false, ())
-        |> Utils.log(~label="update")
-        |> ignore
-      }
-    );
+  |> Repromise.andThen(storedContentBlock =>
+       switch (storedContentBlock) {
+       | None => ContentBlocks.add(contentBlock)
+       | Some(_contentBlock) =>
+         ContentBlocks.update(contentBlock, ~sync=false, ())
+       }
+     );
 
 let upsertNote = (note: Data.note) =>
   Notes.get(note.id)
-  ->Future.get(storedNote =>
-      switch (storedNote) {
-      | None => Notes.add(note) |> ignore
-      | Some(_note) => Notes.update(note, ~sync=false, ()) |> ignore
-      }
-    );
+  |> Repromise.andThen(storedNote =>
+       switch (storedNote) {
+       | None => Notes.add(note)
+       | Some(_note) => Notes.update(note, ~sync=false, ())
+       }
+     );
 
 let upsertNotebook = (notebook: Data.notebook) =>
   Notebooks.get(notebook.id)
-  ->Future.get(storedNotebook =>
-      switch (storedNotebook) {
-      | None => Notebooks.add(notebook) |> ignore
-      | Some(_note) => Notebooks.update(notebook, ~sync=false, ()) |> ignore
-      }
-    );
+  |> Repromise.andThen(storedNotebook =>
+       switch (storedNotebook) {
+       | None => Notebooks.add(notebook)
+       | Some(_note) => Notebooks.update(notebook, ~sync=false, ())
+       }
+     );
 
 let run = () =>
   Db.getRevision()
-  ->Future.flatMap(Api.fetchChanges)
-  ->(
-      Future.get(result =>
-        switch (result) {
-        | Ok(result) =>
-          Db.withNotification(() => {
-            let revision = result.revision;
-            Db.insertRevision(revision) |> ignore;
+  |> Repromise.andThen(Api.fetchChanges)
+  |> Repromise.wait((result: Belt.Result.t(Api.apiResponse, _)) =>
+       switch (result) {
+       | Result.Ok(result) =>
+         let revision = result.revision;
+         Db.insertRevision(revision) |> ignore;
 
-            result.changes.notebooks->List.forEach(upsertNotebook);
-            result.changes.notes->List.forEach(upsertNote);
-            result.changes.contentBlocks->List.forEach(upsertContentBlock);
+         let notebookResults =
+           result.changes.notebooks->List.map(upsertNotebook);
+         let noteResults = result.changes.notes->List.map(upsertNote);
+         let contentBlockResults =
+           result.changes.contentBlocks->List.map(upsertContentBlock);
+         let deletionResults =
+           result.deletions
+           ->List.map(deletedResource =>
+               switch (deletedResource.type_) {
+               | "notebook" =>
+                 Notebooks.delete(deletedResource.id, ~sync=false, ())
+               | "note" => Notes.delete(deletedResource.id, ~sync=false, ())
+               | "contentBlock" => ContentBlocks.delete(deletedResource.id)
+               | type_ =>
+                 Js.Exn.raiseError("Unsupported deletion type: " ++ type_)
+               }
+             );
 
-            List.forEach(result.deletions, deletedResource =>
-              switch (deletedResource.type_) {
-              | "notebook" =>
-                Notebooks.delete(deletedResource.id, ~sync=false, ())
-              | "note" => Notes.delete(deletedResource.id, ~sync=false, ())
-              | "contentBlock" => ContentBlocks.delete(deletedResource.id)
-              | type_ =>
-                Js.Exn.raiseError("Unsupported deletion type: " ++ type_)
-              }
-            );
-          })
-        | Error(reason) =>
-          Js.Console.error2("Failed to fetch changes", reason)
-        }
-      )
-    );
+         let promise =
+           Repromise.all(
+             List.concatMany([|
+               notebookResults,
+               noteResults,
+               contentBlockResults,
+               deletionResults,
+             |]),
+           );
+         Db.withPromiseNotification(promise);
+       | Result.Error(reason) =>
+         Js.Console.error2("Failed to fetch changes", reason)
+       }
+     );

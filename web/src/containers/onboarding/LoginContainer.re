@@ -79,14 +79,15 @@ let make = (~onLoggedIn, _children) => {
 
       let password = passwordInputValue(self.state);
       Auth.checkToken(Api.checkAuth, password)
-      ->Future.get(result =>
-          switch (result) {
-          | Belt.Result.Ok(_) =>
-            self.send(Proceed(AuthSuccesful));
-            Js.Global.setTimeout(onLoggedIn, 500) |> ignore;
-          | Belt.Result.Error(_) => self.send(Proceed(AuthenticationFailure))
-          }
-        );
+      |> Repromise.wait(result =>
+           switch (result) {
+           | Belt.Result.Ok(_) =>
+             self.send(Proceed(AuthSuccesful));
+             Js.Global.setTimeout(onLoggedIn, 500) |> ignore;
+           | Belt.Result.Error(_) =>
+             self.send(Proceed(AuthenticationFailure))
+           }
+         );
     };
 
     <div className={style("container")}>

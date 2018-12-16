@@ -14,3 +14,8 @@ registerServiceWorker(() =>
     LocationRe.reload(Webapi.Dom.location)
   )
 );
+
+[@bs.val] external env: string = "process.env.NODE_ENV";
+if (env === "development") {
+  Devtools.install();
+};

@@ -34,5 +34,5 @@ let updateCodeLanguage = (block: Data.contentBlock, language) =>
 let delete = id => Db.deleteContentBlock(id);
 
 DataSync.setContentBlockSyncedListener(block =>
-  Db.updateContentBlock(block, ~sync=false, ())
-);
+  Db.updateContentBlock(block, ~sync=false, ()) |> Repromise.map(_ => ())
+); /* FIXME: error handling? */
