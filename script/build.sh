@@ -22,13 +22,13 @@ case "$BUILDER" in
   "local")
     build_frontend
     echo "Building binary with local cargo"
-    (cd server && cargo build --release --features=embedded_assets)
+    (cd server && cargo build --release --features=release)
     ;;
   "docker")
     build_frontend
     echo "Building binary in Docker"
     (rust_musl_builder sh -c '\
-      cargo build --release --features=embedded_assets \
+      cargo build --release --features=release \
       && strip target/x86_64-unknown-linux-musl/release/pragma -o \
       target/x86_64-unknown-linux-musl/release/pragma-x86_64-unknown-linux-musl')
     ;;
