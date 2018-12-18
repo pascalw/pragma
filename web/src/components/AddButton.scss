@@ -1,4 +1,5 @@
 @import "../styles/settings";
+@import "../styles/mixins";
 
 .button {
   align-self: flex-end;
@@ -20,6 +21,6 @@
   }
 
   svg > path {
-    fill: $color-primary;
+    @include variable(fill, --color-primary, $color-primary);
   }
 }

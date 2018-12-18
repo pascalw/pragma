@@ -1,5 +1,6 @@
 @import "minireset.css/minireset.sass";
-@import "styles/codemirror";
+@import "./styles/codemirror";
+@import "./styles/settings";
 
 html, body, :global(#root) {
   height: 100%;

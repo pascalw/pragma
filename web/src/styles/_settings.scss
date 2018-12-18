@@ -1,4 +1,7 @@
 $color-primary: rgb(91, 136, 239);
+$color-primary-light-1: lighten($color-primary, 10%);
+$color-primary-light-2: lighten($color-primary, 20%);
+
 $color-error: #EF5B5B;
 $color-text: #363636;
 $color-background-light: #fbfbfb;

@@ -1,4 +1,5 @@
 @import "../styles/settings";
+@import "../styles/mixins";
 
 .wrapper {
   @media print {
@@ -49,6 +50,6 @@
 
 .buttonActive {
   svg > path {
-    fill: $color-primary;
+    @include variable(fill, --color-primary, $color-primary);
   }
 }
