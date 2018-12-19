@@ -11,21 +11,15 @@ extern crate diesel_migrations;
 #[cfg(feature = "embedded_assets")]
 #[macro_use]
 extern crate rust_embed;
+
 #[cfg(feature = "embedded_assets")]
-mod assets;
+pub mod assets;
 
 // </EMBEDDED ASSETS>
 
-use crate::actix_state::State;
-use ::actix::prelude::*;
-use actix_web::{server, App};
-use listenfd::ListenFd;
-use openssl::ssl::{SslAcceptor, SslAcceptorBuilder, SslFiletype, SslMethod};
-use std::env;
-
 mod actix_state;
 mod api;
-mod auth;
+pub mod auth;
 mod build_info;
 mod data;
 mod repo;
@@ -34,13 +28,28 @@ mod repo_connection;
 mod repo_id;
 mod schema;
 
-fn main() {
-    configure_logger();
-    auth::init();
-    let pool = init_repo();
+use self::actix_state::State;
+use ::actix::{prelude::*, SystemRunner};
+use actix_web::{server, App};
+use listenfd::ListenFd;
+use openssl::ssl::{SslAcceptor, SslAcceptorBuilder, SslFiletype, SslMethod};
+use std::env;
+
+pub struct Config {
+    pub port: String,
+    pub auth_token: String,
+    pub database_url: String,
+}
+
+pub fn build(config: Config) -> SystemRunner {
+    let pool = init_repo(&config.database_url);
+
+    let port = config.port;
+    let auth_token = config.auth_token;
 
     let sys = actix::System::new("pragma");
-    let mut server = server::HttpServer::new(move || build_actix_app(pool.clone()));
+    let mut server =
+        server::HttpServer::new(move || build_actix_app(pool.clone(), auth_token.clone()));
 
     let mut listenfd = ListenFd::from_env();
 
@@ -51,7 +60,6 @@ fn main() {
         }
     } else {
         let host = host();
-        let port = port();
 
         match env::var("SSL") {
             Ok(_) => server.bind_ssl(format!("{}:{}", host, port), ssl_acceptor()),
@@ -61,15 +69,15 @@ fn main() {
     };
 
     server.start();
-    let _ = sys.run();
+    sys
 }
 
-fn build_actix_app(pool: repo_connection::Pool) -> App<State> {
+fn build_actix_app(pool: repo_connection::Pool, auth_token: String) -> App<State> {
     let addr = SyncArbiter::start(1, move || repo_actor::DbExecutor(pool.clone()));
 
     let mut app = App::with_state(State { db: addr.clone() });
 
-    app = api::mount(app);
+    app = api::mount(app, auth_token);
     maybe_serve_embedded_assets(app)
 }
 
@@ -83,15 +91,8 @@ fn maybe_serve_embedded_assets(app: App<State>) -> App<State> {
     assets::mount(app)
 }
 
-fn configure_logger() {
-    env_logger::Builder::from_default_env()
-        .filter_level(log::LevelFilter::Info)
-        .init();
-}
-
-fn init_repo() -> repo_connection::Pool {
-    let database_url = env::var("DATABASE_URL").unwrap_or_else(|_| "pragma.sqlite".to_owned());
-    let pool = repo_connection::create_pool(&database_url);
+fn init_repo(database_url: &str) -> repo_connection::Pool {
+    let pool = repo_connection::create_pool(database_url);
 
     let connection = pool.get().unwrap();
     repo::setup(&connection);
@@ -110,10 +111,6 @@ fn ssl_acceptor() -> SslAcceptorBuilder {
     builder.set_certificate_chain_file(cert_file).unwrap();
 
     builder
-}
-
-fn port() -> String {
-    env::var("PORT").unwrap_or_else(|_| "8000".to_string())
 }
 
 fn host() -> String {

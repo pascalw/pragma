@@ -1,29 +1,20 @@
-use lazy_static::lazy_static;
-use log::warn;
 use rand::distributions::Alphanumeric;
 use rand::{thread_rng, Rng};
-use std::env;
 
 use actix_web::http::StatusCode;
 use actix_web::middleware::{Middleware, Response, Started};
 use actix_web::{error, HttpRequest, HttpResponse, Result};
 
-lazy_static! {
-    static ref AUTH_TOKEN: String = env::var("AUTH_TOKEN").unwrap_or_else(|_| {
-        let token = thread_rng().sample_iter(&Alphanumeric).take(32).collect();
-
-        warn!("No AUTH_TOKEN was specified, using random token {}", token);
-
-        token
-    });
+pub struct AuthMiddleware {
+    token: String,
 }
 
-pub struct AuthMiddleware;
+pub fn random_token() -> String {
+    thread_rng().sample_iter(&Alphanumeric).take(32).collect()
+}
 
-pub fn init() {
-    // Force avaluation of the AUTH_TOKEN, so it's printed on the console
-    // if no value was specified.
-    let _ = *AUTH_TOKEN;
+pub fn middleware(token: String) -> AuthMiddleware {
+    AuthMiddleware { token }
 }
 
 #[allow(clippy::needless_pass_by_value)]
@@ -47,7 +38,7 @@ impl<S> Middleware<S> for AuthMiddleware {
 
     fn response(&self, req: &HttpRequest<S>, resp: HttpResponse) -> Result<Response> {
         match extract_bearer_token(req) {
-            Some(ref token) if token == &*AUTH_TOKEN => Ok(Response::Done(resp)),
+            Some(ref token) if token == &self.token => Ok(Response::Done(resp)),
 
             _ => Err(error::ErrorUnauthorized("Unauthorized")),
         }

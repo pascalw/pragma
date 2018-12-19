@@ -1,4 +1,4 @@
-use crate::repo_actor;
+use super::repo_actor;
 use ::actix::prelude::*;
 
 pub struct State {

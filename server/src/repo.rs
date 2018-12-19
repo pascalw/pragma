@@ -1,8 +1,8 @@
 // For Diesel 1.3 on Rust >= 1.29
 #![allow(proc_macro_derive_resolution_fallback)]
 
-use crate::data;
-use crate::repo_id;
+use super::data;
+use super::repo_id;
 use chrono::prelude::*;
 use diesel;
 use diesel::prelude::*;
@@ -10,9 +10,9 @@ use diesel::sql_query;
 use serde_json;
 use std;
 
-use crate::schema::content_blocks;
-use crate::schema::notebooks;
-use crate::schema::notes;
+use super::schema::content_blocks;
+use super::schema::notebooks;
+use super::schema::notes;
 
 embed_migrations!("./migrations");
 static WELCOME_TEXT: &str = include_str!("./static/welcome.html");
@@ -168,7 +168,7 @@ pub fn notebooks(
     since_revision: Option<DateTime<Utc>>,
     connection: &SqliteConnection,
 ) -> Result<Vec<data::Notebook>, String> {
-    use crate::schema::notebooks::dsl::*;
+    use super::schema::notebooks::dsl::*;
 
     let query_result = match since_revision {
         None => notebooks.load::<Notebook>(connection),
@@ -186,7 +186,7 @@ pub fn notes(
     since_revision: Option<DateTime<Utc>>,
     connection: &SqliteConnection,
 ) -> Result<Vec<data::Note>, String> {
-    use crate::schema::notes::dsl::*;
+    use super::schema::notes::dsl::*;
 
     let query_result = match since_revision {
         None => notes.load::<Note>(connection),
@@ -237,7 +237,7 @@ pub fn content_blocks(
     since_revision: Option<DateTime<Utc>>,
     connection: &SqliteConnection,
 ) -> Result<Vec<data::ContentBlock>, String> {
-    use crate::schema::content_blocks::dsl::*;
+    use super::schema::content_blocks::dsl::*;
 
     let query_result = match since_revision {
         None => content_blocks.load::<ContentBlock>(connection),
@@ -281,7 +281,7 @@ pub fn deletions(
     since_revision: Option<DateTime<Utc>>,
     connection: &SqliteConnection,
 ) -> Result<Vec<data::Deletion>, String> {
-    use crate::schema::deletions::dsl::*;
+    use super::schema::deletions::dsl::*;
 
     let query_result = match since_revision {
         None => deletions.load::<Deletion>(connection),
@@ -311,7 +311,7 @@ pub fn create_notebook(
     notebook: data::NewNotebook,
     conn: &SqliteConnection,
 ) -> Result<data::Notebook, String> {
-    use crate::schema::notebooks::dsl::*;
+    use super::schema::notebooks::dsl::*;
 
     let now = Utc::now();
 
@@ -342,7 +342,7 @@ pub fn update_notebook(
     update: data::NotebookUpdate,
     connection: &SqliteConnection,
 ) -> Result<data::Notebook, String> {
-    use crate::schema::notebooks::dsl::*;
+    use super::schema::notebooks::dsl::*;
 
     let result = diesel::update(notebooks.filter(id.eq(&notebook_id)))
         .set((
@@ -359,7 +359,7 @@ pub fn update_notebook(
 }
 
 pub fn delete_notebook(notebook_id: String, connection: &SqliteConnection) -> Result<(), String> {
-    use crate::schema::notebooks::dsl::*;
+    use super::schema::notebooks::dsl::*;
 
     let result = diesel::delete(notebooks.filter(id.eq(notebook_id))).execute(connection);
 
@@ -370,7 +370,7 @@ pub fn delete_notebook(notebook_id: String, connection: &SqliteConnection) -> Re
 }
 
 pub fn create_note(note: data::NewNote, conn: &SqliteConnection) -> Result<data::Note, String> {
-    use crate::schema::notes::dsl::*;
+    use super::schema::notes::dsl::*;
 
     let now = Utc::now();
 
@@ -401,7 +401,7 @@ pub fn update_note(
     update: data::NoteUpdate,
     connection: &SqliteConnection,
 ) -> Result<data::Note, String> {
-    use crate::schema::notes::dsl::*;
+    use super::schema::notes::dsl::*;
 
     let result = diesel::update(notes.filter(id.eq(&note_id)))
         .set((
@@ -420,7 +420,7 @@ pub fn update_note(
 }
 
 pub fn delete_note(note_id: String, connection: &SqliteConnection) -> Result<(), String> {
-    use crate::schema::notes::dsl::*;
+    use super::schema::notes::dsl::*;
 
     let result = diesel::delete(notes.filter(id.eq(note_id))).execute(connection);
 
@@ -434,7 +434,7 @@ pub fn create_content_block(
     content_block: data::NewContentBlock,
     conn: &SqliteConnection,
 ) -> Result<data::ContentBlock, String> {
-    use crate::schema::content_blocks::dsl::*;
+    use super::schema::content_blocks::dsl::*;
 
     let now = Utc::now();
 
@@ -469,7 +469,7 @@ pub fn update_content_block(
     update: data::ContentBlockUpdate,
     connection: &SqliteConnection,
 ) -> Result<data::ContentBlock, String> {
-    use crate::schema::content_blocks::dsl::*;
+    use super::schema::content_blocks::dsl::*;
 
     let (content_string, content_type) = content_to_string(update.content);
 
@@ -492,7 +492,7 @@ pub fn delete_contentblock(
     content_block_id: String,
     connection: &SqliteConnection,
 ) -> Result<(), String> {
-    use crate::schema::content_blocks::dsl::*;
+    use super::schema::content_blocks::dsl::*;
 
     let result = diesel::delete(content_blocks.filter(id.eq(content_block_id))).execute(connection);
 

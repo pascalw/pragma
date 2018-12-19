@@ -1,4 +1,4 @@
-use crate::actix_state::State;
+use super::actix_state::State;
 use actix_web::dev::HttpResponseBuilder;
 use actix_web::http::Method;
 use actix_web::http::{header, StatusCode};
