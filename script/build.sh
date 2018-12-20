@@ -1,4 +1,5 @@
 #!/usr/bin/env sh -e
+[[ $TRACE ]] && set -x
 
 function rust_musl_builder() {
   docker run --rm -it -v "$(pwd)":/home/rust/src \
@@ -21,8 +22,10 @@ function build_frontend() {
 case "$BUILDER" in
   "local")
     build_frontend
-    echo "Building binary with local cargo"
-    (cd server && cargo build --release --features=release)
+    BIN=${BIN:-pragma-server}
+    FEATURES=${FEATURES:-release}
+    echo "Building $BIN binary with local cargo"
+    (cd server && cargo build --release --features=$FEATURES --bin=$BIN)
     ;;
   "docker")
     build_frontend

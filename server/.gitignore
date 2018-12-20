@@ -3,4 +3,3 @@ assets/*
 !assets/.gitkeep
 db/*
 !db/.gitkeep
-osx/Pragma.app/Contents/MacOS/Pragma
