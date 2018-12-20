@@ -32,7 +32,7 @@ case "$BUILDER" in
     echo "Building binary in Docker"
     (rust_musl_builder sh -c '\
       cargo build --release --features=release \
-      && strip target/x86_64-unknown-linux-musl/release/pragma -o \
+      && strip target/x86_64-unknown-linux-musl/release/pragma-server -o \
       target/x86_64-unknown-linux-musl/release/pragma-x86_64-unknown-linux-musl')
     ;;
 esac
