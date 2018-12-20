@@ -1,12 +1,12 @@
-use actix_web::http::Method;
+use actix_web::http::{Method, StatusCode};
 use actix_web::{App, AsyncResponder, Error, HttpRequest, HttpResponse, Json, Path, Query};
 use chrono::prelude::*;
 
-use crate::actix_state::State;
-use crate::auth;
-use crate::build_info;
-use crate::data::*;
-use crate::repo_actor::*;
+use super::actix_state::State;
+use super::auth;
+use super::build_info;
+use super::data::*;
+use super::repo_actor::*;
 use futures::future::Future;
 
 #[derive(Serialize)]
@@ -39,10 +39,10 @@ struct GetDataQuery {
     since_revision: Option<DateTime<Utc>>,
 }
 
-pub fn mount(app: App<State>) -> App<State> {
+pub fn mount(app: App<State>, auth_token: String) -> App<State> {
     #[cfg_attr(rustfmt, rustfmt_skip)]
     app.scope("/api", |scope| {
-       scope.middleware(auth::AuthMiddleware)
+       scope.middleware(auth::middleware(auth_token))
             .route("/auth", Method::POST, auth::check_token)
             .route("/data", Method::GET, get_data)
             .route("/notes", Method::POST, create_note)
@@ -56,7 +56,10 @@ pub fn mount(app: App<State>) -> App<State> {
             .route("/content_blocks/{id}", Method::DELETE, delete_content_block)
     })
     .route("/version", Method::GET, |_: HttpRequest<State>|
-        build_info::build_version()
+        HttpResponse::Ok()
+        .status(StatusCode::OK)
+        .header("Access-Control-Allow-Origin", "*")
+        .body(build_info::build_version())
     )
 }
 

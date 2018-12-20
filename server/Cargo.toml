@@ -32,7 +32,19 @@ rand = "0.5.5"
 listenfd = "0.3.3"
 libsqlite3-sys = { version = "*", features = ["bundled"], optional = true }
 regex = "1"
+tether = { version = "0.2.1", optional = true }
+directories = { version = "1.0.2", optional = true }
 
 [features]
+desktop = [ "tether", "directories", "release" ]
 release = [ "libsqlite3-sys", "embedded_assets" ]
 embedded_assets = [ "rust-embed", "mime_guess" ]
+
+[[bin]]
+name = "pragma-desktop"
+path = "src/bin/pragma-desktop.rs"
+required-features = [ "desktop" ]
+
+[[bin]]
+name = "pragma-server"
+path = "src/bin/pragma-server.rs"
