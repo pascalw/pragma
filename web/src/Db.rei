@@ -23,6 +23,8 @@ let updateContentBlock: (Data.contentBlock, ~sync: bool=?, unit) => Repromise.t(
 let updateNote: (Data.note, ~sync:bool=?, unit) => Repromise.t(result(unit));
 let updateNotebook: (Data.notebook, ~sync:bool=?, unit) => Repromise.t(result(unit));
 
+let touchNote: string => Repromise.t(Belt.Result.t(unit, unit));
+
 let deleteNotebook: (string, ~sync: bool=?, unit) => Repromise.t(result(unit));
 let deleteNote: (string, ~sync: bool=?, unit) => Repromise.t(result(unit));
 let deleteContentBlock: (string) => Repromise.t(result(unit));

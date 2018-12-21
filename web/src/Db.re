@@ -523,3 +523,17 @@ let clear = () => {
   IndexedDB.delete("pragma") |> ignore;
   LocalStorage.clear();
 };
+
+let touchNote = noteId => {
+  let now = Js.Date.fromFloat(Js.Date.now());
+
+  getNote(noteId)
+  |> Promises.mapSome((note: Data.note) => {...note, updatedAt: now})
+  |> Repromise.andThen(maybeNote =>
+       switch (maybeNote) {
+       | None => Repromise.resolved(Belt.Result.Error())
+       | Some(note) =>
+         updateNote(note, ()) |> Repromise.map(Results.mapError(_, _ => ()))
+       }
+     );
+};
