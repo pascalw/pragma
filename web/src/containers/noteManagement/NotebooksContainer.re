@@ -33,34 +33,14 @@ let make =
       | EditTitle(id) => ReasonReact.Update({editingTitleId: id})
       },
     render: self => {
-      let listFooter =
-        <>
-          <SyncStateContainer />
-          <AddButton onClick={createNotebook(self.send)} />
-        </>;
-
-      let listItems =
-        Belt.List.map(notebooks, ((notebook, noteCount)) =>
-          (
-            {
-              id: notebook.id,
-              title: notebook.title,
-              count: Some(noteCount),
-              model: notebook,
-            }:
-              ListView.listItem(Data.notebook)
-          )
-        );
-
-      let renderNotebookListItemContent =
-          (item: ListView.listItem(Data.notebook)) =>
-        if (Some(item.model.id) == self.state.editingTitleId) {
+      let renderListItemContent = (notebook: Data.notebook, noteCount: int) =>
+        if (Some(notebook.id) == self.state.editingTitleId) {
           <p>
             <NotebookTitleEditor
-              value={item.model.title}
+              value={notebook.title}
               onComplete={
                 title => {
-                  let updatedNotebook = {...item.model, title};
+                  let updatedNotebook = {...notebook, title};
 
                   self.send(EditTitle(None));
                   dispatch(
@@ -71,32 +51,46 @@ let make =
             />
           </p>;
         } else {
-          ListView.defaultRenderItemContent(item);
+          <ListView.ItemContent title={notebook.title} count=noteCount />;
         };
 
-      <ListView
-        items=listItems
-        selectedId=selectedNotebook
-        onItemSelected={
-          item =>
-            dispatch(NoteManagementContainer.SelectNotebook(item.model))
-        }
-        onItemDoubleClick={
-          item => self.send(EditTitle(Some(item.model.id)))
-        }
-        onItemLongpress={
-          item =>
-            if (WindowRe.confirm(
-                  "Are you sure you want to delete this notebook?",
-                  Webapi.Dom.window,
-                )) {
-              dispatch(NoteManagementContainer.DeleteNotebook(item.model));
-            }
-        }
-        renderItemContent=renderNotebookListItemContent
-        renderFooter={() => listFooter}
-        hidden
-      />;
+      <ListView hidden>
+        <ListView.ItemContainer>
+          {
+            Belt.List.map(notebooks, ((notebook, noteCount)) =>
+              <ListView.Item
+                key={notebook.id}
+                selected={Some(notebook.id) == selectedNotebook}
+                onClick={
+                  _ =>
+                    dispatch(
+                      NoteManagementContainer.SelectNotebook(notebook),
+                    )
+                }
+                onDoubleClick={_ => self.send(EditTitle(Some(notebook.id)))}
+                onLongpress={
+                  _ =>
+                    if (WindowRe.confirm(
+                          "Are you sure you want to delete this notebook?",
+                          Webapi.Dom.window,
+                        )) {
+                      dispatch(
+                        NoteManagementContainer.DeleteNotebook(notebook),
+                      );
+                    }
+                }>
+                {renderListItemContent(notebook, noteCount)}
+              </ListView.Item>
+            )
+            |> Belt.List.toArray
+            |> ReasonReact.array
+          }
+        </ListView.ItemContainer>
+        <ListView.Footer>
+          <SyncStateContainer />
+          <AddButton onClick={createNotebook(self.send)} />
+        </ListView.Footer>
+      </ListView>;
     },
   };
 };

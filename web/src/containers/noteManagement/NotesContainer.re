@@ -10,56 +10,51 @@ let make =
     ) => {
   ...component,
   render: _self => {
-    let renderFooter =
-      switch (selectedNotebook) {
-      | None => (() => ReasonReact.null)
-      | Some(_) => (
-          () =>
-            <>
-              <AddButton
-                onClick={_ => dispatch(NoteManagementContainer.CreateNote)}
-              />
-            </>
-        )
-      };
-
-    let listItems =
-      Belt.List.map(notes, note =>
-        (
-          {id: note.id, title: note.title, count: None, model: note}:
-            ListView.listItem(Data.note)
-        )
-      );
-
     let formatDate = date => Utils.formatDate(date, "D MMMM YYYY");
-    let renderNoteListItemContent = (item: ListView.listItem(Data.note)) =>
-      <p>
-        {ReasonReact.string(item.model.title)}
-        <br />
-        <small>
-          {ReasonReact.string(item.model.updatedAt |> formatDate)}
-        </small>
-      </p>;
 
-    <ListView
-      minWidth="250px"
-      items=listItems
-      selectedId=selectedNote
-      onItemSelected={
-        item => dispatch(NoteManagementContainer.SelectNote(item.model.id))
-      }
-      onItemLongpress={
-        item =>
-          if (WindowRe.confirm(
-                "Are you sure you want to delete this note?",
-                Webapi.Dom.window,
-              )) {
-            dispatch(NoteManagementContainer.DeleteNote(item.model));
+    <ListView minWidth="250px" hidden>
+      <ListView.ItemContainer>
+        {
+          Belt.List.map(notes, note =>
+            <ListView.Item
+              key={note.id}
+              selected={Some(note.id) == selectedNote}
+              onClick={
+                _ => dispatch(NoteManagementContainer.SelectNote(note.id))
+              }
+              onLongpress={
+                _ =>
+                  if (WindowRe.confirm(
+                        "Are you sure you want to delete this note?",
+                        Webapi.Dom.window,
+                      )) {
+                    dispatch(NoteManagementContainer.DeleteNote(note));
+                  }
+              }>
+              <p>
+                {ReasonReact.string(note.title)}
+                <br />
+                <small>
+                  {ReasonReact.string(note.updatedAt |> formatDate)}
+                </small>
+              </p>
+            </ListView.Item>
+          )
+          |> Belt.List.toArray
+          |> ReasonReact.array
+        }
+      </ListView.ItemContainer>
+      <ListView.Footer>
+        {
+          switch (selectedNotebook) {
+          | None => ReasonReact.null
+          | Some(_) =>
+            <AddButton
+              onClick=(_ => dispatch(NoteManagementContainer.CreateNote))
+            />
           }
-      }
-      renderItemContent=renderNoteListItemContent
-      renderFooter
-      hidden
-    />;
+        }
+      </ListView.Footer>
+    </ListView>;
   },
 };
