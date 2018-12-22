@@ -143,7 +143,10 @@ let make = (children: (state, action => unit) => ReasonReact.reactElement) => {
             |> Repromise.wait(((notes, selectedNoteId)) => {
                  self.send(NotebookSelected(notes, selectedNoteId));
 
-                 self.send(SelectNote(Belt.Option.getExn(selectedNoteId)));
+                 switch (selectedNoteId) {
+                 | None => ()
+                 | Some(id) => self.send(SelectNote(id))
+                 };
                })
         ),
       )
