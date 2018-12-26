@@ -203,7 +203,38 @@ let getNotes = (notebookId: string) =>
      );
 
 let getRecentNotes = () =>
-  dbPromise() |> Repromise.andThen(_db => Repromise.resolved([]));
+  dbPromise()
+  |> Repromise.andThen(db =>
+       IndexedDB.(
+         DB.transaction(db, notesStore, Transaction.ReadOnly)
+         ->Transaction.objectStore(notesStore)
+         ->ObjectStore.index("byUpdatedAt")
+         ->IndexedDB.Index.openCursor(Cursor.Prev)
+         |> Js.Promise.then_(Cursor.take(_, 10, [||]))
+         |> Promises.toResultPromise
+         |> Repromise.map(
+              fun
+              | Ok(array) =>
+                array
+                ->Belt.List.fromArray
+                ->Belt.List.map(JsonCoders.decodeNote)
+              | Error(_) => [],
+            )
+       )
+     );
+
+let getRecentNotesCount = () =>
+  dbPromise()
+  |> Repromise.andThen(db =>
+       IndexedDB.(
+         DB.transaction(db, notesStore, Transaction.ReadOnly)
+         ->Transaction.objectStore(notesStore)
+         ->ObjectStore.index("byUpdatedAt")
+         ->IndexedDB.Index.count
+         ->Promises.toResultPromise
+         |> Repromise.map(Belt.Result.getWithDefault(_, 0))
+       )
+     );
 
 let countNotes = (notebookId: string) =>
   dbPromise()

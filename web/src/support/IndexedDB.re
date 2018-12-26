@@ -5,6 +5,48 @@ type validKey = string; /* IndexedDB supports other types of keys, but we don't 
 type dbName = string;
 type storeName = string;
 
+module Cursor = {
+  type t;
+
+  type direction =
+    | Next
+    | NextUnique
+    | Prev
+    | PrevUnique;
+
+  let directionString =
+    fun
+    | Next => "next"
+    | NextUnique => "nextunique"
+    | Prev => "prev"
+    | PrevUnique => "prevunique";
+
+  [@bs.get] external value: t => value = "";
+
+  [@bs.send] external continue: t => Js.Promise.t(Js.Nullable.t(t)) = "";
+  let continue = cursor =>
+    continue(cursor)
+    |> Js.Promise.then_(nCursor =>
+         Js.Promise.resolve(Js.Nullable.toOption(nCursor))
+       );
+
+  let rec take = (cursor, count, result): Js.Promise.t(array(value)) => {
+    let value = value(cursor);
+    let result = Belt.Array.concat(result, [|value|]);
+
+    if (Belt.Array.size(result) == count) {
+      Js.Promise.resolve(result);
+    } else {
+      continue(cursor)
+      |> Js.Promise.then_(
+           fun
+           | None => Js.Promise.resolve(result)
+           | Some(cursor) => take(cursor, count, result),
+         );
+    };
+  };
+};
+
 module Index = {
   type t;
 
@@ -13,7 +55,16 @@ module Index = {
     "getAll";
 
   [@bs.send]
-  external countByKey: (t, validKey) => Js.Promise.t(int) = "count";
+  external countByKey_: (t, option(validKey)) => Js.Promise.t(int) = "count";
+  let countByKey = (index, key) => countByKey_(index, Some(key));
+  let count = index => countByKey_(index, None);
+
+  [@bs.send]
+  external openCursor:
+    (t, option(validKey), string) => Js.Promise.t(Cursor.t) =
+    "";
+  let openCursor = (index, direction) =>
+    openCursor(index, None, Cursor.directionString(direction));
 };
 
 module ObjectStoreParams = {
