@@ -133,54 +133,18 @@ let notesStore = "notes";
 let contentBlocksStore = "contentBlocks";
 
 let iDb: ref(option(IndexedDB.DB.t)) = ref(None);
-let initDb = () =>
-  IndexedDB.(
-    open_("pragma", 1, upgradeDb =>
-      switch (UpgradeDb.oldVersion(upgradeDb)) {
-      | version when version <= 1 =>
-        UpgradeDb.createObjectStore(
-          upgradeDb,
-          notebooksStore,
-          ObjectStoreParams.make(~keyPath="id"),
-        )
-        |> ignore;
-
-        UpgradeDb.createObjectStore(
-          upgradeDb,
-          notesStore,
-          ObjectStoreParams.make(~keyPath="id"),
-        )
-        |> ignore;
-
-        let tx = UpgradeDb.transaction(upgradeDb);
-
-        Transaction.objectStore(tx, notesStore)
-        ->ObjectStore.createIndex(
-            "forNotebook",
-            "notebookId",
-            CreateIndexParams.make(~unique=false, ~multiEntry=false),
-          )
-        |> ignore;
-
-        UpgradeDb.createObjectStore(
-          upgradeDb,
-          contentBlocksStore,
-          ObjectStoreParams.make(~keyPath="id"),
-        )
-        |> ignore;
-
-        Transaction.objectStore(tx, contentBlocksStore)
-        ->ObjectStore.createIndex(
-            "forNote",
-            "noteId",
-            CreateIndexParams.make(~unique=false, ~multiEntry=false),
-          )
-        |> ignore;
-      | _ => () /* No upgrade needed */
-      }
-    )
+let initDb = () => {
+  let currentVersion = 2;
+  IndexedDB.open_(
+    "pragma",
+    currentVersion,
+    upgradeDb => {
+      let oldVersion = IndexedDB.UpgradeDb.oldVersion(upgradeDb);
+      DbMigrations.runMigrations(upgradeDb, oldVersion, currentVersion);
+    },
   )
   |> Promises.toResultPromise;
+};
 
 let dbPromise = () =>
   switch (iDb^) {
@@ -237,6 +201,9 @@ let getNotes = (notebookId: string) =>
             )
        )
      );
+
+let getRecentNotes = () =>
+  dbPromise() |> Repromise.andThen(_db => Repromise.resolved([]));
 
 let countNotes = (notebookId: string) =>
   dbPromise()
