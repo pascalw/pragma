@@ -11,7 +11,13 @@ module Item = {
   let component = ReasonReact.reducerComponent("ListItem");
 
   let make =
-      (~selected: bool, ~onClick, ~onDoubleClick=?, ~onLongpress, children) => {
+      (
+        ~selected: bool,
+        ~onClick,
+        ~onDoubleClick=?,
+        ~onLongpress=() => (),
+        children,
+      ) => {
     let handlePress = (_e, self) => {
       switch (self.ReasonReact.state.pressTimer^) {
       | None => ()
@@ -49,11 +55,17 @@ module Item = {
 module ItemContent = {
   let component = ReasonReact.statelessComponent("ListItemContent");
 
-  let make = (~title, ~count, _children) => {
+  let make = (~title, ~count, ~icon=?, _children) => {
     ...component,
     render: _self =>
       <div className={style("itemContentWrapper")}>
-        <span className={style("title")}> {ReasonReact.string(title)} </span>
+        <div className={style("title")}>
+          {
+            Option.isSome(icon) ?
+              <Icon icon={Option.getExn(icon)} /> : ReasonReact.null
+          }
+          <span> {ReasonReact.string(title)} </span>
+        </div>
         <span className={style("count")}>
           {count |> string_of_int |> ReasonReact.string}
         </span>
