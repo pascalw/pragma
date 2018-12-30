@@ -20,10 +20,10 @@
     "minireset.css": "^0.0.3",
     "mousetrap": "^1.6.2",
     "nanoid": "^1.2.5",
-    "promise": "8.0.1",
     "react": "^16.4.1",
     "react-codemirror2": "^5.1.0",
-    "react-dom": "^16.4.1"
+    "react-dom": "^16.4.1",
+    "reason-react": "^0.5.3"
   },
   "scripts": {
     "start": "node scripts/start.js",
@@ -58,7 +58,6 @@
     "postcss-flexbugs-fixes": "3.2.0",
     "postcss-loader": "^2.1.6",
     "react-dev-utils": "6.0.0-next.3e165448",
-    "reason-react": "^0.5.3",
     "sass-loader": "^7.0.3",
     "style-loader": "^0.21.0",
     "sw-precache-webpack-plugin": "0.11.5",
