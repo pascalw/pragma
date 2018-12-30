@@ -8,14 +8,17 @@ $editor-padding: 0.75rem;
   flex-direction: column;
   overflow: hidden;
 
+  margin: 0 $editor-padding;
+
   .note-title {
-    margin: 0.5em 0 0.75rem;
-    padding: 0 $editor-padding 0.25em;
+    margin: 0.5em 0;
+    padding: 0 0 0.25em;
 
     color: inherit;
     line-height: inherit;
     font-size: 1em;
     border: none;
+    font-size: 1.1rem;
     border-bottom: 1px solid $color-border-light;
   }
 }
@@ -34,7 +37,6 @@ $editor-padding: 0.75rem;
 
   margin-bottom: .75em;
   position: relative;
-  padding: 0 $editor-padding;
 
   &:global(.code) {
     min-height: 2em;
@@ -47,8 +49,8 @@ $editor-padding: 0.75rem;
 
 .typeSelector {
   position: absolute;
-  top: 0.25rem;
-  right: 1rem;
+  top: .25rem;
+  right: .25rem;
   z-index: 10;
   cursor: pointer;
   flex-shrink: 0;
