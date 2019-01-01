@@ -19,12 +19,10 @@ let make =
   ...component,
   render: _self =>
     <>
-      {
-        switch (note) {
-        | None => <NoNoteSelected />
-        | Some(note) =>
-          <NoteEditor note contentBlocks onChange={onChange(dispatch)} />
-        }
-      }
+      {switch (note) {
+       | None => <NoNoteSelected />
+       | Some(note) =>
+         <NoteEditor note contentBlocks onChange={onChange(dispatch)} />
+       }}
     </>,
 };

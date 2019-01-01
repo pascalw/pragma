@@ -16,13 +16,11 @@ module PasswordField = {
         | _ => style("passwordField")
         };
       <>
-        {
-          authFailure ?
-            <p className={style("passwordErrorText")}>
-              {ReasonReact.string("Uh oh, that's not correct. Try again.")}
-            </p> :
-            ReasonReact.null
-        }
+        {authFailure ?
+           <p className={style("passwordErrorText")}>
+             {ReasonReact.string("Uh oh, that's not correct. Try again.")}
+           </p> :
+           ReasonReact.null}
         <input
           type_="password"
           placeholder="Password"
@@ -101,16 +99,14 @@ let make = (~onLoggedIn, _children) => {
           inputRef={self.handle(setPasswordInputRef)}
         />
         <button type_="submit" disabled={isState(Authenticating)}>
-          {
-            (
-              switch (self.state.phase) {
-              | Authenticating => "Logging In..."
-              | AuthSuccesful => "Logged In."
-              | _ => "Log In"
-              }
-            )
-            |> ReasonReact.string
-          }
+          {(
+             switch (self.state.phase) {
+             | Authenticating => "Logging In..."
+             | AuthSuccesful => "Logged In."
+             | _ => "Log In"
+             }
+           )
+           |> ReasonReact.string}
         </button>
       </form>
       <p className={style("docs")}>

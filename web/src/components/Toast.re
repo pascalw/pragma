@@ -70,7 +70,7 @@ module Container = {
           <ToastComponent
             message={data.message}
             onAction={performAction(data.onAction, self.send)}
-            onClose=(() => self.send(Close))
+            onClose={() => self.send(Close)}
           />
         },
     };

@@ -95,11 +95,9 @@ let make = (~url, children) => {
         onClick={_ => self.send(TogglePanel(!self.state.panelVisible))}>
         ...children
       </a>
-      {
-        self.state.panelVisible ?
-          <LinkPanel url onClose={() => self.send(TogglePanel(false))} /> :
-          ReasonReact.null
-      }
+      {self.state.panelVisible ?
+         <LinkPanel url onClose={() => self.send(TogglePanel(false))} /> :
+         ReasonReact.null}
     </div>,
 };
 

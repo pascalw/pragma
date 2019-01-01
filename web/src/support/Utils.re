@@ -87,16 +87,16 @@ module DayJs = {
 
 let formatDate = (date, format) => date->DayJs.make->DayJs.format(format);
 
-let benchmark = (label: string, func: 'a => 'b) : 'b => {
+let benchmark = (label: string, func: 'a => 'b): 'b => {
   let start = Js.Date.now();
   let result = func();
   Js.log3(label, "took ", Js.Date.now() -. start);
   result;
-}
+};
 
-let benchmarkCb = (label: string) : (unit => unit) => {
+let benchmarkCb = (label: string): (unit => unit) => {
   let start = Js.Date.now();
   () => {
     Js.log3(label, "took ", Js.Date.now() -. start);
-  }
-}
+  };
+};

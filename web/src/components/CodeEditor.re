@@ -329,14 +329,12 @@ module CodeMirrorWrapper = {
 
 let typeOptions = () =>
   <optgroup label="Code">
-    {
-      SupportedLanguageMap.toList(supportedLanguages)
-      ->Belt.List.map(((id, mode)) =>
-          <option key=id value=id> {ReasonReact.string(mode.name)} </option>
-        )
-      ->Belt.List.toArray
-      ->ReasonReact.array
-    }
+    {SupportedLanguageMap.toList(supportedLanguages)
+     ->Belt.List.map(((id, mode)) =>
+         <option key=id value=id> {ReasonReact.string(mode.name)} </option>
+       )
+     ->Belt.List.toArray
+     ->ReasonReact.array}
   </optgroup>;
 
 let component = ReasonReact.statelessComponent("CodeEditor");

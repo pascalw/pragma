@@ -59,27 +59,24 @@ let renderContentBlock = (onChange, contentBlock: Data.contentBlock) =>
       <option value="text"> {ReasonReact.string("Text")} </option>
       {CodeEditor.typeOptions()}
     </select>
-    {
-      switch (contentBlock) {
-      | {content: TextContent(richText)} =>
-        <RichTextEditor
-          key={contentBlock.id}
-          onChange=(
-            value => onChange(Content(contentBlock, TextContent(value)))
-          )
-          value=richText
-        />
-      | {content: CodeContent(_, language)} =>
-        <CodeEditor
-          key={contentBlock.id}
-          contentBlock
-          onChange=(
-            value =>
-              onChange(Content(contentBlock, CodeContent(value, language)))
-          )
-        />
-      }
-    }
+    {switch (contentBlock) {
+     | {content: TextContent(richText)} =>
+       <RichTextEditor
+         key={contentBlock.id}
+         onChange={value =>
+           onChange(Content(contentBlock, TextContent(value)))
+         }
+         value=richText
+       />
+     | {content: CodeContent(_, language)} =>
+       <CodeEditor
+         key={contentBlock.id}
+         contentBlock
+         onChange={value =>
+           onChange(Content(contentBlock, CodeContent(value, language)))
+         }
+       />
+     }}
   </div>;
 
 let renderContentBlocks = (contentBlocks, onChange) =>
@@ -97,10 +94,8 @@ let make = (~note: Data.note, ~contentBlocks, ~onChange, _children) => {
         value={title(note)}
         onChange={onChangeTitle(note, onChange)}
       />
-      {
-        renderContentBlocks(contentBlocks, onChange)
-        |> Belt.List.toArray
-        |> ReasonReact.array
-      }
+      {renderContentBlocks(contentBlocks, onChange)
+       |> Belt.List.toArray
+       |> ReasonReact.array}
     </div>,
 };

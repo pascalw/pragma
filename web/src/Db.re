@@ -5,7 +5,7 @@ type listener = unit => unit;
 
 module JsonCoders = {
   /* Notebooks */
-  let decodeNotebook = json: Data.notebook =>
+  let decodeNotebook = (json): Data.notebook =>
     Json.Decode.{
       id: json |> field("id", string),
       title: json |> field("title", string),
@@ -26,7 +26,7 @@ module JsonCoders = {
     );
 
   /* Notes */
-  let decodeNote = json: Data.note =>
+  let decodeNote = (json): Data.note =>
     Json.Decode.{
       id: json |> field("id", string),
       notebookId: json |> field("notebookId", string),
@@ -51,7 +51,7 @@ module JsonCoders = {
     );
 
   /* ContentBlocks */
-  let decodeContentBlock = json: Data.contentBlock => {
+  let decodeContentBlock = (json): Data.contentBlock => {
     let textContent = json => {
       let text = json |> Json.Decode.field("text", Json.Decode.string);
       Data.TextContent(RichText.fromString(text));

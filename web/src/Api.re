@@ -29,7 +29,7 @@ module JsonCoders = {
       ])
     );
 
-  let decodeNotebook = json: Data.notebook =>
+  let decodeNotebook = (json): Data.notebook =>
     Json.Decode.{
       id: json |> field("id", string),
       title: json |> field("title", string),
@@ -51,7 +51,7 @@ module JsonCoders = {
       ])
     );
 
-  let decodeNote = json: Data.note =>
+  let decodeNote = (json): Data.note =>
     Json.Decode.{
       id: json |> field("id", string),
       notebookId: json |> field("notebookId", string),
@@ -84,7 +84,7 @@ module JsonCoders = {
     };
   };
 
-  let decodeContentBlock = json: Data.contentBlock =>
+  let decodeContentBlock = (json): Data.contentBlock =>
     Json.Decode.{
       id: json |> field("id", string),
       noteId: json |> field("noteId", string),

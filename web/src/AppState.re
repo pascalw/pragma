@@ -4,7 +4,7 @@ type state = {
 };
 
 module JsonCoders = {
-  let decodeState = json: state =>
+  let decodeState = (json): state =>
     Json.Decode.{
       selectedNotebookId:
         json |> optional(field("selectedNotebookId", string)),

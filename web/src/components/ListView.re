@@ -60,10 +60,8 @@ module ItemContent = {
     render: _self =>
       <div className={style("itemContentWrapper")}>
         <div className={style("title")}>
-          {
-            Option.isSome(icon) ?
-              <Icon icon={Option.getExn(icon)} /> : ReasonReact.null
-          }
+          {Option.isSome(icon) ?
+             <Icon icon={Option.getExn(icon)} /> : ReasonReact.null}
           <span> {ReasonReact.string(title)} </span>
         </div>
         <span className={style("count")}>

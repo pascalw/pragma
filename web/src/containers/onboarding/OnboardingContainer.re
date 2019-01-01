@@ -22,12 +22,10 @@ let make = (~onCompleted, _children) => {
   render: self =>
     <div className={style("container")}>
       <div className={style("inner")}>
-        {
-          switch (self.state.onboardingPhase) {
-          | Start => <LoginContainer onLoggedIn=onCompleted />
-          | _ => <div />
-          }
-        }
+        {switch (self.state.onboardingPhase) {
+         | Start => <LoginContainer onLoggedIn=onCompleted />
+         | _ => <div />
+         }}
       </div>
     </div>,
 };
