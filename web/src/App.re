@@ -41,34 +41,36 @@ let make = _children => {
         Utils.find(notes, n => n.id == selectedNoteId)
       );
 
+    let selectedCollection = NoteManagementContainer.selectedCollectionFromState;
+
     isAuthedUser() ?
       <>
         <NoteManagementContainer>
-          ...{
-               (state, dispatch) =>
-                 <main className={style("main")}>
-                   <div className={style("columns")}>
-                     <NotebooksContainer
-                       notebooks={state.notebooks}
-                       selectedNotebook={state.selectedNotebook}
-                       hidden={self.state.viewMode != ThreeColumn}
-                       dispatch
-                     />
-                     <NotesContainer
-                       notes={state.notes}
-                       selectedNote={state.selectedNote}
-                       selectedNotebook={state.selectedNotebook}
-                       hidden={self.state.viewMode == SingleColumn}
-                       dispatch
-                     />
-                     <NoteEditorContainer
-                       note={editingNote(state.notes, state.selectedNote)}
-                       contentBlocks={state.contentBlocks}
-                       dispatch
-                     />
-                   </div>
-                 </main>
-             }
+          ...{(state, dispatch) =>
+            <main className={style("main")}>
+              <div className={style("columns")}>
+                <NotebooksContainer
+                  notebooks={state.notebooks}
+                  noteCollections={state.noteCollections}
+                  selectedCollection={state.selectedCollection}
+                  hidden={self.state.viewMode != ThreeColumn}
+                  dispatch
+                />
+                <NotesContainer
+                  notes={state.notes}
+                  selectedNote={state.selectedNote}
+                  selectedNoteCollection={selectedCollection(state)}
+                  hidden={self.state.viewMode == SingleColumn}
+                  dispatch
+                />
+                <NoteEditorContainer
+                  note={editingNote(state.notes, state.selectedNote)}
+                  contentBlocks={state.contentBlocks}
+                  dispatch
+                />
+              </div>
+            </main>
+          }
         </NoteManagementContainer>
         <Toast.Container />
       </> :

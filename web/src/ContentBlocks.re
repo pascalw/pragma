@@ -4,7 +4,13 @@ let add = block => Db.addContentBlock(block);
 
 let update = (block, ~sync=true, ()) => {
   let now = Js.Date.fromFloat(Js.Date.now());
-  Db.updateContentBlock({...block, updatedAt: now}, ~sync, ());
+
+  Db.updateContentBlock({...block, updatedAt: now}, ~sync, ())
+  |> Promises.tapOk(_ =>
+       if (sync) {
+         Db.touchNote(block.noteId) |> ignore;
+       }
+     );
 };
 
 let updateContentType = (block: Data.contentBlock, newContentType) => {

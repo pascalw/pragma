@@ -3,14 +3,7 @@ open Belt;
 [@bs.module] external styles: Js.Dict.t(string) = "./ListView.scss";
 let style = name => Js.Dict.get(styles, name)->Option.getExn;
 
-type listItem('a) = {
-  id: string,
-  title: string,
-  count: option(int),
-  model: 'a,
-};
-
-module ListItem = {
+module Item = {
   type state = {pressTimer: ref(option(Js.Global.timeoutId))};
 
   type action;
@@ -18,7 +11,13 @@ module ListItem = {
   let component = ReasonReact.reducerComponent("ListItem");
 
   let make =
-      (~selected: bool, ~onClick, ~onDoubleClick, ~onLongpress, children) => {
+      (
+        ~selected: bool,
+        ~onClick,
+        ~onDoubleClick=?,
+        ~onLongpress=() => (),
+        children,
+      ) => {
     let handlePress = (_e, self) => {
       switch (self.ReasonReact.state.pressTimer^) {
       | None => ()
@@ -42,7 +41,7 @@ module ListItem = {
         <li
           className={selected ? style("selected") : ""}
           onClick
-          onDoubleClick
+          ?onDoubleClick
           onTouchStart={self.handle(handlePress)}
           onMouseDown={self.handle(handlePress)}
           onTouchEnd={self.handle(handleRelease)}
@@ -53,21 +52,44 @@ module ListItem = {
   };
 };
 
-let defaultRenderItemContent = (item: listItem('a)) =>
-  <div className={style("itemContentWrapper")}>
-    <span className={style("title")}>
-      {ReasonReact.string(item.title)}
-    </span>
-    {
-      if (item.count->Option.isSome) {
+module ItemContent = {
+  let component = ReasonReact.statelessComponent("ListItemContent");
+
+  let make = (~title, ~count, ~icon=?, _children) => {
+    ...component,
+    render: _self =>
+      <div className={style("itemContentWrapper")}>
+        <div className={style("title")}>
+          {
+            Option.isSome(icon) ?
+              <Icon icon={Option.getExn(icon)} /> : ReasonReact.null
+          }
+          <span> {ReasonReact.string(title)} </span>
+        </div>
         <span className={style("count")}>
-          {item.count |> Option.getExn |> string_of_int |> ReasonReact.string}
-        </span>;
-      } else {
-        ReasonReact.null;
-      }
-    }
-  </div>;
+          {count |> string_of_int |> ReasonReact.string}
+        </span>
+      </div>,
+  };
+};
+
+module ItemContainer = {
+  let component = ReasonReact.statelessComponent("ListItemContainer");
+
+  let make = children => {
+    ...component,
+    render: _self => <ul> ...children </ul>,
+  };
+};
+
+module Footer = {
+  let component = ReasonReact.statelessComponent("ListFooter");
+
+  let make = children => {
+    ...component,
+    render: _self => <div className={style("footer")}> ...children </div>,
+  };
+};
 
 let className = hidden =>
   hidden ?
@@ -75,55 +97,9 @@ let className = hidden =>
     style("listView");
 
 let component = ReasonReact.statelessComponent("ListView");
-let make =
-    (
-      ~items: list(listItem('a)),
-      ~selectedId: option(string),
-      ~onItemSelected: listItem('a) => unit,
-      ~onItemDoubleClick=?,
-      ~onItemLongpress=?,
-      ~minWidth=?,
-      ~renderItemContent=?,
-      ~renderFooter=?,
-      ~hidden=false,
-      _children,
-    ) => {
+let make = (~minWidth=?, ~hidden=false, children) => {
   ...component,
   render: _self => {
-    let renderItem = item => {
-      let isSelected =
-        switch (selectedId) {
-        | None => false
-        | Some(selectedId) => selectedId == item.id
-        };
-
-      <ListItem
-        key={item.id}
-        selected=isSelected
-        onLongpress={
-          _e =>
-            switch (onItemLongpress) {
-            | None => ()
-            | Some(fn) => fn(item) |> ignore
-            }
-        }
-        onDoubleClick={
-          _e =>
-            switch (onItemDoubleClick) {
-            | None => ()
-            | Some(fn) => fn(item) |> ignore
-            }
-        }
-        onClick={_e => onItemSelected(item)}>
-        {
-          switch (renderItemContent) {
-          | None => defaultRenderItemContent(item)
-          | Some(renderItemContent) => renderItemContent(item)
-          }
-        }
-      </ListItem>;
-    };
-
     let inlineStyle =
       if (Option.isSome(minWidth)) {
         ReactDOMRe.Style.make(~minWidth=minWidth->Option.getExn, ());
@@ -131,17 +107,6 @@ let make =
         ReactDOMRe.Style.make();
       };
 
-    <div className={className(hidden)} style=inlineStyle>
-      <ul>
-        {List.map(items, renderItem) |> List.toArray |> ReasonReact.array}
-      </ul>
-      {
-        switch (renderFooter) {
-        | None => ReasonReact.null
-        | Some(renderFun) =>
-          <div className={style("footer")}> {renderFun()} </div>
-        }
-      }
-    </div>;
+    <div className={className(hidden)} style=inlineStyle> ...children </div>;
   },
 };

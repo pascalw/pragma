@@ -12,6 +12,10 @@ let createNotebook: Data.notebook => Repromise.t(result(Data.notebook));
 
 let getNote: string => Repromise.t(option(Data.note));
 let getNotes: string => Repromise.t(list(Data.note));
+
+let getRecentNotes: (int) => Repromise.t(list(Data.note));
+let getRecentNotesCount: unit => Repromise.t(int);
+
 let getNotebooks: unit => Repromise.t(list((Data.notebook, int)));
 let getNotebook: string => Repromise.t(option(Data.notebook));
 
@@ -22,6 +26,8 @@ let addContentBlock: Data.contentBlock => Repromise.t(result(unit));
 let updateContentBlock: (Data.contentBlock, ~sync: bool=?, unit) => Repromise.t(result(unit));
 let updateNote: (Data.note, ~sync:bool=?, unit) => Repromise.t(result(unit));
 let updateNotebook: (Data.notebook, ~sync:bool=?, unit) => Repromise.t(result(unit));
+
+let touchNote: string => Repromise.t(Belt.Result.t(unit, unit));
 
 let deleteNotebook: (string, ~sync: bool=?, unit) => Repromise.t(result(unit));
 let deleteNote: (string, ~sync: bool=?, unit) => Repromise.t(result(unit));
