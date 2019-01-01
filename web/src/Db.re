@@ -202,7 +202,7 @@ let getNotes = (notebookId: string) =>
        )
      );
 
-let getRecentNotes = () =>
+let getRecentNotes = limit =>
   dbPromise()
   |> Repromise.andThen(db =>
        IndexedDB.(
@@ -210,7 +210,7 @@ let getRecentNotes = () =>
          ->Transaction.objectStore(notesStore)
          ->ObjectStore.index("byUpdatedAt")
          ->IndexedDB.Index.openCursor(Cursor.Prev)
-         |> Js.Promise.then_(Cursor.take(_, 10, [||]))
+         |> Js.Promise.then_(Cursor.take(_, limit, [||]))
          |> Promises.toResultPromise
          |> Repromise.map(
               fun

@@ -13,7 +13,7 @@ let createNotebook: Data.notebook => Repromise.t(result(Data.notebook));
 let getNote: string => Repromise.t(option(Data.note));
 let getNotes: string => Repromise.t(list(Data.note));
 
-let getRecentNotes: unit => Repromise.t(list(Data.note));
+let getRecentNotes: (int) => Repromise.t(list(Data.note));
 let getRecentNotesCount: unit => Repromise.t(int);
 
 let getNotebooks: unit => Repromise.t(list((Data.notebook, int)));

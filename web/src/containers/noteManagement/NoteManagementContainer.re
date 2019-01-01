@@ -1,6 +1,8 @@
 open Common;
 open UiTypes;
 
+let maxRecentNotes = 10;
+
 type state = {
   initialStateLoaded: bool,
   notebooks: list((Data.notebook, int)),
@@ -101,7 +103,7 @@ let fetchAllData = () => {
   |> Repromise.andThen((notebooks: list((Data.notebook, int))) =>
        Db.getRecentNotesCount()
        |> Repromise.map(count => {
-            let count = count > 10 ? 10 : count;
+            let count = count > maxRecentNotes ? maxRecentNotes : count;
             let collection =
               NoteCollection.makeCollection(
                 NoteCollection.CollectionKind.Recents,
@@ -132,7 +134,7 @@ let fetchAllData = () => {
              kind: NoteCollection.CollectionKind.Recents,
            }),
          ) =>
-         Db.getRecentNotes()
+         Db.getRecentNotes(maxRecentNotes)
          |> Repromise.map(notes =>
               (notebooks, selectedCollectionId, notes, noteCollections)
             )
@@ -211,7 +213,7 @@ let make = (children: (state, action => unit) => ReasonReact.reactElement) => {
           selectedCollection: Some(NoteCollection.Collection.id(collection)),
         },
         self =>
-          Db.getRecentNotes()
+          Db.getRecentNotes(maxRecentNotes)
           |> selectFirstNote
           |> Repromise.wait(((notes, selectedNoteId)) => {
                self.send(NotebookSelected(notes, selectedNoteId));
