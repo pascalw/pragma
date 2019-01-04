@@ -1,7 +1,10 @@
 [@bs.val] external hot: bool = "module.hot";
 
 [@bs.val] external accept: unit => unit = "module.hot.accept";
-[@bs.val] external import: string => Js.Promise.t('a) = "import";
+
+module Import = {
+  [@bs.val] external import: string => Js.Promise.t('a) = "import";
+};
 
 let dictSet = (dict, key, value) => {
   Js.Dict.set(dict, key, value);
