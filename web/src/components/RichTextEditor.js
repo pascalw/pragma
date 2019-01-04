@@ -5,7 +5,7 @@ import {
   handleDraftEditorPastedText,
 } from "draftjs-conductor";
 import { handleReturnInList } from "../draft-js/list-behavior";
-import { isSelectionAtStart } from "../draft-js/utils";
+import { isSelectionAtStart, editorStateToHtml } from "../draft-js/utils";
 import classNames from "classnames/bind";
 import styles from "./RichTextEditor.scss";
 import { jsComponent as ButtonBar } from "./RichTextButtonBar.bs";
@@ -71,9 +71,19 @@ export class RichTextEditor extends React.Component {
   }
 
   UNSAFE_componentWillReceiveProps(nextProps) {
-    this.setState({
-      value: editorStateFromValue(nextProps.value)
-    });
+    /* This is not great. The value we receive via nextProps is created from HTML, so from
+    scratch, and as such cannot be compared to the current state cheaply.
+    By serializing to HTML we can determine if the values eventually serialize to the same HTML,
+    and if so don't update the component.
+    Fortunately, props will only get updated after fetching changes from the server. */
+    const newHtml = editorStateToHtml(nextProps.value);
+    const currentHtml = editorStateToHtml(this.state.value);
+
+    if(newHtml !== currentHtml) {
+      this.setState({
+        value: editorStateFromValue(nextProps.value)
+      });
+    }
   }
 
   componentDidMount() {
