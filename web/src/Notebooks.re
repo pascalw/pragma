@@ -2,8 +2,7 @@ let all = () => Db.getNotebooks();
 let get = id => Db.getNotebook(id);
 let add = notebook => Db.addNotebook(notebook);
 
-let create = notebook =>
-  Db.createNotebook(notebook) |> Promises.tapOk(DataSync.pushNewNotebook);
+let create = notebook => Db.createNotebook(notebook) |> Promises.tapOk(DataSync.pushNewNotebook);
 
 let update = (notebook: Data.notebook, ~sync=true, ()) => {
   let now = Js.Date.fromFloat(Js.Date.now());

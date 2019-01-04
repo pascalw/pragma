@@ -31,8 +31,7 @@ let make =
   };
 
   let getCollection =
-      (kind: CollectionKind.t, collections: list(NoteCollection.t))
-      : option(NoteCollection.t) => {
+      (kind: CollectionKind.t, collections: list(NoteCollection.t)): option(NoteCollection.t) => {
     Utils.find(collections, c => c.kind == kind);
   };
 
@@ -78,9 +77,7 @@ let make =
                 let updatedNotebook = {...notebook, title};
 
                 self.send(EditTitle(None));
-                dispatch(
-                  NoteManagementContainer.UpdateNotebook(updatedNotebook),
-                );
+                dispatch(NoteManagementContainer.UpdateNotebook(updatedNotebook));
               }}
             />
           </p>;
@@ -90,9 +87,7 @@ let make =
 
       <ListView hidden>
         <ListView.ItemContainer>
-          {CollectionKind.Recents
-           ->getCollection(noteCollections)
-           ->renderCollection}
+          {CollectionKind.Recents->getCollection(noteCollections)->renderCollection}
         </ListView.ItemContainer>
         /* spacer */
         <ListView.ItemContainer>
@@ -113,9 +108,7 @@ let make =
                        "Are you sure you want to delete this notebook?",
                        Webapi.Dom.window,
                      )) {
-                   dispatch(
-                     NoteManagementContainer.DeleteNotebook(notebook),
-                   );
+                   dispatch(NoteManagementContainer.DeleteNotebook(notebook));
                  }
                }>
                {renderListItemContent(notebook, noteCount)}

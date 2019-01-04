@@ -9,8 +9,7 @@ let make = _children => {
   initialState: () => {pendingChanges: 0},
   reducer: (action: action, _state: state) =>
     switch (action) {
-    | SetPendingChanges(number) =>
-      ReasonReact.Update({pendingChanges: number})
+    | SetPendingChanges(number) => ReasonReact.Update({pendingChanges: number})
     },
   didMount: self => {
     DataSync.setPendingChangesListener(pendingChangesCount =>
@@ -19,6 +18,5 @@ let make = _children => {
 
     self.onUnmount(() => DataSync.removePendingChangesListener());
   },
-  render: self =>
-    <SyncState pendingChangesCount={self.state.pendingChanges} />,
+  render: self => <SyncState pendingChangesCount={self.state.pendingChanges} />,
 };

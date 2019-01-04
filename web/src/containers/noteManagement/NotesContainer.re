@@ -20,9 +20,7 @@ let make =
            <ListView.Item
              key={note.id}
              selected={Some(note.id) == selectedNote}
-             onClick={_ =>
-               dispatch(NoteManagementContainer.SelectNote(note.id))
-             }
+             onClick={_ => dispatch(NoteManagementContainer.SelectNote(note.id))}
              onLongpress={_ =>
                if (WindowRe.confirm(
                      "Are you sure you want to delete this note?",
@@ -34,9 +32,7 @@ let make =
              <p>
                {ReasonReact.string(note.title)}
                <br />
-               <small>
-                 {ReasonReact.string(note.updatedAt |> formatDate)}
-               </small>
+               <small> {ReasonReact.string(note.updatedAt |> formatDate)} </small>
              </p>
            </ListView.Item>
          )
@@ -45,11 +41,8 @@ let make =
       </ListView.ItemContainer>
       <ListView.Footer>
         {switch (selectedNoteCollection) {
-         | Some(collection)
-             when NoteCollection.supportsNoteCreation(collection) =>
-           <AddButton
-             onClick={_ => dispatch(NoteManagementContainer.CreateNote)}
-           />
+         | Some(collection) when NoteCollection.supportsNoteCreation(collection) =>
+           <AddButton onClick={_ => dispatch(NoteManagementContainer.CreateNote)} />
          | _ => ReasonReact.null
          }}
       </ListView.Footer>

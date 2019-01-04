@@ -6,7 +6,5 @@ let component = ReasonReact.statelessComponent("NoNoteSelected");
 let make = _children => {
   ...component,
   render: _self =>
-    <div className={style("container")}>
-      {ReasonReact.string("No note selected")}
-    </div>,
+    <div className={style("container")}> {ReasonReact.string("No note selected")} </div>,
 };

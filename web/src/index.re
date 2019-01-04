@@ -10,9 +10,7 @@ if (Utils.hot) {
 };
 
 registerServiceWorker(() =>
-  Toast.show("New version available.", "Update", () =>
-    LocationRe.reload(Webapi.Dom.location)
-  )
+  Toast.show("New version available.", "Update", () => LocationRe.reload(Webapi.Dom.location))
 );
 
 [@bs.val] external env: string = "process.env.NODE_ENV";

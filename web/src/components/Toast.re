@@ -30,9 +30,7 @@ module ToastComponent = {
         <button className={style("action")} onClick={_ => onAction()}>
           {ReasonReact.string("Update")}
         </button>
-        <div className={style("close")} onClick={_ => onClose()}>
-          <Icon icon=Icon.Close />
-        </div>
+        <div className={style("close")} onClick={_ => onClose()}> <Icon icon=Icon.Close /> </div>
       </div>,
   };
 };

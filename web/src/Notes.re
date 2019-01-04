@@ -8,8 +8,7 @@ let update = (note: Data.note, ~sync=true, ()) => {
   Db.updateNote({...note, updatedAt: now}, ~sync, ());
 };
 
-let delete = (noteId: string, ~sync=true, ()) =>
-  Db.deleteNote(noteId, ~sync, ());
+let delete = (noteId: string, ~sync=true, ()) => Db.deleteNote(noteId, ~sync, ());
 
 DataSync.setNoteSyncedListener(note =>
   Db.updateNote(note, ~sync=false, ()) |> Repromise.map(_ => ())

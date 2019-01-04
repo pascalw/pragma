@@ -1,8 +1,7 @@
 module JsonCoders = {
   let decodePendingChanges = Json.Decode.(list(string));
 
-  let encodePendingChanges = changeIds =>
-    changeIds->Array.of_list->Json.Encode.stringArray;
+  let encodePendingChanges = changeIds => changeIds->Array.of_list->Json.Encode.stringArray;
 };
 
 let store = changeIds => {

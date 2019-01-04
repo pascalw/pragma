@@ -34,9 +34,7 @@ let flatMapOk =
        | Error(_) as error => Repromise.resolved(error),
      );
 
-let mapSome =
-    (mapper: 'a => 'b, promise: Repromise.t(option('a)))
-    : Repromise.t(option('b)) =>
+let mapSome = (mapper: 'a => 'b, promise: Repromise.t(option('a))): Repromise.t(option('b)) =>
   promise
   |> Repromise.map(
        fun
@@ -45,11 +43,8 @@ let mapSome =
      );
 
 let toResultPromise =
-    (promise: Js.Promise.t('a))
-    : Repromise.t(Belt.Result.t('a, Js.Promise.error)) =>
+    (promise: Js.Promise.t('a)): Repromise.t(Belt.Result.t('a, Js.Promise.error)) =>
   promise
   |> Repromise.Rejectable.fromJsPromise
   |> Repromise.Rejectable.map(value => Belt.Result.Ok(value))
-  |> Repromise.Rejectable.catch(error =>
-       Repromise.resolved(Belt.Result.Error(error))
-     );
+  |> Repromise.Rejectable.catch(error => Repromise.resolved(Belt.Result.Error(error)));

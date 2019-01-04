@@ -19,19 +19,14 @@ let retryQueue: ref(list(change)) = ref([]);
 type syncedListener('a) = 'a => Repromise.t(unit);
 
 let noteSyncedListener: ref(option(syncedListener(Data.note))) = ref(None);
-let notebookSyncedListener: ref(option(syncedListener(Data.notebook))) =
-  ref(None);
-let contentBlockSyncedListener:
-  ref(option(syncedListener(Data.contentBlock))) =
-  ref(None);
+let notebookSyncedListener: ref(option(syncedListener(Data.notebook))) = ref(None);
+let contentBlockSyncedListener: ref(option(syncedListener(Data.contentBlock))) = ref(None);
 
 let setNoteSyncedListener = listener => noteSyncedListener := Some(listener);
 
-let setNotebookSyncedListener = listener =>
-  notebookSyncedListener := Some(listener);
+let setNotebookSyncedListener = listener => notebookSyncedListener := Some(listener);
 
-let setContentBlockSyncedListener = listener =>
-  contentBlockSyncedListener := Some(listener);
+let setContentBlockSyncedListener = listener => contentBlockSyncedListener := Some(listener);
 
 let notifyListener = (listener, resource) =>
   (
@@ -44,14 +39,12 @@ let notifyListener = (listener, resource) =>
 
 let notifyNoteSyncedListener = notifyListener(noteSyncedListener);
 let notifyNotebookSyncedListener = notifyListener(notebookSyncedListener);
-let notifyContentBlockSyncedListener =
-  notifyListener(contentBlockSyncedListener);
+let notifyContentBlockSyncedListener = notifyListener(contentBlockSyncedListener);
 
 type pendingChangesListener = int => unit;
 let pendingChangesListener: ref(option(pendingChangesListener)) = ref(None);
 
-let setPendingChangesListener = listener =>
-  pendingChangesListener := Some(listener);
+let setPendingChangesListener = listener => pendingChangesListener := Some(listener);
 
 let removePendingChangesListener = () => pendingChangesListener := None;
 
@@ -59,8 +52,7 @@ let notifyPendingChangesListener = pendingChanges => {
   /* FIXME: pendingChanges can currently contain duplicates because it consists of pending changes
      + the retry queue. */
   let uniqueCount =
-    Belt.Set.String.fromArray(Belt.List.toArray(pendingChanges))
-    ->Belt.Set.String.size;
+    Belt.Set.String.fromArray(Belt.List.toArray(pendingChanges))->Belt.Set.String.size;
 
   switch (pendingChangesListener^) {
   | None => ()
@@ -70,40 +62,30 @@ let notifyPendingChangesListener = pendingChanges => {
 
 let syncChange = change =>
   switch (change.change) {
-  | NoteCreated(note) =>
-    Api.createNote(note) |> Promises.flatMapOk(notifyNoteSyncedListener)
-  | NoteUpdated(note) =>
-    Api.updateNote(note) |> Promises.flatMapOk(notifyNoteSyncedListener)
+  | NoteCreated(note) => Api.createNote(note) |> Promises.flatMapOk(notifyNoteSyncedListener)
+  | NoteUpdated(note) => Api.updateNote(note) |> Promises.flatMapOk(notifyNoteSyncedListener)
   | ContentBlockCreated(contentBlock) =>
-    Api.createContentBlock(contentBlock)
-    |> Promises.flatMapOk(notifyContentBlockSyncedListener)
+    Api.createContentBlock(contentBlock) |> Promises.flatMapOk(notifyContentBlockSyncedListener)
   | ContentBlockUpdated(contentBlock) =>
-    Api.updateContentBlock(contentBlock)
-    |> Promises.flatMapOk(notifyContentBlockSyncedListener)
+    Api.updateContentBlock(contentBlock) |> Promises.flatMapOk(notifyContentBlockSyncedListener)
   | NotebookCreated(notebook) =>
-    Api.createNotebook(notebook)
-    |> Promises.flatMapOk(notifyNotebookSyncedListener)
+    Api.createNotebook(notebook) |> Promises.flatMapOk(notifyNotebookSyncedListener)
   | NotebookUpdated(notebook) =>
-    Api.updateNotebook(notebook)
-    |> Promises.flatMapOk(notifyNotebookSyncedListener)
-  | NotebookDeleted(notebookId) =>
-    Api.deleteNotebook(notebookId) |> Promises.mapOk(ignore)
+    Api.updateNotebook(notebook) |> Promises.flatMapOk(notifyNotebookSyncedListener)
+  | NotebookDeleted(notebookId) => Api.deleteNotebook(notebookId) |> Promises.mapOk(ignore)
   | NoteDeleted(noteId) => Api.deleteNote(noteId) |> Promises.mapOk(ignore)
   };
 
 let storePendingChanges = () => {
   let pendingChangeIds =
-    (pendingChanges^)
-    ->Belt.List.concat(retryQueue^)
-    ->Belt.List.map(change => change.id);
+    (pendingChanges^)->Belt.List.concat(retryQueue^)->Belt.List.map(change => change.id);
 
   DataSyncPersistence.store(pendingChangeIds);
   notifyPendingChangesListener(pendingChangeIds);
 };
 
 let removePendingChange = change => {
-  pendingChanges :=
-    Belt.List.keep(pendingChanges^, pendingChange => pendingChange !== change);
+  pendingChanges := Belt.List.keep(pendingChanges^, pendingChange => pendingChange !== change);
 
   storePendingChanges();
 };
@@ -203,8 +185,7 @@ let start = persistedChanges => {
   Belt.List.forEach(persistedChanges, pushChange);
 
   let rec onComplete = () =>
-    Js.Global.setTimeout(() => syncPendingChanges(onComplete), 3_000)
-    |> ignore;
+    Js.Global.setTimeout(() => syncPendingChanges(onComplete), 3_000) |> ignore;
 
   syncPendingChanges(onComplete);
   Js.Global.setInterval(retryFailed, 10_000) |> ignore;

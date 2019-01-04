@@ -10,22 +10,14 @@ module Item = {
 
   let component = ReasonReact.reducerComponent("ListItem");
 
-  let make =
-      (
-        ~selected: bool,
-        ~onClick,
-        ~onDoubleClick=?,
-        ~onLongpress=() => (),
-        children,
-      ) => {
+  let make = (~selected: bool, ~onClick, ~onDoubleClick=?, ~onLongpress=() => (), children) => {
     let handlePress = (_e, self) => {
       switch (self.ReasonReact.state.pressTimer^) {
       | None => ()
       | Some(timerId) => Js.Global.clearTimeout(timerId)
       };
 
-      self.ReasonReact.state.pressTimer :=
-        Some(Js.Global.setTimeout(() => onLongpress(), 1000));
+      self.ReasonReact.state.pressTimer := Some(Js.Global.setTimeout(() => onLongpress(), 1000));
     };
     let handleRelease = (_e, self) =>
       switch (self.ReasonReact.state.pressTimer^) {
@@ -60,13 +52,10 @@ module ItemContent = {
     render: _self =>
       <div className={style("itemContentWrapper")}>
         <div className={style("title")}>
-          {Option.isSome(icon) ?
-             <Icon icon={Option.getExn(icon)} /> : ReasonReact.null}
+          {Option.isSome(icon) ? <Icon icon={Option.getExn(icon)} /> : ReasonReact.null}
           <span> {ReasonReact.string(title)} </span>
         </div>
-        <span className={style("count")}>
-          {count |> string_of_int |> ReasonReact.string}
-        </span>
+        <span className={style("count")}> {count |> string_of_int |> ReasonReact.string} </span>
       </div>,
   };
 };
@@ -74,10 +63,7 @@ module ItemContent = {
 module ItemContainer = {
   let component = ReasonReact.statelessComponent("ListItemContainer");
 
-  let make = children => {
-    ...component,
-    render: _self => <ul> ...children </ul>,
-  };
+  let make = children => {...component, render: _self => <ul> ...children </ul>};
 };
 
 module Footer = {
@@ -90,9 +76,7 @@ module Footer = {
 };
 
 let className = hidden =>
-  hidden ?
-    Utils.classnames([|style("listView"), style("hidden")|]) :
-    style("listView");
+  hidden ? Utils.classnames([|style("listView"), style("hidden")|]) : style("listView");
 
 let component = ReasonReact.statelessComponent("ListView");
 let make = (~minWidth=?, ~hidden=false, children) => {

@@ -31,8 +31,8 @@
     "compile": "bsb -make-world",
     "compile:watch": "bsb -make-world -w",
     "test": "node scripts/test.js --env=jsdom",
-    "format": "bsrefmt",
-    "format-all": "find src -name '*.re' | xargs bsrefmt --in-place"
+    "format": "bsrefmt --print-width=100",
+    "format-all": "find src -name '*.re' | xargs bsrefmt --in-place --print-width=100"
   },
   "devDependencies": {
     "@glennsl/bs-jest": "^0.4.2",

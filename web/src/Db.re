@@ -59,8 +59,7 @@ module JsonCoders = {
 
     let codeContent = json => {
       let code = json |> Json.Decode.field("code", Json.Decode.string);
-      let language =
-        json |> Json.Decode.field("language", Json.Decode.string);
+      let language = json |> Json.Decode.field("language", Json.Decode.string);
 
       Data.CodeContent(code, language);
     };
@@ -95,25 +94,13 @@ module JsonCoders = {
     let data = content =>
       switch (content) {
       | Data.TextContent(richText) =>
-        Json.Encode.(
-          object_([("text", string(RichText.toString(richText)))])
-        )
+        Json.Encode.(object_([("text", string(RichText.toString(richText)))]))
       | Data.CodeContent(code, language) =>
-        Json.Encode.(
-          object_([
-            ("code", string(code)),
-            ("language", string(language)),
-          ])
-        )
+        Json.Encode.(object_([("code", string(code)), ("language", string(language))]))
       };
 
     let content = content =>
-      Json.Encode.(
-        object_([
-          ("type", string(type_(content))),
-          ("data", data(content)),
-        ])
-      );
+      Json.Encode.(object_([("type", string(type_(content))), ("data", data(content))]));
 
     Json.Encode.(
       object_([
@@ -179,8 +166,7 @@ let listeners: ref(list(listener)) = ref([]);
 
 let subscribe = listener => listeners := [listener, ...listeners^];
 
-let unsubscribe = listener =>
-  listeners := Belt.List.keep(listeners^, l => l !== listener);
+let unsubscribe = listener => listeners := Belt.List.keep(listeners^, l => l !== listener);
 
 let getNotes = (notebookId: string) =>
   dbPromise()
@@ -193,10 +179,7 @@ let getNotes = (notebookId: string) =>
          ->Promises.toResultPromise
          |> Repromise.map(
               fun
-              | Ok(array) =>
-                array
-                ->Belt.List.fromArray
-                ->Belt.List.map(JsonCoders.decodeNote)
+              | Ok(array) => array->Belt.List.fromArray->Belt.List.map(JsonCoders.decodeNote)
               | Error(_) => [],
             )
        )
@@ -214,10 +197,7 @@ let getRecentNotes = limit =>
          |> Promises.toResultPromise
          |> Repromise.map(
               fun
-              | Ok(array) =>
-                array
-                ->Belt.List.fromArray
-                ->Belt.List.map(JsonCoders.decodeNote)
+              | Ok(array) => array->Belt.List.fromArray->Belt.List.map(JsonCoders.decodeNote)
               | Error(_) => [],
             )
        )
@@ -275,9 +255,7 @@ let getNotebooks = () =>
                 array
                 ->Belt.List.fromArray
                 ->Belt.List.map(JsonCoders.decodeNotebook)
-                ->Belt.List.map(n =>
-                    countNotes(n.id) |> Repromise.map(count => (n, count))
-                  )
+                ->Belt.List.map(n => countNotes(n.id) |> Repromise.map(count => (n, count)))
                 ->Repromise.all
               | Error(_) => Repromise.resolved([]),
             )
@@ -308,9 +286,7 @@ let getContentBlocks = noteId =>
          |> Repromise.map(
               fun
               | Ok(array) =>
-                array
-                ->Belt.List.fromArray
-                ->Belt.List.map(JsonCoders.decodeContentBlock)
+                array->Belt.List.fromArray->Belt.List.map(JsonCoders.decodeContentBlock)
               | Error(_) => [],
             )
        )
@@ -324,9 +300,7 @@ let getContentBlock = blockId =>
          ->Transaction.objectStore(contentBlocksStore)
          ->ObjectStore.get(blockId)
          ->toOptionPromise
-         |> Repromise.map(v =>
-              Belt.Option.map(v, JsonCoders.decodeContentBlock)
-            )
+         |> Repromise.map(v => Belt.Option.map(v, JsonCoders.decodeContentBlock))
        )
      );
 
@@ -337,9 +311,7 @@ let addNotebook = notebook =>
          let tx = DB.transaction(db, notebooksStore, Transaction.ReadWrite);
          let data = JsonCoders.encodeNotebook(notebook);
 
-         Transaction.objectStore(tx, notebooksStore)
-         ->ObjectStore.put(data)
-         ->ignore;
+         Transaction.objectStore(tx, notebooksStore)->ObjectStore.put(data)->ignore;
 
          awaitTransactionPromise(tx);
        })
@@ -352,9 +324,7 @@ let addNote = note =>
          let tx = DB.transaction(db, notesStore, Transaction.ReadWrite);
          let data = JsonCoders.encodeNote(note);
 
-         Transaction.objectStore(tx, notesStore)
-         ->ObjectStore.put(data)
-         ->ignore;
+         Transaction.objectStore(tx, notesStore)->ObjectStore.put(data)->ignore;
 
          awaitTransactionPromise(tx);
        })
@@ -364,13 +334,10 @@ let addContentBlock = block =>
   IndexedDB.(
     dbPromise()
     |> Repromise.andThen(db => {
-         let tx =
-           DB.transaction(db, contentBlocksStore, Transaction.ReadWrite);
+         let tx = DB.transaction(db, contentBlocksStore, Transaction.ReadWrite);
          let data = JsonCoders.encodeContentBlock(block);
 
-         Transaction.objectStore(tx, contentBlocksStore)
-         ->ObjectStore.put(data)
-         ->ignore;
+         Transaction.objectStore(tx, contentBlocksStore)->ObjectStore.put(data)->ignore;
 
          awaitTransactionPromise(tx);
        })
@@ -504,8 +471,7 @@ let deleteContentBlock = (contentBlockId: string) =>
 let insertRevision = (revision: string) =>
   LocalStorage.setItem("pragma-revision", revision)->Repromise.resolved;
 
-let getRevision = () =>
-  LocalStorage.getItem("pragma-revision")->Repromise.resolved;
+let getRevision = () => LocalStorage.getItem("pragma-revision")->Repromise.resolved;
 
 let withNotification = fn => {
   let result = fn();
@@ -530,8 +496,7 @@ let touchNote = noteId => {
   |> Repromise.andThen(maybeNote =>
        switch (maybeNote) {
        | None => Repromise.resolved(Belt.Result.Error())
-       | Some(note) =>
-         updateNote(note, ()) |> Repromise.map(Results.mapError(_, _ => ()))
+       | Some(note) => updateNote(note, ()) |> Repromise.map(Results.mapError(_, _ => ()))
        }
      );
 };

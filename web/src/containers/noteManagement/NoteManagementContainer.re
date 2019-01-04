@@ -33,11 +33,7 @@ type action =
   | UpdateNoteTitle(Data.note, string);
 
 let selectedCollection =
-    (
-      noteCollections,
-      notebooks: list((Data.notebook, int)),
-      selectedCollectionId,
-    )
+    (noteCollections, notebooks: list((Data.notebook, int)), selectedCollectionId)
     : option(NoteCollection.t) => {
   let collection =
     Utils.find(noteCollections, collection =>
@@ -47,19 +43,13 @@ let selectedCollection =
   switch (collection) {
   | Some(_) => collection >>= NoteCollection.fromCollection
   | None =>
-    Utils.find(notebooks, ((notebook, _)) =>
-      Some(notebook.id) == selectedCollectionId
-    )
+    Utils.find(notebooks, ((notebook, _)) => Some(notebook.id) == selectedCollectionId)
     >>= (((notebook, _)) => NoteCollection.fromNotebook(notebook))
   };
 };
 
 let selectedCollectionFromState = (state: state): option(NoteCollection.t) => {
-  selectedCollection(
-    state.noteCollections,
-    state.notebooks,
-    state.selectedCollection,
-  );
+  selectedCollection(state.noteCollections, state.notebooks, state.selectedCollection);
 };
 
 let debouncedUpdateContentBlockInDb =
@@ -75,22 +65,16 @@ let debouncedUpdateContentBlockInDb =
 
         timerId :=
           Some(
-            Js.Global.setTimeout(
-              () => ContentBlocks.update(contentBlock, ()) |> ignore,
-              500,
-            ),
+            Js.Global.setTimeout(() => ContentBlocks.update(contentBlock, ()) |> ignore, 500),
           );
       };
     }
   )();
 
 let sortDesc = (input: list('a), mapper: 'a => Js.Date.t) =>
-  Belt.List.sort(input, (a, b) =>
-    Utils.compareDates(mapper(a), mapper(b)) * (-1)
-  );
+  Belt.List.sort(input, (a, b) => Utils.compareDates(mapper(a), mapper(b)) * (-1));
 
-let sortNotesDesc = (notes: list(Data.note)) =>
-  sortDesc(notes, note => note.updatedAt);
+let sortNotesDesc = (notes: list(Data.note)) => sortDesc(notes, note => note.updatedAt);
 
 let sortNotebooksDesc = (notebooks: list((Data.notebook, int))) =>
   sortDesc(notebooks, ((notebook, _)) => notebook.updatedAt);
@@ -109,51 +93,28 @@ let fetchAllData = () => {
        |> Repromise.map(count => {
             let count = count > maxRecentNotes ? maxRecentNotes : count;
             let collection =
-              NoteCollection.makeCollection(
-                NoteCollection.CollectionKind.Recents,
-                count,
-              );
+              NoteCollection.makeCollection(NoteCollection.CollectionKind.Recents, count);
 
             (notebooks, [collection]);
           })
      )
-  |> Repromise.andThen(
-       ((notebooks: list((Data.notebook, int)), noteCollections)) => {
+  |> Repromise.andThen(((notebooks: list((Data.notebook, int)), noteCollections)) => {
        let selectedCollection =
-         selectedCollection(
-           noteCollections,
-           notebooks,
-           appState.selectedNotebookId,
-         );
+         selectedCollection(noteCollections, notebooks, appState.selectedNotebookId);
        let selectedCollectionId = selectedCollection >>= NoteCollection.id;
 
        switch (selectedCollection) {
        | Some(NoteCollection.Notebook(notebook)) =>
          getSortedNotes(notebook.id)
-         |> Repromise.map(notes =>
-              (notebooks, selectedCollectionId, notes, noteCollections)
-            )
-       | Some(
-           NoteCollection.Collection({
-             kind: NoteCollection.CollectionKind.Recents,
-           }),
-         ) =>
+         |> Repromise.map(notes => (notebooks, selectedCollectionId, notes, noteCollections))
+       | Some(NoteCollection.Collection({kind: NoteCollection.CollectionKind.Recents})) =>
          Db.getRecentNotes(maxRecentNotes)
-         |> Repromise.map(notes =>
-              (notebooks, selectedCollectionId, notes, noteCollections)
-            )
+         |> Repromise.map(notes => (notebooks, selectedCollectionId, notes, noteCollections))
        | None => Repromise.resolved((notebooks, None, [], noteCollections))
        };
      })
   |> Repromise.andThen(
-       (
-         (
-           notebooksWithCounts,
-           selectedCollection,
-           notes: list(Data.note),
-           noteCollections,
-         ),
-       ) => {
+       ((notebooksWithCounts, selectedCollection, notes: list(Data.note), noteCollections)) => {
        let selectedNoteId =
          switch (appState.selectedNoteId) {
          | Some(id) => Some(id)
@@ -184,8 +145,7 @@ let fetchAllData = () => {
 let selectFirstNote = notes =>
   notes
   |> Repromise.map((notes: list(Data.note)) => {
-       let selectedNoteId =
-         Belt.List.head(notes)->Belt.Option.map(note => note.id);
+       let selectedNoteId = Belt.List.head(notes)->Belt.Option.map(note => note.id);
        (notes, selectedNoteId);
      });
 
@@ -207,21 +167,14 @@ let make = (children: (state, action => unit) => ReasonReact.reactElement) => {
     switch (action) {
     | ReloadState =>
       ReasonReact.SideEffects(
-        self =>
-          fetchAllData()
-          |> Repromise.wait(state => self.send(LoadState(state))),
+        self => fetchAllData() |> Repromise.wait(state => self.send(LoadState(state))),
       )
     | LoadState(state) => ReasonReact.Update(state)
     | SelectNotebook(
-        NoteCollection.Collection(
-          {kind: NoteCollection.CollectionKind.Recents} as collection,
-        ),
+        NoteCollection.Collection({kind: NoteCollection.CollectionKind.Recents} as collection),
       ) =>
       ReasonReact.UpdateWithSideEffects(
-        {
-          ...state,
-          selectedCollection: Some(NoteCollection.Collection.id(collection)),
-        },
+        {...state, selectedCollection: Some(NoteCollection.Collection.id(collection))},
         self =>
           Db.getRecentNotes(maxRecentNotes)
           |> selectFirstNote
@@ -249,12 +202,7 @@ let make = (children: (state, action => unit) => ReasonReact.reactElement) => {
              }),
       )
     | NotebookSelected(notes, selectedNoteId) =>
-      ReasonReact.Update({
-        ...state,
-        notes,
-        contentBlocks: [],
-        selectedNote: selectedNoteId,
-      })
+      ReasonReact.Update({...state, notes, contentBlocks: [], selectedNote: selectedNoteId})
     | CreateNotebook(notebook) =>
       let updatedNotebooks = Belt.List.add(state.notebooks, (notebook, 0));
       let newState = {...state, notebooks: updatedNotebooks};
@@ -264,9 +212,7 @@ let make = (children: (state, action => unit) => ReasonReact.reactElement) => {
         self =>
           Db.withNotification(() => Notebooks.create(notebook))
           |> Promises.mapOk(NoteCollection.fromNotebook)
-          |> Promises.mapOk(collection =>
-               self.send(SelectNotebook(collection))
-             )
+          |> Promises.mapOk(collection => self.send(SelectNotebook(collection)))
           |> ignore,
       );
     | DeleteNotebook(notebook) =>
@@ -278,9 +224,7 @@ let make = (children: (state, action => unit) => ReasonReact.reactElement) => {
       let newState = {...state, notebooks: updatedNotebooks};
       ReasonReact.UpdateWithSideEffects(
         newState,
-        _self =>
-          Db.withNotification(() => Notebooks.delete(notebook.id, ()))
-          |> ignore,
+        _self => Db.withNotification(() => Notebooks.delete(notebook.id, ())) |> ignore,
       );
     | UpdateNotebook(notebook) =>
       let updatedNotebooks =
@@ -303,42 +247,28 @@ let make = (children: (state, action => unit) => ReasonReact.reactElement) => {
         {...state, selectedNote: Some(noteId)},
         self =>
           ContentBlocks.fromNote(noteId)
-          |> Repromise.wait(contentBlocks =>
-               self.send(NoteSelected(noteId, contentBlocks))
-             ),
+          |> Repromise.wait(contentBlocks => self.send(NoteSelected(noteId, contentBlocks))),
       )
     | NoteSelected(noteId, contentBlocks) =>
-      ReasonReact.Update({
-        ...state,
-        selectedNote: Some(noteId),
-        contentBlocks,
-      })
+      ReasonReact.Update({...state, selectedNote: Some(noteId), contentBlocks})
     | CreateNote =>
       ReasonReact.SideEffects(
         self =>
           Notes.create(self.state.selectedCollection |> Belt.Option.getExn)
           |> Promises.tapOk(((note: Data.note, _contentBlock)) => {
-               AppState.setSelected(
-                 self.state.selectedCollection,
-                 Some(note.id),
-               );
+               AppState.setSelected(self.state.selectedCollection, Some(note.id));
 
-               fetchAllData()
-               |> Repromise.wait(state => self.send(LoadState(state)));
+               fetchAllData() |> Repromise.wait(state => self.send(LoadState(state)));
              })
           |> ignore,
       )
     | DeleteNote(note) =>
-      let updatedNotes =
-        Belt.List.keep(state.notes, existingNote =>
-          existingNote.id != note.id
-        );
+      let updatedNotes = Belt.List.keep(state.notes, existingNote => existingNote.id != note.id);
 
       let newState = {...state, notes: updatedNotes};
       ReasonReact.UpdateWithSideEffects(
         newState,
-        _self =>
-          Db.withNotification(() => Notes.delete(note.id, ()) |> ignore),
+        _self => Db.withNotification(() => Notes.delete(note.id, ()) |> ignore),
       );
     | UpdateNoteText(contentBlock, content) =>
       let updatedContentBlock = {...contentBlock, content};
@@ -405,9 +335,7 @@ let make = (children: (state, action => unit) => ReasonReact.reactElement) => {
     let removePageVisibleListener =
       Utils.onPageVisible(() =>
         switch (lastDataRefresh^) {
-        | Some(date)
-            when Utils.timeElapsedSince(date) > refreshDataMinElapsed =>
-          serverSync()
+        | Some(date) when Utils.timeElapsedSince(date) > refreshDataMinElapsed => serverSync()
         | _ => ()
         }
       );
@@ -418,10 +346,7 @@ let make = (children: (state, action => unit) => ReasonReact.reactElement) => {
     });
   },
   didUpdate: ({oldSelf: _oldSelf, newSelf}) =>
-    AppState.setSelected(
-      newSelf.state.selectedCollection,
-      newSelf.state.selectedNote,
-    ),
+    AppState.setSelected(newSelf.state.selectedCollection, newSelf.state.selectedNote),
   render: self =>
     <>
       {switch (self.state.initialStateLoaded) {

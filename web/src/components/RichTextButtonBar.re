@@ -8,8 +8,7 @@ module Button = {
     render: _self => {
       let className =
         isActive ?
-          Utils.classnames([|style("button"), style("buttonActive")|]) :
-          style("button");
+          Utils.classnames([|style("button"), style("buttonActive")|]) : style("button");
 
       <button onMouseDown className title tabIndex=(-1)> ...children </button>;
     },
@@ -23,24 +22,19 @@ module InlineStyleButton = {
     render: _self => {
       let isActive = isActive(styleName);
 
-      <Button isActive title onMouseDown={toggleInlineStyle(styleName)}>
-        ...children
-      </Button>;
+      <Button isActive title onMouseDown={toggleInlineStyle(styleName)}> ...children </Button>;
     },
   };
 };
 
 module BlockTypeButton = {
   let component = ReasonReact.statelessComponent("BlockTypeButton");
-  let make =
-      (~toggleBlockType, ~currentBlockType, ~blockType, ~title, children) => {
+  let make = (~toggleBlockType, ~currentBlockType, ~blockType, ~title, children) => {
     ...component,
     render: _self => {
       let isActive = blockType == currentBlockType;
 
-      <Button title isActive onMouseDown={toggleBlockType(blockType)}>
-        ...children
-      </Button>;
+      <Button title isActive onMouseDown={toggleBlockType(blockType)}> ...children </Button>;
     },
   };
 };
@@ -75,24 +69,15 @@ let make =
         <div className={style("buttonBar")}>
           <div>
             <InlineStyleButton
-              title="Bold"
-              styleName="BOLD"
-              toggleInlineStyle
-              isActive=isStyleActive>
+              title="Bold" styleName="BOLD" toggleInlineStyle isActive=isStyleActive>
               <Icon icon=Icon.FormatBold />
             </InlineStyleButton>
             <InlineStyleButton
-              title="Italic"
-              styleName="ITALIC"
-              toggleInlineStyle
-              isActive=isStyleActive>
+              title="Italic" styleName="ITALIC" toggleInlineStyle isActive=isStyleActive>
               <Icon icon=Icon.FormatItalic />
             </InlineStyleButton>
             <InlineStyleButton
-              title="Underline"
-              styleName="UNDERLINE"
-              toggleInlineStyle
-              isActive=isStyleActive>
+              title="Underline" styleName="UNDERLINE" toggleInlineStyle isActive=isStyleActive>
               <Icon icon=Icon.FormatUnderline />
             </InlineStyleButton>
             <InlineStyleButton
@@ -105,11 +90,7 @@ let make =
           </div>
           <div> <div className={style("divider")} /> </div>
           <div>
-            <BlockTypeButton
-              title="Quote"
-              blockType="blockquote"
-              toggleBlockType
-              currentBlockType>
+            <BlockTypeButton title="Quote" blockType="blockquote" toggleBlockType currentBlockType>
               <Icon icon=Icon.FormatQuote />
             </BlockTypeButton>
             <BlockTypeButton
@@ -120,19 +101,13 @@ let make =
               <Icon icon=Icon.BulletList />
             </BlockTypeButton>
             <BlockTypeButton
-              title="Ordered list"
-              blockType="ordered-list-item"
-              toggleBlockType
-              currentBlockType>
+              title="Ordered list" blockType="ordered-list-item" toggleBlockType currentBlockType>
               <Icon icon=Icon.NumberedList />
             </BlockTypeButton>
           </div>
           <div> <div className={style("divider")} /> </div>
           <div>
-            <Button
-              title="Spellcheck"
-              isActive=spellcheck
-              onMouseDown=toggleSpellcheck>
+            <Button title="Spellcheck" isActive=spellcheck onMouseDown=toggleSpellcheck>
               <Icon icon=Icon.Spellcheck />
             </Button>
           </div>

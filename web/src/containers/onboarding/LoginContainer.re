@@ -8,11 +8,7 @@ module PasswordField = {
     render: _self => {
       let className =
         switch (authFailure) {
-        | true =>
-          Utils.classnames([|
-            style("passwordField"),
-            style("passwordFieldError"),
-          |])
+        | true => Utils.classnames([|style("passwordField"), style("passwordFieldError")|])
         | _ => style("passwordField")
         };
       <>
@@ -54,9 +50,7 @@ let setPasswordInputRef = (theRef, {ReasonReact.state}) =>
 let passwordInputValue = state =>
   switch (state.passwordInput^) {
   | Some(el) =>
-    Webapi.Dom.Element.asHtmlElement(el)
-    |> Belt.Option.getExn
-    |> Webapi.Dom.HtmlElement.value
+    Webapi.Dom.Element.asHtmlElement(el) |> Belt.Option.getExn |> Webapi.Dom.HtmlElement.value
   | _ => ""
   };
 
@@ -82,17 +76,14 @@ let make = (~onLoggedIn, _children) => {
            | Belt.Result.Ok(_) =>
              self.send(Proceed(AuthSuccesful));
              Js.Global.setTimeout(onLoggedIn, 500) |> ignore;
-           | Belt.Result.Error(_) =>
-             self.send(Proceed(AuthenticationFailure))
+           | Belt.Result.Error(_) => self.send(Proceed(AuthenticationFailure))
            }
          );
     };
 
     <div className={style("container")}>
       <h1> {ReasonReact.string("Hello and welcome to Pragma!")} </h1>
-      <h2>
-        {ReasonReact.string("The open-source personal note-taking app.")}
-      </h2>
+      <h2> {ReasonReact.string("The open-source personal note-taking app.")} </h2>
       <form onSubmit=onFormSubmit className={style("form")}>
         <PasswordField
           authFailure={isState(AuthenticationFailure)}

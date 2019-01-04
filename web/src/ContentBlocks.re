@@ -30,10 +30,7 @@ let updateContentType = (block: Data.contentBlock, newContentType) => {
 
 let updateCodeLanguage = (block: Data.contentBlock, language) =>
   switch (block.content) {
-  | Data.CodeContent(code, _) => {
-      ...block,
-      content: Data.CodeContent(code, language),
-    }
+  | Data.CodeContent(code, _) => {...block, content: Data.CodeContent(code, language)}
   | _ => Js.Exn.raiseError("Unsupported contentblock")
   };
 

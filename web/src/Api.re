@@ -104,25 +104,13 @@ module JsonCoders = {
     let data = (content: Data.content) =>
       switch (content) {
       | TextContent(richText) =>
-        Json.Encode.(
-          object_([("text", string(RichText.toString(richText)))])
-        )
+        Json.Encode.(object_([("text", string(RichText.toString(richText)))]))
       | CodeContent(code, language) =>
-        Json.Encode.(
-          object_([
-            ("code", string(code)),
-            ("language", string(language)),
-          ])
-        )
+        Json.Encode.(object_([("code", string(code)), ("language", string(language))]))
       };
 
     let content = (content: Data.content) =>
-      Json.Encode.(
-        object_([
-          ("type", string(type_(content))),
-          ("data", data(content)),
-        ])
-      );
+      Json.Encode.(object_([("type", string(type_(content))), ("data", data(content))]));
 
     Json.Encode.(
       object_([
@@ -140,15 +128,11 @@ module JsonCoders = {
     Json.Decode.{
       notebooks: json |> field("notebooks", list(decodeNotebook)),
       notes: json |> field("notes", list(decodeNote)),
-      contentBlocks:
-        json |> field("contentBlocks", list(decodeContentBlock)),
+      contentBlocks: json |> field("contentBlocks", list(decodeContentBlock)),
     };
 
   let decodeResource = json =>
-    Json.Decode.{
-      id: json |> field("id", string),
-      type_: json |> field("type", string),
-    };
+    Json.Decode.{id: json |> field("id", string), type_: json |> field("type", string)};
 
   let decodeChangesResponse = json =>
     Json.Decode.{
@@ -178,9 +162,7 @@ let toResult =
   |> Js.Promise.then_(response =>
        if (!Fetch.Response.ok(response)) {
          Js.Promise.reject(
-           Js.Exn.raiseError(
-             "Request failed with " ++ Fetch.Response.statusText(response),
-           ),
+           Js.Exn.raiseError("Request failed with " ++ Fetch.Response.statusText(response)),
          );
        } else {
          Js.Promise.resolve(response);
@@ -193,21 +175,14 @@ let toJsonResult = (mapper: Js.Json.t => 'a, promise) =>
   promise |> toResult(Fetch.Response.json) |> Promises.mapOk(mapper);
 
 let fetchChanges =
-    (revision: option(string))
-    : Repromise.t(Belt.Result.t(apiResponse, Js.Promise.error)) =>
+    (revision: option(string)): Repromise.t(Belt.Result.t(apiResponse, Js.Promise.error)) =>
   Fetch.fetchWithInit(
     fetchUrl(revision),
-    Fetch.RequestInit.make(
-      ~method_=Get,
-      ~headers=Fetch.HeadersInit.make(headers()),
-      (),
-    ),
+    Fetch.RequestInit.make(~method_=Get, ~headers=Fetch.HeadersInit.make(headers()), ()),
   )
   |> toJsonResult(JsonCoders.decodeChangesResponse);
 
-let createNote =
-    (note: Data.note)
-    : Repromise.t(Belt.Result.t(Data.note, Js.Promise.error)) => {
+let createNote = (note: Data.note): Repromise.t(Belt.Result.t(Data.note, Js.Promise.error)) => {
   let json = JsonCoders.encodeNote(note);
 
   Fetch.fetchWithInit(
@@ -253,15 +228,10 @@ let updateNotebook = (notebook: Data.notebook) => {
 };
 
 let deleteNotebook =
-    (notebookId: string)
-    : Repromise.t(Belt.Result.t(Fetch.Response.t, Js.Promise.error)) =>
+    (notebookId: string): Repromise.t(Belt.Result.t(Fetch.Response.t, Js.Promise.error)) =>
   Fetch.fetchWithInit(
     "/api/notebooks/" ++ notebookId,
-    Fetch.RequestInit.make(
-      ~method_=Delete,
-      ~headers=Fetch.HeadersInit.make(headers()),
-      (),
-    ),
+    Fetch.RequestInit.make(~method_=Delete, ~headers=Fetch.HeadersInit.make(headers()), ()),
   )
   |> toResult(Js.Promise.resolve);
 
@@ -283,11 +253,7 @@ let updateNote = (note: Data.note) => {
 let deleteNote = (noteId: string) =>
   Fetch.fetchWithInit(
     "/api/notes/" ++ noteId,
-    Fetch.RequestInit.make(
-      ~method_=Delete,
-      ~headers=Fetch.HeadersInit.make(headers()),
-      (),
-    ),
+    Fetch.RequestInit.make(~method_=Delete, ~headers=Fetch.HeadersInit.make(headers()), ()),
   )
   |> toResult(Js.Promise.resolve);
 

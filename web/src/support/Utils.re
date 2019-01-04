@@ -33,15 +33,13 @@ let timeElapsedSince = (date: Js.Date.t): float => {
 let now = () => Js.Date.fromFloat(Js.Date.now());
 
 let nanoIdAlphabet = "0123456789abcdefghijklmnopqrstuvwxyz";
-[@bs.module]
-external generateNanoId: (string, int) => string = "nanoid/generate";
+[@bs.module] external generateNanoId: (string, int) => string = "nanoid/generate";
 let generateId = () => generateNanoId(nanoIdAlphabet, 10);
 
 let find = (xs: list('a), predicate: 'a => bool): option('a) =>
   Belt.List.keep(xs, predicate)->Belt.List.head;
 
-let textToHtml = text =>
-  Js.String.replaceByRe([%re "/(?:\\r\\n|\\r|\\n)/g"], "<br/>", text);
+let textToHtml = text => Js.String.replaceByRe([%re "/(?:\\r\\n|\\r|\\n)/g"], "<br/>", text);
 
 let htmlToText: string => string = [%bs.raw
   {|
@@ -82,8 +80,7 @@ function htmlToText(html) {
 |}
 ];
 
-[@bs.module "classnames"] [@bs.splice]
-external classnames: array(string) => string = "default";
+[@bs.module "classnames"] [@bs.splice] external classnames: array(string) => string = "default";
 
 module DayJs = {
   type t;
@@ -109,12 +106,7 @@ let benchmarkCb = (label: string): (unit => unit) => {
 
 type removeListener = unit => unit;
 let buildVisibilityChangeListener =
-    (
-      desiredState: DomTypesRe.visibilityState,
-      document,
-      listener: unit => unit,
-    )
-    : removeListener => {
+    (desiredState: DomTypesRe.visibilityState, document, listener: unit => unit): removeListener => {
   open Webapi;
 
   let domListener = _e =>
@@ -125,13 +117,8 @@ let buildVisibilityChangeListener =
   Dom.Document.addEventListener("visibilitychange", domListener, document);
 
   () => {
-    Dom.Document.removeEventListener(
-      "visibilitychange",
-      domListener,
-      document,
-    );
+    Dom.Document.removeEventListener("visibilitychange", domListener, document);
   };
 };
 
-let onPageVisible =
-  buildVisibilityChangeListener(DomTypesRe.Visible, Webapi.Dom.document);
+let onPageVisible = buildVisibilityChangeListener(DomTypesRe.Visible, Webapi.Dom.document);

@@ -5,8 +5,7 @@ let upsertContentBlock = (contentBlock: Data.contentBlock) =>
   |> Repromise.andThen(storedContentBlock =>
        switch (storedContentBlock) {
        | None => ContentBlocks.add(contentBlock)
-       | Some(_contentBlock) =>
-         ContentBlocks.update(contentBlock, ~sync=false, ())
+       | Some(_contentBlock) => ContentBlocks.update(contentBlock, ~sync=false, ())
        }
      );
 
@@ -37,21 +36,17 @@ let run = () =>
          let revision = result.revision;
          Db.insertRevision(revision) |> ignore;
 
-         let notebookResults =
-           result.changes.notebooks->List.map(upsertNotebook);
+         let notebookResults = result.changes.notebooks->List.map(upsertNotebook);
          let noteResults = result.changes.notes->List.map(upsertNote);
-         let contentBlockResults =
-           result.changes.contentBlocks->List.map(upsertContentBlock);
+         let contentBlockResults = result.changes.contentBlocks->List.map(upsertContentBlock);
          let deletionResults =
            result.deletions
            ->List.map(deletedResource =>
                switch (deletedResource.type_) {
-               | "notebook" =>
-                 Notebooks.delete(deletedResource.id, ~sync=false, ())
+               | "notebook" => Notebooks.delete(deletedResource.id, ~sync=false, ())
                | "note" => Notes.delete(deletedResource.id, ~sync=false, ())
                | "contentBlock" => ContentBlocks.delete(deletedResource.id)
-               | type_ =>
-                 Js.Exn.raiseError("Unsupported deletion type: " ++ type_)
+               | type_ => Js.Exn.raiseError("Unsupported deletion type: " ++ type_)
                }
              );
 
@@ -65,7 +60,6 @@ let run = () =>
              |]),
            );
          Db.withPromiseNotification(promise);
-       | Result.Error(reason) =>
-         Js.Console.error2("Failed to fetch changes", reason)
+       | Result.Error(reason) => Js.Console.error2("Failed to fetch changes", reason)
        }
      );

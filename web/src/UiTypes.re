@@ -40,10 +40,7 @@ module NoteCollection = {
   let fromCollection = collection => Collection(collection);
 
   let dummy = () => {
-    let collection: Collection.t = {
-      kind: CollectionKind.Recents,
-      noteCount: 10,
-    };
+    let collection: Collection.t = {kind: CollectionKind.Recents, noteCount: 10};
 
     Collection(collection);
   };

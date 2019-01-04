@@ -26,9 +26,7 @@ module Cursor = {
   [@bs.send] external continue: t => Js.Promise.t(Js.Nullable.t(t)) = "";
   let continue = cursor =>
     continue(cursor)
-    |> Js.Promise.then_(nCursor =>
-         Js.Promise.resolve(Js.Nullable.toOption(nCursor))
-       );
+    |> Js.Promise.then_(nCursor => Js.Promise.resolve(Js.Nullable.toOption(nCursor)));
 
   let rec take = (cursor, count, result): Js.Promise.t(array(value)) => {
     let value = value(cursor);
@@ -50,19 +48,13 @@ module Cursor = {
 module Index = {
   type t;
 
-  [@bs.send]
-  external getAllByKey: (t, validKey) => Js.Promise.t(Js.Array.t(value)) =
-    "getAll";
+  [@bs.send] external getAllByKey: (t, validKey) => Js.Promise.t(Js.Array.t(value)) = "getAll";
 
-  [@bs.send]
-  external countByKey_: (t, option(validKey)) => Js.Promise.t(int) = "count";
+  [@bs.send] external countByKey_: (t, option(validKey)) => Js.Promise.t(int) = "count";
   let countByKey = (index, key) => countByKey_(index, Some(key));
   let count = index => countByKey_(index, None);
 
-  [@bs.send]
-  external openCursor:
-    (t, option(validKey), string) => Js.Promise.t(Cursor.t) =
-    "";
+  [@bs.send] external openCursor: (t, option(validKey), string) => Js.Promise.t(Cursor.t) = "";
   let openCursor = (index, direction) =>
     openCursor(index, None, Cursor.directionString(direction));
 };
@@ -81,8 +73,7 @@ module CreateIndexParams = {
     multiEntry: bool,
   };
 
-  let make = (~unique: bool, ~multiEntry: bool): t =>
-    t(~unique, ~multiEntry);
+  let make = (~unique: bool, ~multiEntry: bool): t => t(~unique, ~multiEntry);
 };
 
 module ObjectStore = {
@@ -93,20 +84,15 @@ module ObjectStore = {
   [@bs.send] external delete: (t, validKey) => Js.Promise.t(unit) = "";
   [@bs.send] external clear: t => Js.Promise.t(unit) = "";
 
-  [@bs.send]
-  external get: (t, validKey) => Js.Promise.t(Js.Nullable.t(value)) = "";
+  [@bs.send] external get: (t, validKey) => Js.Promise.t(Js.Nullable.t(value)) = "";
   let get = (store, key) =>
     get(store, key)
-    |> Js.Promise.then_(value =>
-         Js.Promise.resolve(Js.Nullable.toOption(value))
-       );
+    |> Js.Promise.then_(value => Js.Promise.resolve(Js.Nullable.toOption(value)));
 
   [@bs.send] external getAll: t => Js.Promise.t(Js.Array.t(value)) = "";
 
   type indexName = string;
-  [@bs.send]
-  external createIndex: (t, indexName, keyPath, CreateIndexParams.t) => Index.t =
-    "";
+  [@bs.send] external createIndex: (t, indexName, keyPath, CreateIndexParams.t) => Index.t = "";
   [@bs.send] external index: (t, indexName) => Index.t = "";
 };
 
@@ -129,10 +115,7 @@ module Transaction = {
 module UpgradeDb = {
   type t;
 
-  [@bs.send]
-  external createObjectStore:
-    (t, storeName, ObjectStoreParams.t) => ObjectStore.t =
-    "";
+  [@bs.send] external createObjectStore: (t, storeName, ObjectStoreParams.t) => ObjectStore.t = "";
   [@bs.send] external deleteObjectStore: (t, storeName) => unit = "";
 
   [@bs.get] external version: t => int = "";
@@ -144,13 +127,11 @@ module DB = {
   type t;
 
   [@bs.send] external close: t => unit = "";
-  [@bs.send]
-  external transaction: (t, storeName, string) => Transaction.t = "";
+  [@bs.send] external transaction: (t, storeName, string) => Transaction.t = "";
   let transaction = (db, storeName, mode: Transaction.mode) =>
     transaction(db, storeName, Transaction.encodeMode(mode));
 };
 
 [@bs.module "idb"]
-external open_: (dbName, int, UpgradeDb.t => unit) => Js.Promise.t(DB.t) =
-  "open";
+external open_: (dbName, int, UpgradeDb.t => unit) => Js.Promise.t(DB.t) = "open";
 [@bs.module "idb"] external delete: string => Js.Promise.t(unit) = "";

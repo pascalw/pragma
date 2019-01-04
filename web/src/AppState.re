@@ -6,8 +6,7 @@ type state = {
 module JsonCoders = {
   let decodeState = (json): state =>
     Json.Decode.{
-      selectedNotebookId:
-        json |> optional(field("selectedNotebookId", string)),
+      selectedNotebookId: json |> optional(field("selectedNotebookId", string)),
       selectedNoteId: json |> optional(field("selectedNoteId", string)),
     };
 
@@ -36,10 +35,7 @@ let get = () =>
   LocalStorage.getItem("pragma-app-state")
   ->Belt.Option.map(Json.parseOrRaise)
   ->Belt.Option.map(json => JsonCoders.decodeState(json))
-  ->Belt.Option.getWithDefault({
-      selectedNotebookId: None,
-      selectedNoteId: None,
-    });
+  ->Belt.Option.getWithDefault({selectedNotebookId: None, selectedNoteId: None});
 
 let saveState = state => {
   let json = JsonCoders.encodeState(state) |> Json.stringify;

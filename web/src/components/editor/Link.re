@@ -2,13 +2,7 @@
 let style = name => Js.Dict.get(styles, name)->Belt.Option.getExn;
 
 let openInNewTab = url =>
-  Webapi.Dom.Window.open_(
-    ~url,
-    ~name="_blank",
-    ~features="",
-    Webapi.Dom.window,
-  )
-  |> ignore;
+  Webapi.Dom.Window.open_(~url, ~name="_blank", ~features="", Webapi.Dom.window) |> ignore;
 
 module LinkPanel = {
   let openInNewTab = (url, closePanel, e) => {
@@ -36,11 +30,7 @@ module LinkPanel = {
         switch (self.state.anchorRef^) {
         | Some(anchor) =>
           let target = EventRe.target(e);
-          if (!
-                ElementRe.contains(
-                  EventTargetRe.unsafeAsElement(target),
-                  anchor,
-                )) {
+          if (!ElementRe.contains(EventTargetRe.unsafeAsElement(target), anchor)) {
             onClose();
           };
         | _ => ()
@@ -90,14 +80,11 @@ let make = (~url, children) => {
     },
   render: self =>
     <div className={style("wrapper")}>
-      <a
-        href=url
-        onClick={_ => self.send(TogglePanel(!self.state.panelVisible))}>
+      <a href=url onClick={_ => self.send(TogglePanel(!self.state.panelVisible))}>
         ...children
       </a>
       {self.state.panelVisible ?
-         <LinkPanel url onClose={() => self.send(TogglePanel(false))} /> :
-         ReasonReact.null}
+         <LinkPanel url onClose={() => self.send(TogglePanel(false))} /> : ReasonReact.null}
     </div>,
 };
 

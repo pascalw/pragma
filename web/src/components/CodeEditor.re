@@ -13,215 +13,80 @@ module SupportedLanguageMap = Belt.Map.String;
 let supportedLanguages: SupportedLanguageMap.t(cmMode) =
   SupportedLanguageMap.(
     empty
-    ->set(
-        "go",
-        {
-          name: "Go",
-          install: () => Utils.import("codemirror/mode/ruby/ruby"),
-        },
-      )
+    ->set("go", {name: "Go", install: () => Utils.import("codemirror/mode/ruby/ruby")})
     ->set(
         "python",
-        {
-          name: "Python",
-          install: () => Utils.import("codemirror/mode/python/python"),
-        },
+        {name: "Python", install: () => Utils.import("codemirror/mode/python/python")},
       )
-    ->set(
-        "css",
-        {
-          name: "CSS",
-          install: () => Utils.import("codemirror/mode/css/css"),
-        },
-      )
+    ->set("css", {name: "CSS", install: () => Utils.import("codemirror/mode/css/css")})
     ->set(
         "clojure",
-        {
-          name: "Clojure",
-          install: () => Utils.import("codemirror/mode/clojure/clojure"),
-        },
+        {name: "Clojure", install: () => Utils.import("codemirror/mode/clojure/clojure")},
       )
     ->set(
         "gherkin",
-        {
-          name: "Gherkin",
-          install: () => Utils.import("codemirror/mode/gherkin/gherkin"),
-        },
+        {name: "Gherkin", install: () => Utils.import("codemirror/mode/gherkin/gherkin")},
       )
-    ->set(
-        "dart",
-        {
-          name: "Dart",
-          install: () => Utils.import("codemirror/mode/dart/dart"),
-        },
-      )
-    ->set(
-        "shell",
-        {
-          name: "Shell",
-          install: () => Utils.import("codemirror/mode/shell/shell"),
-        },
-      )
+    ->set("dart", {name: "Dart", install: () => Utils.import("codemirror/mode/dart/dart")})
+    ->set("shell", {name: "Shell", install: () => Utils.import("codemirror/mode/shell/shell")})
     ->set(
         "markdown",
-        {
-          name: "Markdown",
-          install: () => Utils.import("codemirror/mode/markdown/markdown"),
-        },
+        {name: "Markdown", install: () => Utils.import("codemirror/mode/markdown/markdown")},
       )
-    ->set(
-        "perl",
-        {
-          name: "Perl",
-          install: () => Utils.import("codemirror/mode/perl/perl"),
-        },
-      )
-    ->set(
-        "rust",
-        {
-          name: "Rust",
-          install: () => Utils.import("codemirror/mode/rust/rust"),
-        },
-      )
+    ->set("perl", {name: "Perl", install: () => Utils.import("codemirror/mode/perl/perl")})
+    ->set("rust", {name: "Rust", install: () => Utils.import("codemirror/mode/rust/rust")})
     ->set(
         "rst",
-        {
-          name: "reStructuredText",
-          install: () => Utils.import("codemirror/mode/rst/rst"),
-        },
+        {name: "reStructuredText", install: () => Utils.import("codemirror/mode/rst/rst")},
       )
     ->set(
         "erlang",
-        {
-          name: "Erlang",
-          install: () => Utils.import("codemirror/mode/erlang/erlang"),
-        },
+        {name: "Erlang", install: () => Utils.import("codemirror/mode/erlang/erlang")},
       )
-    ->set(
-        "elixir",
-        {
-          name: "Elixir",
-          install: () => Utils.import("codemirror-mode-elixir"),
-        },
-      )
-    ->set(
-        "elm",
-        {
-          name: "Elm",
-          install: () => Utils.import("codemirror/mode/elm/elm"),
-        },
-      )
+    ->set("elixir", {name: "Elixir", install: () => Utils.import("codemirror-mode-elixir")})
+    ->set("elm", {name: "Elm", install: () => Utils.import("codemirror/mode/elm/elm")})
     ->set(
         "crystal",
-        {
-          name: "Crystal",
-          install: () => Utils.import("codemirror/mode/crystal/crystal"),
-        },
+        {name: "Crystal", install: () => Utils.import("codemirror/mode/crystal/crystal")},
       )
     ->set(
         "html",
-        {
-          name: "HTML",
-          install: () => Utils.import("codemirror/mode/htmlmixed/htmlmixed"),
-        },
+        {name: "HTML", install: () => Utils.import("codemirror/mode/htmlmixed/htmlmixed")},
       )
     ->set(
         "haskell",
-        {
-          name: "Haskell",
-          install: () => Utils.import("codemirror/mode/haskell/haskell"),
-        },
+        {name: "Haskell", install: () => Utils.import("codemirror/mode/haskell/haskell")},
       )
-    ->set(
-        "php",
-        {
-          name: "PHP",
-          install: () => Utils.import("codemirror/mode/php/php"),
-        },
-      )
-    ->set(
-        "lua",
-        {
-          name: "Lua",
-          install: () => Utils.import("codemirror/mode/lua/lua"),
-        },
-      )
-    ->set(
-        "xml",
-        {
-          name: "XML",
-          install: () => Utils.import("codemirror/mode/xml/xml"),
-        },
-      )
+    ->set("php", {name: "PHP", install: () => Utils.import("codemirror/mode/php/php")})
+    ->set("lua", {name: "Lua", install: () => Utils.import("codemirror/mode/lua/lua")})
+    ->set("xml", {name: "XML", install: () => Utils.import("codemirror/mode/xml/xml")})
     ->set(
         "powershell",
         {
           name: "Powershell",
-          install: () =>
-            Utils.import("codemirror/mode/powershell/powershell"),
+          install: () => Utils.import("codemirror/mode/powershell/powershell"),
         },
       )
-    ->set(
-        "swift",
-        {
-          name: "Swift",
-          install: () => Utils.import("codemirror/mode/swift/swift"),
-        },
-      )
-    ->set(
-        "yaml",
-        {
-          name: "YAML",
-          install: () => Utils.import("codemirror/mode/yaml/yaml"),
-        },
-      )
+    ->set("swift", {name: "Swift", install: () => Utils.import("codemirror/mode/swift/swift")})
+    ->set("yaml", {name: "YAML", install: () => Utils.import("codemirror/mode/yaml/yaml")})
     ->set(
         "groovy",
-        {
-          name: "Groovy",
-          install: () => Utils.import("codemirror/mode/groovy/groovy"),
-        },
+        {name: "Groovy", install: () => Utils.import("codemirror/mode/groovy/groovy")},
       )
-    ->set(
-        "java",
-        {
-          name: "Java",
-          install: () => Utils.import("codemirror/mode/clike/clike"),
-        },
-      )
+    ->set("java", {name: "Java", install: () => Utils.import("codemirror/mode/clike/clike")})
     ->set(
         "javascript",
         {
           name: "JavaScript",
-          install: () =>
-            Utils.import("codemirror/mode/javascript/javascript"),
+          install: () => Utils.import("codemirror/mode/javascript/javascript"),
         },
       )
-    ->set(
-        "sass",
-        {
-          name: "Sass",
-          install: () => Utils.import("codemirror/mode/sass/sass"),
-        },
-      )
-    ->set(
-        "ruby",
-        {
-          name: "Ruby",
-          install: () => Utils.import("codemirror/mode/ruby/ruby"),
-        },
-      )
-    ->set(
-        "sql",
-        {
-          name: "SQL",
-          install: () => Utils.import("codemirror/mode/sql/sql"),
-        },
-      )
+    ->set("sass", {name: "Sass", install: () => Utils.import("codemirror/mode/sass/sass")})
+    ->set("ruby", {name: "Ruby", install: () => Utils.import("codemirror/mode/ruby/ruby")})
+    ->set("sql", {name: "SQL", install: () => Utils.import("codemirror/mode/sql/sql")})
   );
 
-[@bs.module "react-codemirror2"]
-external codeMirrorReact: ReasonReact.reactClass = "Controlled";
+[@bs.module "react-codemirror2"] external codeMirrorReact: ReasonReact.reactClass = "Controlled";
 
 let code = (block: Data.contentBlock) =>
   switch (block.content) {
@@ -270,26 +135,12 @@ module CodeMirror = {
     editorDidMount: editor => unit,
   };
 
-  let options =
-    cmOptions(~theme="default", ~lineNumbers=true, ~lineWrapping=true);
+  let options = cmOptions(~theme="default", ~lineNumbers=true, ~lineWrapping=true);
 
-  let make =
-      (
-        ~mode: string,
-        ~code: string,
-        ~editorDidMount,
-        ~onBeforeChange,
-        children,
-      ) =>
+  let make = (~mode: string, ~code: string, ~editorDidMount, ~onBeforeChange, children) =>
     ReasonReact.wrapJsForReason(
       ~reactClass=codeMirrorReact,
-      ~props=
-        jsProps(
-          ~value=code,
-          ~options=options(~mode),
-          ~onBeforeChange,
-          ~editorDidMount,
-        ),
+      ~props=jsProps(~value=code, ~options=options(~mode), ~onBeforeChange, ~editorDidMount),
       children,
     );
 };
@@ -341,8 +192,5 @@ let component = ReasonReact.statelessComponent("CodeEditor");
 let make = (~contentBlock: Data.contentBlock, ~onChange, _children) => {
   let onChange = (_, _, value) => onChange(value);
 
-  {
-    ...component,
-    render: _self => <CodeMirrorWrapper contentBlock onChange />,
-  };
+  {...component, render: _self => <CodeMirrorWrapper contentBlock onChange />};
 };

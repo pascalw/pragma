@@ -37,11 +37,7 @@ let onContentBlockTypeChange = (contentBlock, onChange, event) => {
     switch (value) {
     | "text" => ContentBlocks.updateContentType(contentBlock, value)
     | codeLanguage =>
-      ContentBlocks.(
-        contentBlock
-        ->updateContentType("code")
-        ->updateCodeLanguage(codeLanguage)
-      )
+      ContentBlocks.(contentBlock->updateContentType("code")->updateCodeLanguage(codeLanguage))
     };
 
   onChange(ContentBlock(updatedBlock));
@@ -49,8 +45,7 @@ let onContentBlockTypeChange = (contentBlock, onChange, event) => {
 
 let renderContentBlock = (onChange, contentBlock: Data.contentBlock) =>
   <div
-    className={style("contentBlock") ++ " " ++ blockClass(contentBlock)}
-    key={contentBlock.id}>
+    className={style("contentBlock") ++ " " ++ blockClass(contentBlock)} key={contentBlock.id}>
     <select
       tabIndex=(-1)
       className={style("typeSelector")}
@@ -63,18 +58,14 @@ let renderContentBlock = (onChange, contentBlock: Data.contentBlock) =>
      | {content: TextContent(richText)} =>
        <RichTextEditor
          key={contentBlock.id}
-         onChange={value =>
-           onChange(Content(contentBlock, TextContent(value)))
-         }
+         onChange={value => onChange(Content(contentBlock, TextContent(value)))}
          value=richText
        />
      | {content: CodeContent(_, language)} =>
        <CodeEditor
          key={contentBlock.id}
          contentBlock
-         onChange={value =>
-           onChange(Content(contentBlock, CodeContent(value, language)))
-         }
+         onChange={value => onChange(Content(contentBlock, CodeContent(value, language)))}
        />
      }}
   </div>;
@@ -94,8 +85,6 @@ let make = (~note: Data.note, ~contentBlocks, ~onChange, _children) => {
         value={title(note)}
         onChange={onChangeTitle(note, onChange)}
       />
-      {renderContentBlocks(contentBlocks, onChange)
-       |> Belt.List.toArray
-       |> ReasonReact.array}
+      {renderContentBlocks(contentBlocks, onChange) |> Belt.List.toArray |> ReasonReact.array}
     </div>,
 };
