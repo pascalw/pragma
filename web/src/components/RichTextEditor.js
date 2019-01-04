@@ -61,29 +61,13 @@ export class RichTextEditor extends React.Component {
 
     this.focus = () => this.editor.focus();
     this.isFocused = () => {
-      return this.state.value.getSelection().getHasFocus();
+      return this.state.editorState.getSelection().getHasFocus();
     };
 
     this.state = {
-      value: editorStateFromValue(props.value),
+      editorState: editorStateFromValue(props.value),
       spellcheck: spellcheckEnabled()
     };
-  }
-
-  UNSAFE_componentWillReceiveProps(nextProps) {
-    /* This is not great. The value we receive via nextProps is created from HTML, so from
-    scratch, and as such cannot be compared to the current state cheaply.
-    By serializing to HTML we can determine if the values eventually serialize to the same HTML,
-    and if so don't update the component.
-    Fortunately, props will only get updated after fetching changes from the server. */
-    const newHtml = editorStateToHtml(nextProps.value);
-    const currentHtml = editorStateToHtml(this.state.value);
-
-    if(newHtml !== currentHtml) {
-      this.setState({
-        value: editorStateFromValue(nextProps.value)
-      });
-    }
   }
 
   componentDidMount() {
@@ -108,19 +92,19 @@ export class RichTextEditor extends React.Component {
   }
 
   onTab = e => {
-    const newState = RichUtils.onTab(e, this.state.value, 4 /* maxDepth */);
+    const newState = RichUtils.onTab(e, this.state.editorState, 4 /* maxDepth */);
 
     if (newState) {
       this.onChange(newState);
     }
   };
 
-  onChange = state => {
-    if (state.getCurrentContent() !== this.state.value.getCurrentContent()) {
-      this.props.onChange(state);
+  onChange = editorState => {
+    if (editorState.getCurrentContent() !== this.state.editorState.getCurrentContent()) {
+      this.props.onChange(editorState);
     }
 
-    this.setState({ value: state });
+    this.setState({ editorState });
   };
 
   handleReturn = (_e, editorState) => {
@@ -152,11 +136,11 @@ export class RichTextEditor extends React.Component {
   };
 
   toggleBlockType = blockType => {
-    this.onChange(RichUtils.toggleBlockType(this.state.value, blockType));
+    this.onChange(RichUtils.toggleBlockType(this.state.editorState, blockType));
   };
 
   toggleInlineStyle = inlineStyle => {
-    this.onChange(RichUtils.toggleInlineStyle(this.state.value, inlineStyle));
+    this.onChange(RichUtils.toggleInlineStyle(this.state.editorState, inlineStyle));
   };
 
   toggleSpellcheck = () => {
@@ -169,7 +153,7 @@ export class RichTextEditor extends React.Component {
   };
 
   currentBlockType = () => {
-    const editorState = this.state.value;
+    const editorState = this.state.editorState;
 
     const selection = editorState.getSelection();
 
@@ -180,7 +164,7 @@ export class RichTextEditor extends React.Component {
   };
 
   currentStyle = () => {
-    return this.state.value.getCurrentInlineStyle();
+    return this.state.editorState.getCurrentInlineStyle();
   };
 
   render() {
@@ -196,7 +180,7 @@ export class RichTextEditor extends React.Component {
       <div className={className} onClick={this.focus}>
         <Editor
           ref={ref => (this.editor = ref)}
-          editorState={this.state.value}
+          editorState={this.state.editorState}
           onChange={this.onChange}
           onTab={this.onTab}
           customStyleMap={styleMap}

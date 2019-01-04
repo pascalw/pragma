@@ -57,7 +57,7 @@ let renderContentBlock = (onChange, contentBlock: Data.contentBlock) =>
     {switch (contentBlock) {
      | {content: TextContent(richText)} =>
        <RichTextEditor
-         key={contentBlock.id}
+         key={contentBlock.id ++ Js.Date.toString(contentBlock.updatedAt)}
          onChange={value => onChange(Content(contentBlock, TextContent(value)))}
          value=richText
        />
