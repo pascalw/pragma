@@ -3,6 +3,9 @@ open UiTypes;
 
 let maxRecentNotes = 10;
 
+let refreshDataMinElapsed = 10.0 *. 1000.0;
+let lastDataRefresh: ref(option(Js.Date.t)) = ref(None);
+
 type state = {
   initialStateLoaded: bool,
   notebooks: list((Data.notebook, int)),
@@ -14,7 +17,8 @@ type state = {
 };
 
 type action =
-  | LoadInitialState(state)
+  | ReloadState
+  | LoadState(state)
   | CreateNotebook(Data.notebook)
   | UpdateNotebook(Data.notebook)
   | SelectNotebook(NoteCollection.t)
@@ -201,7 +205,13 @@ let make = (children: (state, action => unit) => ReasonReact.reactElement) => {
   },
   reducer: (action: action, state: state) =>
     switch (action) {
-    | LoadInitialState(state) => ReasonReact.Update(state)
+    | ReloadState =>
+      ReasonReact.SideEffects(
+        self =>
+          fetchAllData()
+          |> Repromise.wait(state => self.send(LoadState(state))),
+      )
+    | LoadState(state) => ReasonReact.Update(state)
     | SelectNotebook(
         NoteCollection.Collection(
           {kind: NoteCollection.CollectionKind.Recents} as collection,
@@ -314,7 +324,7 @@ let make = (children: (state, action => unit) => ReasonReact.reactElement) => {
                );
 
                fetchAllData()
-               |> Repromise.wait(state => self.send(LoadInitialState(state)));
+               |> Repromise.wait(state => self.send(LoadState(state)));
              })
           |> ignore,
       )
@@ -380,16 +390,32 @@ let make = (children: (state, action => unit) => ReasonReact.reactElement) => {
       );
     },
   didMount: self => {
-    DbSync.run();
+    let serverSync = () => {
+      DbSync.run();
+      lastDataRefresh := Some(Utils.now());
+    };
+
+    serverSync();
     DataSyncRetry.getPendingChanges() |> Repromise.wait(DataSync.start);
 
-    let loadStateFromDb = () =>
-      fetchAllData()
-      |> Repromise.wait(state => self.send(LoadInitialState(state)));
-
+    let loadStateFromDb = () => self.send(ReloadState);
     loadStateFromDb();
     Db.subscribe(loadStateFromDb);
-    self.onUnmount(() => Db.unsubscribe(loadStateFromDb));
+
+    let removePageVisibleListener =
+      Utils.onPageVisible(() =>
+        switch (lastDataRefresh^) {
+        | Some(date)
+            when Utils.timeElapsedSince(date) > refreshDataMinElapsed =>
+          serverSync()
+        | _ => ()
+        }
+      );
+
+    self.onUnmount(() => {
+      Db.unsubscribe(loadStateFromDb);
+      removePageVisibleListener();
+    });
   },
   didUpdate: ({oldSelf: _oldSelf, newSelf}) =>
     AppState.setSelected(

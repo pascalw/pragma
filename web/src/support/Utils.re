@@ -26,6 +26,12 @@ let compareDates = (a, b) => {
   };
 };
 
+let timeElapsedSince = (date: Js.Date.t): float => {
+  Js.Date.now() -. Js.Date.getTime(date);
+};
+
+let now = () => Js.Date.fromFloat(Js.Date.now());
+
 let nanoIdAlphabet = "0123456789abcdefghijklmnopqrstuvwxyz";
 [@bs.module]
 external generateNanoId: (string, int) => string = "nanoid/generate";
@@ -100,3 +106,32 @@ let benchmarkCb = (label: string): (unit => unit) => {
     Js.log3(label, "took ", Js.Date.now() -. start);
   };
 };
+
+type removeListener = unit => unit;
+let buildVisibilityChangeListener =
+    (
+      desiredState: DomTypesRe.visibilityState,
+      document,
+      listener: unit => unit,
+    )
+    : removeListener => {
+  open Webapi;
+
+  let domListener = _e =>
+    if (Dom.Document.visibilityState(document) == desiredState) {
+      listener();
+    };
+
+  Dom.Document.addEventListener("visibilitychange", domListener, document);
+
+  () => {
+    Dom.Document.removeEventListener(
+      "visibilitychange",
+      domListener,
+      document,
+    );
+  };
+};
+
+let onPageVisible =
+  buildVisibilityChangeListener(DomTypesRe.Visible, Webapi.Dom.document);
