@@ -448,7 +448,7 @@ let deleteNote = (noteId: string, ~sync=true, ()) =>
   |> Repromise.map(_result => {
        /* FIXME: only push when succesfull */
        if (sync) {
-         DataSync.pushNotebookDelete(noteId);
+         DataSync.pushNoteDelete(noteId);
        };
 
        Ok();
