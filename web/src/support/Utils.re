@@ -83,6 +83,15 @@ function htmlToText(html) {
 |}
 ];
 
+/* Based on https://stackoverflow.com/a/53711623/6769663 */
+let isUrl =
+  Js.Re.test(
+    _,
+    [%bs.re
+      "/^((?:https?):\\/\\/?)?([^:/\\s.]+\\.[^:/\\s]|localhost)(:\\d+)?((?:\\/\\w+)*\\/)?([\\w\\-.]+[^#?\\s]+)?([^#]+)?(#[\\w-]+)?$/i"
+    ],
+  );
+
 [@bs.module "classnames"] [@bs.splice] external classnames: array(string) => string = "default";
 
 module DayJs = {

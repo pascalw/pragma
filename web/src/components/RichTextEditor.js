@@ -5,11 +5,12 @@ import {
   handleDraftEditorPastedText,
 } from "draftjs-conductor";
 import { handleReturnInList } from "../draft-js/list-behavior";
-import { isSelectionAtStart, editorStateToHtml } from "../draft-js/utils";
+import { isSelectionAtStart, applyLinkToSelection, createLinkedText } from "../draft-js/utils";
 import classNames from "classnames/bind";
 import styles from "./RichTextEditor.scss";
 import { jsComponent as ButtonBar } from "./RichTextButtonBar.bs";
 import { jsComponent as LinkComponent } from "./editor/Link.bs";
+import { isUrl } from "../support/Utils.bs";
 
 const styleMap = {
   STRIKETHROUGH: {
@@ -80,7 +81,21 @@ export class RichTextEditor extends React.Component {
     }
   }
 
-  handlePastedText = (_text, html, editorState) => {
+  handlePastedText = (text, html, editorState) => {
+    if(isUrl(text)) {
+      const url = text;
+      let newEditorState;
+
+      if(editorState.getSelection().isCollapsed()) {
+        newEditorState = createLinkedText(editorState, url, url);
+      } else {
+        newEditorState = applyLinkToSelection(editorState, url);
+      }
+
+      this.onChange(newEditorState);
+      return true;
+    }
+
     let newState = handleDraftEditorPastedText(html, editorState);
  
     if (newState) {

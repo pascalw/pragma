@@ -1,5 +1,5 @@
 import React from "react";
-import { EditorState, createEntity } from "draft-js";
+import { EditorState, Modifier } from "draft-js";
 import {
   convertToHTML as rawConvertToHTML,
   convertFromHTML as rawConvertFromHTML
@@ -22,7 +22,7 @@ const convertToHTML = rawConvertToHTML({
 const convertFromHTML = rawConvertFromHTML({
   htmlToEntity: (nodeName, node, createEntity) => {
     if (nodeName === "a") {
-      return createEntity("LINK", "MUTABLE", { url: node.href });
+      return createLinkEntity(createEntity, node.href);
     }
   }
 });
@@ -46,4 +46,47 @@ export const isSelectionAtStart = editorState => {
     selectionState.getFocusKey() === firstBlock.getKey() &&
     selectionState.getStartOffset() == 0
   );
+};
+
+const createLinkEntity = (createEntity, url) => {
+  return createEntity(
+    "LINK",
+    "MUTABLE",
+    { url }
+  );
+};
+
+export const applyLinkToSelection = (editorState, url) => {
+  const contentState = editorState.getCurrentContent();
+
+  let newContentState = createLinkEntity(contentState.createEntity.bind(contentState), url);
+  const entityKey = newContentState.getLastCreatedEntityKey();
+  newContentState = Modifier.applyEntity(newContentState, editorState.getSelection(), entityKey);
+
+  let newEditorState = EditorState.push(
+    editorState,
+    newContentState,
+    "apply-entity"
+  );
+
+  return newEditorState;
+};
+
+export const createLinkedText = (editorState, url, text) => {
+  const contentState = editorState.getCurrentContent();
+
+  let newContentState = createLinkEntity(contentState.createEntity.bind(contentState), url);
+  const entityKey = newContentState.getLastCreatedEntityKey();
+  newContentState = Modifier.insertText(newContentState, editorState.getSelection(), text, null, entityKey);
+
+  let newEditorState = EditorState.push(
+    editorState,
+    newContentState,
+    "insert-characters"
+  );
+
+  let newSelection = newContentState.getSelectionAfter();
+  newEditorState = EditorState.forceSelection(newEditorState, newSelection);
+
+  return newEditorState;
 };
