@@ -1,5 +1,5 @@
 {
-  "name": "reason-scripts",
+  "name": "pragma-web",
   "sources": ["src", "src/components"],
   "bs-dependencies": [
     "reason-react",
