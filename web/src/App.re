@@ -11,28 +11,28 @@ type state = {viewMode};
 
 type action =
   | Render
-  | SetViewMode(viewMode);
+  | ToggleViewMode;
 
 let component = ReasonReact.reducerComponent("App");
 let make = _children => {
   ...component,
   initialState: () => {viewMode: ThreeColumn},
   didMount: self => {
-    Mousetrap.bind("\\ 1", _e => self.send(SetViewMode(SingleColumn)));
+    Mousetrap.bind("command+alt+v", _e => self.send(ToggleViewMode));
 
-    Mousetrap.bind("\\ 2", _e => self.send(SetViewMode(TwoColumn)));
-
-    Mousetrap.bind("\\ 3", _e => self.send(SetViewMode(ThreeColumn)));
-
-    self.onUnmount(() => {
-      Mousetrap.unbind("v 1");
-      Mousetrap.unbind("v 2");
-      Mousetrap.unbind("v 3");
-    });
+    self.onUnmount(() => Mousetrap.unbind("command+alt+v"));
   },
   reducer: (action: action, state: state) =>
     switch (action) {
-    | SetViewMode(viewMode) => ReasonReact.Update({viewMode: viewMode})
+    | ToggleViewMode =>
+      let nextMode =
+        switch (state.viewMode) {
+        | SingleColumn => ThreeColumn
+        | TwoColumn => SingleColumn
+        | ThreeColumn => TwoColumn
+        };
+
+      ReasonReact.Update({viewMode: nextMode});
     | Render => ReasonReact.Update(state)
     },
   render: self => {
