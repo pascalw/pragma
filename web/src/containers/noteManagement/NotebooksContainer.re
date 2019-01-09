@@ -35,9 +35,9 @@ let make =
     Utils.find(collections, c => c.kind == kind);
   };
 
-  let renderCollection =
+  let renderCollection: option(NoteCollection.t) => ReasonReact.reactElement =
     fun
-    | Some(collection) => {
+    | Some({kind: CollectionKind.Recents} as collection) when collection.noteCount > 1 => {
         let id = NoteCollection.id(collection);
         let title = NoteCollection.name(collection);
         let icon =
@@ -58,6 +58,7 @@ let make =
           <ListView.ItemContent title count={collection.noteCount} icon />
         </ListView.Item>;
       }
+    | Some(_)
     | None => ReasonReact.null;
 
   {
