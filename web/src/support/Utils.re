@@ -134,3 +134,12 @@ let buildVisibilityChangeListener =
 };
 
 let onPageVisible = buildVisibilityChangeListener(DomTypesRe.Visible, Webapi.Dom.document);
+
+module Option = {
+  let or_ = (option: option('a), optb: option('a)): option('a) => {
+    switch (option) {
+    | Some(_) => option
+    | None => optb
+    };
+  };
+};

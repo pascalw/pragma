@@ -99,9 +99,10 @@ let fetchAllData = () => {
           })
      )
   |> Repromise.andThen(((notebooks: list((Data.notebook, int)), noteCollections)) => {
+       let firstNotebookId = List.head(notebooks) >>= (((notebook, _)) => notebook.id);
+       let selectedCollectionId = Utils.Option.or_(appState.selectedNotebookId, firstNotebookId);
        let selectedCollection =
-         selectedCollection(noteCollections, notebooks, appState.selectedNotebookId);
-       let selectedCollectionId = selectedCollection >>= NoteCollection.id;
+         selectedCollection(noteCollections, notebooks, selectedCollectionId);
 
        switch (selectedCollection) {
        | Some(NoteCollection.Notebook(notebook)) =>
