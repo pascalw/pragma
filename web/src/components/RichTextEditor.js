@@ -61,6 +61,8 @@ export class RichTextEditor extends React.Component {
     super(props);
 
     this.focus = () => this.editor.focus();
+    this.blur = () => this.editor.blur();
+
     this.isFocused = () => {
       return this.state.editorState.getSelection().getHasFocus();
     };
@@ -203,6 +205,7 @@ export class RichTextEditor extends React.Component {
           handleKeyCommand={this.handleKeyCommand}
           spellCheck={this.state.spellcheck}
           handlePastedText={this.handlePastedText}
+          onEscape={_e => this.blur()}
         />
 
         <ButtonBar

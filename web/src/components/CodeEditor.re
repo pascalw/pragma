@@ -1,9 +1,6 @@
 [%bs.raw {|require('codemirror/lib/codemirror.css')|}];
 open Utils.Import;
 
-type editor;
-[@bs.send] external setOption: (editor, string, string) => unit = "";
-
 type cmMode = {
   name: string,
   install: unit => Js.Promise.t(unit),
@@ -69,25 +66,18 @@ let language = (block: Data.contentBlock) =>
   | _ => "unknown"
   };
 
-let mapMode = language =>
-  switch (language) {
-  | "sql" => "text/x-sql"
-  | "php" => "text/x-php"
-  | "java" => "text/x-java"
-  | "html" => "text/html"
-  | _ => language
+module CodeMirror = {
+  module InputField = {
+    type t;
+    [@bs.send] external blur: t => unit = "";
   };
 
-let loadMode = (contentBlock, editor) => {
-  let language = language(contentBlock);
-  let mode = SupportedLanguageMap.getExn(supportedLanguages, language);
+  module Editor = {
+    type t;
+    [@bs.send] external setOption: (t, string, string) => unit = "";
+    [@bs.send] external getInputField: t => InputField.t = "";
+  };
 
-  mode.install()
-  |> Promises.toResultPromise
-  |> Promises.tapOk(_ => setOption(editor, "mode", mapMode(language)));
-};
-
-module CodeMirror = {
   [@bs.deriving abstract]
   type cmOptions = {
     mode: string,
@@ -101,24 +91,56 @@ module CodeMirror = {
     value: string,
     options: cmOptions,
     onBeforeChange: (string, string, string) => unit,
-    editorDidMount: editor => unit,
+    editorDidMount: Editor.t => unit,
+    onKeyDown: (Editor.t, ReactEvent.Keyboard.t) => unit,
   };
 
   let options = cmOptions(~theme="default", ~lineNumbers=true, ~lineWrapping=true);
 
-  let make = (~mode: string, ~code: string, ~editorDidMount, ~onBeforeChange, children) =>
+  let make =
+      (~mode: string, ~code: string, ~editorDidMount, ~onBeforeChange, ~onKeyDown, children) =>
     ReasonReact.wrapJsForReason(
       ~reactClass=codeMirrorReact,
-      ~props=jsProps(~value=code, ~options=options(~mode), ~onBeforeChange, ~editorDidMount),
+      ~props=
+        jsProps(
+          ~value=code,
+          ~options=options(~mode),
+          ~onBeforeChange,
+          ~editorDidMount,
+          ~onKeyDown,
+        ),
       children,
     );
 };
 
 module CodeMirrorWrapper = {
-  type state = {editor: option(editor)};
+  type state = {editor: option(CodeMirror.Editor.t)};
 
   type action =
-    | SetEditor(editor);
+    | SetEditor(CodeMirror.Editor.t);
+
+  let onKeyDown = (editor, event) =>
+    if (ReactEvent.Keyboard.key(event) == "Escape") {
+      editor->CodeMirror.Editor.getInputField->CodeMirror.InputField.blur;
+    };
+
+  let mapMode = language =>
+    switch (language) {
+    | "sql" => "text/x-sql"
+    | "php" => "text/x-php"
+    | "java" => "text/x-java"
+    | "html" => "text/html"
+    | _ => language
+    };
+
+  let loadMode = (contentBlock, editor) => {
+    let language = language(contentBlock);
+    let mode = SupportedLanguageMap.getExn(supportedLanguages, language);
+
+    mode.install()
+    |> Promises.toResultPromise
+    |> Promises.tapOk(_ => CodeMirror.Editor.setOption(editor, "mode", mapMode(language)));
+  };
 
   let component = ReasonReact.reducerComponent("CodeMirrorWrapper");
   let make = (~contentBlock: Data.contentBlock, ~onChange, _children) => {
@@ -142,6 +164,7 @@ module CodeMirrorWrapper = {
         code
         onBeforeChange=onChange
         editorDidMount={editor => self.send(SetEditor(editor))}
+        onKeyDown
       />;
     },
   };
