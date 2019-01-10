@@ -26,13 +26,16 @@ Pragma is designed to be hosted on a server and accessed via your webbrowser. In
 
 ## Roadmap
 
-- [ ] Keyboard shortcuts.
 - [ ] Checkboxes in text editor.
-- [ ] Easy access to recent notes.
+- [ ] Keyboard shortcuts.
+- [x] Easy access to recent notes.
 - [ ] Quick open / search.
-- [ ] Sync conflict resolution.
 - [ ] Mobile friendly.
-- [ ] Anonymous note sharing.
+- [ ] File attachments
+- [ ] Sync conflict resolution.
+- [ ] (Anonymous) note sharing.
+
+See the [development board](https://github.com/pascalw/pragma/projects/1) for details.
 
 ## Known issues
 
