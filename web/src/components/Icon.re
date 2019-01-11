@@ -8,6 +8,7 @@ type iconType =
   | FormatQuote
   | BulletList
   | NumberedList
+  | CheckList
   | Spellcheck
   | Sync
   | Recent;
@@ -66,6 +67,12 @@ let make = (~icon: iconType, _children) => {
       <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24">
         <path
           d="M2 17h2v.5H3v1h1v.5H2v1h3v-4H2v1zm1-9h1V4H2v1h1v3zm-1 3h1.8L2 13.1v.9h3v-1H3.2L5 10.9V10H2v1zm5-6v2h14V5H7zm0 14h14v-2H7v2zm0-6h14v-2H7v2z"
+        />
+      </svg>
+    | CheckList =>
+      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">
+        <path
+          d="M6.99 16.266L3.657 20 1.99 18.137l.743-.79.924 1.042 2.57-2.889.763.766zm0-6L3.657 14 1.99 12.137l.743-.79.924 1.042L6.227 9.5l.763.766zm0-6L3.657 8 1.99 6.137l.743-.79.924 1.042L6.227 3.5l.763.766zM8 19h13v-2H8v2zm0-6h13v-2H8v2zm0-8v2h13V5H8z"
         />
       </svg>
     | Spellcheck =>

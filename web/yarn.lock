@@ -3027,12 +3027,28 @@ draft-convert@^2.1.4:
     immutable "~3.7.4"
     invariant "^2.2.1"
 
+draft-js-checkable-list-item@^3.0.4:
+  version "3.0.4"
+  resolved "https://registry.yarnpkg.com/draft-js-checkable-list-item/-/draft-js-checkable-list-item-3.0.4.tgz#b3049a56499757720cdcbf3775d0384464ad0030"
+  integrity sha512-rHTErKYTYoBRtSCxKfSz+PivbtXp0KqmjC2Ms3u9QHlx9c40qsbajdSz+1TfPXaWP8FAB5EeynZ2qYPRgltPeQ==
+  dependencies:
+    draft-js-modifiers "~0.2.2"
+    immutable "~3.7.4"
+
 draft-js-list-depth-plugin@^1.0.1:
   version "1.0.1"
   resolved "https://registry.yarnpkg.com/draft-js-list-depth-plugin/-/draft-js-list-depth-plugin-1.0.1.tgz#24a7d92d7fc42dfeeb36d20a57bd139272de5597"
   integrity sha512-OV/XDoDaWuzIf0cVxMszhmk+jaXMrLHmJnHShKUdAynC0dztzwmFCOImUZhDF1Xc+kRouT4Cbg3+/B2aWXA70Q==
 
-draft-js@^0.10.5:
+draft-js-modifiers@~0.2.2:
+  version "0.2.2"
+  resolved "https://registry.yarnpkg.com/draft-js-modifiers/-/draft-js-modifiers-0.2.2.tgz#ff715450a04aea86b84993b0e51eea7c25a2591d"
+  integrity sha512-64zeY74S4um+NO5HI66scZAX6fufdpZlr6htI3ttvNkTw5Jx/3r7+ETKJ/PTnGWtzUTC7TVkeF6mP7oqtUBUQw==
+  dependencies:
+    draft-js "~0.10.5"
+    immutable "~3.7.4"
+
+draft-js@^0.10.5, draft-js@~0.10.5:
   version "0.10.5"
   resolved "https://registry.yarnpkg.com/draft-js/-/draft-js-0.10.5.tgz#bfa9beb018fe0533dbb08d6675c371a6b08fa742"
   integrity sha512-LE6jSCV9nkPhfVX2ggcRLA4FKs6zWq9ceuO/88BpXdNCS7mjRTgs0NsV6piUCJX9YxMsB9An33wnkMmU2sD2Zg==

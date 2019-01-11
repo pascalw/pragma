@@ -1,16 +1,35 @@
 import React from "react";
-import { Editor, RichUtils, CompositeDecorator, EditorState } from "draft-js";
+import {
+  Editor,
+  RichUtils,
+  CompositeDecorator,
+  EditorState,
+  DefaultDraftBlockRenderMap
+} from "draft-js";
 import {
   registerCopySource,
-  handleDraftEditorPastedText,
+  handleDraftEditorPastedText
 } from "draftjs-conductor";
 import { handleReturnInList } from "../draft-js/list-behavior";
-import { isSelectionAtStart, applyLinkToSelection, createLinkedText } from "../draft-js/utils";
+import {
+  isSelectionAtStart,
+  applyLinkToSelection,
+  createLinkedText,
+} from "../draft-js/utils";
+import { CHECKABLE_LIST_ITEM_TYPE } from "../draft-js/constants";
 import classNames from "classnames/bind";
 import styles from "./RichTextEditor.scss";
 import { jsComponent as ButtonBar } from "./RichTextButtonBar.bs";
 import { jsComponent as LinkComponent } from "./editor/Link.bs";
 import { isUrl } from "../support/Utils.bs";
+import CheckableListItem, {
+  listItemStyle,
+  toggleChecked,
+  onTab as onCheckableListItemTab,
+  blockRenderMap as listItemBlockRenderMap
+} from "./RichTextEditor/CheckableListItem";
+
+const maxListDepth = 4;
 
 const styleMap = {
   STRIKETHROUGH: {
@@ -29,19 +48,16 @@ const setSpellcheck = spellcheckState => {
 };
 
 const findLinkEntities = (contentBlock, callback, contentState) => {
-  contentBlock.findEntityRanges(
-    (character) => {
-      const entityKey = character.getEntity();
-      return (
-        entityKey !== null &&
-        contentState.getEntity(entityKey).getType() === 'LINK'
-      );
-    },
-    callback
-  );
-}
-const Link = (props) => {
-  const {url} = props.contentState.getEntity(props.entityKey).getData();
+  contentBlock.findEntityRanges(character => {
+    const entityKey = character.getEntity();
+    return (
+      entityKey !== null &&
+      contentState.getEntity(entityKey).getType() === "LINK"
+    );
+  }, callback);
+};
+const Link = props => {
+  const { url } = props.contentState.getEntity(props.entityKey).getData();
   return <LinkComponent url={url}>{props.children}</LinkComponent>;
 };
 
@@ -49,7 +65,7 @@ const decorator = new CompositeDecorator([
   {
     strategy: findLinkEntities,
     component: Link
-  },
+  }
 ]);
 
 const editorStateFromValue = value => {
@@ -83,12 +99,31 @@ export class RichTextEditor extends React.Component {
     }
   }
 
+  blockRendererFn = block => {
+    if (block.getType() === CHECKABLE_LIST_ITEM_TYPE) {
+      return {
+        component: CheckableListItem,
+        props: {
+          onChangeChecked: () =>
+            this.onChange(toggleChecked(this.state.editorState, block)),
+          checked: !!block.getData().get("checked")
+        }
+      };
+    }
+  };
+
+  blockStyleFn(block) {
+    if (block.getType() === CHECKABLE_LIST_ITEM_TYPE) {
+      return listItemStyle;
+    }
+  }
+
   handlePastedText = (text, html, editorState) => {
-    if(isUrl(text)) {
+    if (isUrl(text)) {
       const url = text;
       let newEditorState;
 
-      if(editorState.getSelection().isCollapsed()) {
+      if (editorState.getSelection().isCollapsed()) {
         newEditorState = createLinkedText(editorState, url, url);
       } else {
         newEditorState = applyLinkToSelection(editorState, url);
@@ -99,17 +134,22 @@ export class RichTextEditor extends React.Component {
     }
 
     let newState = handleDraftEditorPastedText(html, editorState);
- 
+
     if (newState) {
       this.onChange(newState);
       return true;
     }
- 
+
     return false;
-  }
+  };
 
   onTab = e => {
-    const newState = RichUtils.onTab(e, this.state.editorState, 4 /* maxDepth */);
+    let newState = onCheckableListItemTab(
+      e,
+      this.state.editorState,
+      maxListDepth
+    );
+    newState = RichUtils.onTab(e, newState, maxListDepth);
 
     if (newState) {
       this.onChange(newState);
@@ -117,7 +157,10 @@ export class RichTextEditor extends React.Component {
   };
 
   onChange = editorState => {
-    if (editorState.getCurrentContent() !== this.state.editorState.getCurrentContent()) {
+    if (
+      editorState.getCurrentContent() !==
+      this.state.editorState.getCurrentContent()
+    ) {
       this.props.onChange(editorState);
     }
 
@@ -136,7 +179,7 @@ export class RichTextEditor extends React.Component {
   };
 
   handleKeyCommand = (command, editorState) => {
-    if (command == "backspace" && ! isSelectionAtStart(editorState)) {
+    if (command == "backspace" && !isSelectionAtStart(editorState)) {
       // Don't handle backspace with RichUtils, it deletes list items and
       // breaks lists, unless we're at the very start of the selection
       // so the last remaining bullet can be deleted by backspace.
@@ -157,12 +200,14 @@ export class RichTextEditor extends React.Component {
   };
 
   toggleInlineStyle = inlineStyle => {
-    this.onChange(RichUtils.toggleInlineStyle(this.state.editorState, inlineStyle));
+    this.onChange(
+      RichUtils.toggleInlineStyle(this.state.editorState, inlineStyle)
+    );
   };
 
   toggleSpellcheck = () => {
     this.setState(state => {
-      const spellcheck = ! state.spellcheck;
+      const spellcheck = !state.spellcheck;
       setSpellcheck(spellcheck);
 
       return { spellcheck };
@@ -205,6 +250,11 @@ export class RichTextEditor extends React.Component {
           handleKeyCommand={this.handleKeyCommand}
           spellCheck={this.state.spellcheck}
           handlePastedText={this.handlePastedText}
+          blockRendererFn={this.blockRendererFn}
+          blockRenderMap={DefaultDraftBlockRenderMap.merge(
+            listItemBlockRenderMap
+          )}
+          blockStyleFn={this.blockStyleFn}
           onEscape={_e => this.blur()}
         />
 

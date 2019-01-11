@@ -1,0 +1,12 @@
+.listItem {
+  list-style: none;
+  transform: translateX(-1.5em);
+}
+
+.checkbox, .text {
+  display: inline-block;
+}
+
+.checkbox {
+  margin-right: 6px;
+}

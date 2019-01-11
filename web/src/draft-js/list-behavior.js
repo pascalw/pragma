@@ -1,6 +1,5 @@
 import {
   getSelectedBlock,
-  isEmptyListItem,
   decreaseBlockDepth,
   changeBlockType
 } from "draft-js-list-depth-plugin/src/utils";
@@ -21,4 +20,14 @@ export const handleReturnInList = (editorState) => {
   }
 
   return null;
+};
+
+const isEmptyListItem = block => {
+  const text = block.getText();
+  const hasEmptyText = text.length === 0;
+  const blockType = block.getType();
+  const isListItemBlock =
+    blockType === "unordered-list-item" || blockType === "ordered-list-item" || blockType == "checkable-list-item";
+
+  return isListItemBlock && hasEmptyText;
 };

@@ -1,15 +1,29 @@
 import React from "react";
+import ReactDOMServer from "react-dom/server";
 import { EditorState, Modifier } from "draft-js";
 import {
   convertToHTML as rawConvertToHTML,
   convertFromHTML as rawConvertFromHTML
 } from "draft-convert";
+import { CHECKABLE_LIST_ITEM_TYPE } from "./constants";
 
 const convertToHTML = rawConvertToHTML({
   styleToHTML: style => {
     if (style === "STRIKETHROUGH") {
       return <del />;
     }
+  },
+  blockToHTML: block => {
+    if(block.type === CHECKABLE_LIST_ITEM_TYPE) {
+      const checked = !! block.data.checked;
+      const input = <input type="checkbox" defaultChecked={checked} />;
+
+      return {
+        start: "<li>" + ReactDOMServer.renderToStaticMarkup(input),
+        end: "</li>",
+        nest: <ul/>
+      }
+    };
   },
   entityToHTML: (entity, originalText) => {
     if (entity.type === "LINK") {
@@ -23,6 +37,17 @@ const convertFromHTML = rawConvertFromHTML({
   htmlToEntity: (nodeName, node, createEntity) => {
     if (nodeName === "a") {
       return createLinkEntity(createEntity, node.href);
+    }
+  },
+  htmlToBlock: (nodeName, node) => {
+    if (nodeName === "li") {
+      const checkbox = node.querySelector("input[type=checkbox]");
+      if(checkbox) {
+        return {
+            type: CHECKABLE_LIST_ITEM_TYPE,
+            data: { checked: checkbox.checked }
+        };
+      }
     }
   }
 });

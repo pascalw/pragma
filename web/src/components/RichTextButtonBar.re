@@ -104,6 +104,10 @@ let make =
               title="Ordered list" blockType="ordered-list-item" toggleBlockType currentBlockType>
               <Icon icon=Icon.NumberedList />
             </BlockTypeButton>
+            <BlockTypeButton
+              title="Check list" blockType="checkable-list-item" toggleBlockType currentBlockType>
+              <Icon icon=Icon.CheckList />
+            </BlockTypeButton>
           </div>
           <div> <div className={style("divider")} /> </div>
           <div>
