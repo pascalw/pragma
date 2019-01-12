@@ -60,7 +60,7 @@ let make =
     toggleBlockType(blockType);
   };
 
-  let toggleSpellcheck = _event => toggleSpellcheck();
+  let toggleSpellcheck = _event => toggleSpellcheck(.);
 
   {
     ...component,
@@ -127,7 +127,7 @@ type jsProps = {
   isStyleActive: string => bool,
   currentBlockType: string,
   spellcheck: bool,
-  toggleSpellcheck: unit => unit,
+  toggleSpellcheck: (. unit) => unit,
 };
 
 let jsComponent =
