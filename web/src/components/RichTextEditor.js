@@ -39,7 +39,14 @@ const styleMap = {
     backgroundColor: "rgba(252, 222, 0, 0.2)",
     padding: "0 .2em",
     borderRadius: "2px"
-  }
+  },
+  CODE: {
+    backgroundColor: 'rgba(0, 0, 0, 0.05)',
+    fontFamily: 'SFMono-Regular,Consolas,Liberation Mono,Menlo,Courier,monospace',
+    fontSize: ".9em",
+    padding: "0 .2em",
+    borderRadius: "2px"
+  },
 };
 
 let cx = classNames.bind(styles);

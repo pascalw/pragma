@@ -87,9 +87,16 @@ let make =
               isActive=isStyleActive>
               <Icon icon=Icon.FormatStrikethrough />
             </InlineStyleButton>
+          </div>
+          <div> <div className={style("divider")} /> </div>
+          <div>
             <InlineStyleButton
               title="Mark" styleName="MARK" toggleInlineStyle isActive=isStyleActive>
               <Icon icon=Icon.FormatMark />
+            </InlineStyleButton>
+            <InlineStyleButton
+              title="Code" styleName="CODE" toggleInlineStyle isActive=isStyleActive>
+              <Icon icon=Icon.FormatCode />
             </InlineStyleButton>
           </div>
           <div> <div className={style("divider")} /> </div>
