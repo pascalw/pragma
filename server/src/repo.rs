@@ -16,6 +16,7 @@ use super::schema::notes;
 
 embed_migrations!("./migrations");
 static WELCOME_TEXT: &str = include_str!("./static/welcome.html");
+static TEXT_FORMATTING_INFO: &str = include_str!("./static/text_formatting.html");
 
 #[derive(Queryable)]
 struct Notebook {
@@ -128,14 +129,14 @@ fn seed(connection: &SqliteConnection) {
         updated_at: now,
     };
 
-    let note_id = repo_id::generate();
-    let note = data::NewNote {
-        id: Some(note_id.clone()),
+    let welcome_note_id = repo_id::generate();
+    let welcome_note = data::NewNote {
+        id: Some(welcome_note_id.clone()),
         title: "Welcome to Pragma!".into(),
         tags: vec![],
         created_at: now,
         updated_at: now,
-        notebook_id,
+        notebook_id: notebook_id.clone(),
     };
 
     let content_block_id = repo_id::generate();
@@ -146,12 +147,36 @@ fn seed(connection: &SqliteConnection) {
         },
         created_at: now,
         updated_at: now,
-        note_id,
+        note_id: welcome_note_id,
+    };
+
+    let formatting_info_note_id = repo_id::generate();
+    let formatting_info_note = data::NewNote {
+        id: Some(formatting_info_note_id.clone()),
+        title: "Text formatting".into(),
+        tags: vec![],
+        created_at: now,
+        updated_at: now,
+        notebook_id,
+    };
+
+    let formatting_info_content_block_id = repo_id::generate();
+    let formatting_info_content_block = data::NewContentBlock {
+        id: Some(formatting_info_content_block_id.clone()),
+        content: data::Content::Text {
+            text: TEXT_FORMATTING_INFO.into(),
+        },
+        created_at: now,
+        updated_at: now,
+        note_id: formatting_info_note_id,
     };
 
     create_notebook(notebook, connection).unwrap();
-    create_note(note, connection).unwrap();
+
+    create_note(welcome_note, connection).unwrap();
     create_content_block(content_block, connection).unwrap();
+    create_note(formatting_info_note, connection).unwrap();
+    create_content_block(formatting_info_content_block, connection).unwrap();
 }
 
 pub fn setup(connection: &SqliteConnection) {
