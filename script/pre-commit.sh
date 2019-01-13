@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/usr/bin/env bash -e
 CHANGED_RUST_FILES=$(git diff --cached --name-only --diff-filter=ACM "*.rs" | tr '\n' ' ')
 CHANGED_REASON_FILES=$(git diff --cached --name-only --diff-filter=ACM "*.re" | tr '\n' ' ')
 
