@@ -90,9 +90,24 @@ let make =
           </div>
           <div> <div className={style("divider")} /> </div>
           <div>
+            <BlockTypeButton
+              title="Heading one" blockType="header-one" toggleBlockType currentBlockType>
+              <Icon icon=Icon.HeadingOne />
+            </BlockTypeButton>
+            <BlockTypeButton
+              title="Heading two" blockType="header-two" toggleBlockType currentBlockType>
+              <Icon icon=Icon.HeadingTwo />
+            </BlockTypeButton>
+            <BlockTypeButton
+              title="Heading three" blockType="header-three" toggleBlockType currentBlockType>
+              <Icon icon=Icon.HeadingThree />
+            </BlockTypeButton>
             <BlockTypeButton title="Quote" blockType="blockquote" toggleBlockType currentBlockType>
               <Icon icon=Icon.FormatQuote />
             </BlockTypeButton>
+          </div>
+          <div> <div className={style("divider")} /> </div>
+          <div>
             <BlockTypeButton
               title="Unordered list"
               blockType="unordered-list-item"
