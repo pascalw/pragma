@@ -10,7 +10,7 @@ import { CHECKABLE_LIST_ITEM_TYPE } from "./constants";
 const convertToHTML = rawConvertToHTML({
   styleToHTML: style => {
     switch(style) {
-      case "STRIKESTROUGH": 
+      case "STRIKETHROUGH": 
         return <del />;
       case "MARK":
         return <mark />;
@@ -38,10 +38,13 @@ const convertToHTML = rawConvertToHTML({
 
 const convertFromHTML = rawConvertFromHTML({
   htmlToStyle: (nodeName, _node, currentStyle) => {
-    if (nodeName === "mark") {
-      return currentStyle.add("MARK");
-    } else {
-      return currentStyle;
+    switch(nodeName) {
+      case "mark":
+        return currentStyle.add("MARK");
+      case "del":
+        return currentStyle.add("STRIKETHROUGH");
+      default:
+        return currentStyle;
     }
   },
   htmlToEntity: (nodeName, node, createEntity) => {
