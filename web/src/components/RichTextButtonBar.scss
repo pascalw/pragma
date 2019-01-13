@@ -5,6 +5,8 @@
   @media print {
     display: none !important;
   }
+
+  overflow-x: scroll;
 }
 
 .buttonBar {
@@ -24,6 +26,10 @@
   width: 1px;
   margin: .2rem .9rem .2rem .4rem;
   height: 1.2rem;
+}
+
+.group {
+  display: flex;
 }
 
 .button {

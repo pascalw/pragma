@@ -67,7 +67,7 @@ let make =
     render: _self =>
       <div className={style("wrapper")}>
         <div className={style("buttonBar")}>
-          <div>
+          <div className={style("group")}>
             <InlineStyleButton
               title="Bold" styleName="BOLD" toggleInlineStyle isActive=isStyleActive>
               <Icon icon=Icon.FormatBold />
@@ -89,7 +89,7 @@ let make =
             </InlineStyleButton>
           </div>
           <div> <div className={style("divider")} /> </div>
-          <div>
+          <div className={style("group")}>
             <InlineStyleButton
               title="Mark" styleName="MARK" toggleInlineStyle isActive=isStyleActive>
               <Icon icon=Icon.FormatMark />
@@ -100,7 +100,7 @@ let make =
             </InlineStyleButton>
           </div>
           <div> <div className={style("divider")} /> </div>
-          <div>
+          <div className={style("group")}>
             <BlockTypeButton
               title="Heading one" blockType="header-one" toggleBlockType currentBlockType>
               <Icon icon=Icon.HeadingOne />
@@ -118,7 +118,7 @@ let make =
             </BlockTypeButton>
           </div>
           <div> <div className={style("divider")} /> </div>
-          <div>
+          <div className={style("group")}>
             <BlockTypeButton
               title="Unordered list"
               blockType="unordered-list-item"
@@ -136,7 +136,7 @@ let make =
             </BlockTypeButton>
           </div>
           <div> <div className={style("divider")} /> </div>
-          <div>
+          <div className={style("group")}>
             <Button title="Spellcheck" isActive=spellcheck onMouseDown=toggleSpellcheck>
               <Icon icon=Icon.Spellcheck />
             </Button>
