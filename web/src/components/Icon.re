@@ -5,6 +5,7 @@ type iconType =
   | FormatItalic
   | FormatUnderline
   | FormatStrikethrough
+  | FormatMark
   | FormatQuote
   | BulletList
   | NumberedList
@@ -55,6 +56,14 @@ let make = (~icon: iconType, _children) => {
     | FormatStrikethrough =>
       <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24">
         <path d="M10 19h4v-3h-4v3zM5 4v3h5v3h4V7h5V4H5zM3 14h18v-2H3v2z" />
+      </svg>
+    | FormatMark =>
+      <svg width="24" height="24" xmlns="http://www.w3.org/2000/svg">
+        <path
+          d="M15.513 8.354l-2.867-2.867L5 13.133V16h2.867l7.646-7.646zm2.263-2.263a.762.762 0 0 0 0-1.078l-1.789-1.79a.762.762 0 0 0-1.078 0l-1.498 1.5 2.867 2.866 1.498-1.498z"
+          fill="#000"
+        />
+        <path fillOpacity=".36" fill="#000" d="M3 19h18v3H3z" />
       </svg>
     | FormatQuote =>
       <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24">

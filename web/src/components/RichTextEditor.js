@@ -34,6 +34,11 @@ const maxListDepth = 4;
 const styleMap = {
   STRIKETHROUGH: {
     textDecoration: "line-through"
+  },
+  MARK: {
+    backgroundColor: "rgba(252, 222, 0, 0.2)",
+    padding: "0 .2em",
+    borderRadius: "2px"
   }
 };
 
