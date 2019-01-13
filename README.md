@@ -31,6 +31,7 @@ Pragma is designed to be hosted on a server and accessed via your webbrowser. In
 - [ ] Extended keyboard shortcuts.
 - [ ] Quick open / search.
 - [ ] Mobile friendly.
+- [ ] Dark theme.
 - [ ] File attachments.
 - [ ] Sync conflict resolution.
 - [ ] (Anonymous) note sharing.
