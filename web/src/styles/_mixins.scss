@@ -1,6 +1,6 @@
-@mixin variable($property, $variable, $fallback, $important: false) {
+@mixin variable($property, $variable, $fallback, $important: false, $prefix: "") {
   $important: if($important, "!important", "");
 
-  #{$property}: $fallback #{$important};
-  #{$property}: var($variable, $fallback) #{$important};
+  #{$property}: #{$prefix} $fallback #{$important};
+  #{$property}: #{$prefix} var($variable, $fallback) #{$important};
 }

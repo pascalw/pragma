@@ -12,8 +12,9 @@
   max-width: 10%;
   min-width: 200px;
 
-  background: $color-background-light;
-  border-right: 1px solid $color-border-light;
+  @include variable(background, --color-background-darker-1, $color-background-darker-1);
+  border-right: 1px solid $color-border;
+  @include variable(border-right-color, --color-border, $color-border);
 
   transition: min-width 250ms, max-width 250ms;
 
@@ -31,7 +32,9 @@
     display: flex;
     cursor: pointer;
     padding: 0.25rem 0.75rem;
-    border-bottom: 1px solid $color-border-light;
+
+    border-bottom: 1px solid $color-border;
+    @include variable(border-bottom-color, --color-border, $color-border);
 
     svg {
       width: 18px;
@@ -39,7 +42,7 @@
 
       margin-right: 0.25em;
 
-      fill: rgba(0, 0, 0, .6);
+      @include variable(fill, --color-text, $color-text);
     }
 
     & > * {
@@ -49,7 +52,7 @@
     }
 
     &:hover {
-      background: darken($color-background-light, 2%);
+      @include variable(background, --color-background-darker-2, $color-background-darker-2);
     }
 
     &.selected {
@@ -95,6 +98,8 @@
   padding: 0 0.5rem;
   min-height: 33px;
 
-  border-top: 1px solid $color-border-light;
+  border-top: 1px solid $color-border;
+  @include variable(border-top-color, --color-border, $color-border);
+
   box-shadow: 0px 0px 1px rgba(0,0,0,.1);
 }

@@ -1,4 +1,5 @@
 @import "../styles/settings";
+@import "../styles/mixins";
 $editor-padding: 0.75rem;
 
 .editor {
@@ -12,14 +13,21 @@ $editor-padding: 0.75rem;
 
   .note-title {
     margin: 0.5em 0;
-    padding: 0 0 0.25em;
+    padding: 0 0 .25em;
 
     color: inherit;
     line-height: inherit;
     font-size: 1em;
     border: none;
     font-size: 1.1rem;
-    border-bottom: 1px solid $color-border-light;
+
+    border-bottom: 1px solid $color-border;
+    @include variable(border-bottom-color, --color-border, $color-border);
+
+    main[data-theme="dark"] & {
+      background-color: hsla(0,0%,59%,.1);
+      padding: .2em .4em;
+    }
   }
 }
 
@@ -59,17 +67,23 @@ $editor-padding: 0.75rem;
 
   appearance: none;
   border: none !important;
-  background: darken($color-background-light, 5%);
-  border-bottom: 1px solid darken($color-background-light, 10%);
+
+  background: darken($color-background, 5%);
+  main[data-theme="dark"] & {
+    background: $theme-dark-color-background;
+  }
+
   border-radius: $border-radius;
   font-size: 0.75em;
   text-align: center;
   text-align-last: center;
-  color: inherit;
+
+  @include variable(color, --color-text, $color-text);
 
   &:-moz-focusring {
       color: transparent;
-      text-shadow: 0 0 0 #000;
+      text-shadow: 0 0 0 $color-text;
+      text-shadow: 0 0 0 var(--color-text, $color-text);
   }
 }
 

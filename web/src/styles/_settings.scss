@@ -2,10 +2,27 @@ $color-primary: rgb(91, 136, 239);
 $color-primary-light-1: lighten($color-primary, 10%);
 $color-primary-light-2: lighten($color-primary, 20%);
 
+$color-background: #fff;
+$color-background-darker-1: #fbfbfb;
+$color-background-darker-2: #f6f6f6;
+$color-border: #eee;
+$color-border-darker-1: #e2e2e2;
+$color-editor-background: inherit;
+
+$color-button-bar-item-fill: rgba(0,0,0,.6);
 $color-error: #EF5B5B;
 $color-text: #363636;
-$color-background-light: #fbfbfb;
-$color-border-light: darken($color-background-light, 5%);
+$color-text-lower-contrast: rgba(0,0,0,.6);
 
 $border-radius: 4px;
 $transition-style: .2s ease, border-color .2s ease, opacity .2s ease;
+
+$theme-dark-color-background: #131420;
+$theme-dark-color-background-darker-1: darken($theme-dark-color-background, 2%);
+$theme-dark-color-background-darker-2: darken($theme-dark-color-background, 5%);
+$theme-dark-color-editor-background: hsla(0,0%,59%,.1);
+$theme-dark-color-border: darken($theme-dark-color-background, 5%);
+$theme-dark-color-border-darker-1: darken($theme-dark-color-background, 8%);
+$theme-dark-color-text: #eee;
+$theme-dark-color-text-lower-contrast: #848484;
+$theme-dark-color-button-bar-item-fill: $theme-dark-color-text;

@@ -1,4 +1,5 @@
 [%bs.raw {|require('codemirror/lib/codemirror.css')|}];
+[%bs.raw {|require('codemirror/theme/material.css')|}];
 open Utils.Import;
 
 type cmMode = {
@@ -95,7 +96,13 @@ module CodeMirror = {
     onKeyDown: (Editor.t, ReactEvent.Keyboard.t) => unit,
   };
 
-  let options = cmOptions(~theme="default", ~lineNumbers=true, ~lineWrapping=true);
+  let theme =
+    switch (AppState.getTheme()) {
+    | Some(AppState.Theme.Dark) => "material"
+    | _ => "default"
+    };
+
+  let options = cmOptions(~theme, ~lineNumbers=true, ~lineWrapping=true);
 
   let make =
       (~mode: string, ~code: string, ~editorDidMount, ~onBeforeChange, ~onKeyDown, children) =>

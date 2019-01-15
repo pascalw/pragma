@@ -9,6 +9,8 @@
         height: auto !important;
 
         @extend %editor;
+        background: $color-editor-background !important;
+        background: var(--color-editor-background, $color-editor-background) !important;
     }
 
     .CodeMirror-focused {
@@ -16,8 +18,25 @@
     }
 
     .CodeMirror-gutters {
-        background-color: $color-background-light;
-        border-color: $color-border-light;
+        main[data-theme="dark"] & {
+            background-color: inherit !important;
+        }
+
+        main[data-theme="light"] & {
+            background-color: $color-background-darker-1 !important;
+        }
+
+        border-right: 1px solid $color-border !important;
+        border-right: 1px solid var(--color-border, $color-border) !important;
+    }
+
+    .CodeMirror-linenumber {
+        color: $color-text-lower-contrast !important;
+        color: var(--color-text-lower-contrast, $color-text-lower-contrast) !important;
+
+        main[data-theme="light"] & {
+            color: #999 !important;
+        }
     }
 
     .CodeMirror-selected {

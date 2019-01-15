@@ -11,6 +11,8 @@ $item-margin: .5em;
   overflow: hidden;
   display: flex;
   flex-direction: column;
+  background: $color-editor-background;
+  background: var(--color-editor-background, $color-editor-background);
 
   :global(.DraftEditor-root) {
     overflow-y: scroll;

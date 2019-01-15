@@ -17,7 +17,8 @@
   margin: 0.25em 0;
 
   &:hover {
-    background-color: darken($color-background-light, 5%);
+    background-color: $color-border;
+    background-color: var(--color-border, $color-border);
   }
 
   svg > path {

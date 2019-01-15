@@ -13,6 +13,27 @@ type action =
   | Render
   | ToggleViewMode;
 
+module Main = {
+  let component = ReasonReact.statelessComponent("Main");
+  let make = children => {
+    ...component,
+    render: _self => {
+      let theme =
+        switch (AppState.getTheme()) {
+        | Some(AppState.Theme.Light) => "light"
+        | Some(AppState.Theme.Dark) => "dark"
+        | _ => ""
+        };
+
+      ReactDOMRe.createElementVariadic(
+        "main",
+        ~props=ReactDOMRe.objToDOMProps({"data-theme": theme, "className": style("main")}),
+        children,
+      );
+    },
+  };
+};
+
 let component = ReasonReact.reducerComponent("App");
 let make = _children => {
   ...component,
@@ -47,7 +68,7 @@ let make = _children => {
       <>
         <NoteManagementContainer>
           ...{(state, dispatch) =>
-            <main className={style("main")}>
+            <Main>
               <div className={style("columns")}>
                 <NotebooksContainer
                   notebooks={state.notebooks}
@@ -69,7 +90,7 @@ let make = _children => {
                   dispatch
                 />
               </div>
-            </main>
+            </Main>
           }
         </NoteManagementContainer>
         <Toast.Container />

@@ -22,7 +22,6 @@ body, button, input, select, textarea {
 }
 
 body {
-  color: $color-text;
   font-size: 1rem;
   font-weight: 400;
   line-height: 1.5;
@@ -41,6 +40,21 @@ small {
 
 .main {
   height: 100vh;
+  @include variable(background, --color-background, $color-background);
+  @include variable(color, --color-text, $color-text);
+}
+
+main[data-theme="dark"] {
+  --color-background: #{$theme-dark-color-background};
+  --color-background-darker-1: #{$theme-dark-color-background-darker-1};
+  --color-background-darker-2: #{$theme-dark-color-background-darker-2};
+  --color-editor-background: #{$theme-dark-color-editor-background};
+  
+  --color-border: #{$theme-dark-color-border};
+  --color-border-darker-1: #{$theme-dark-color-border-darker-1};
+  --color-text: #{$theme-dark-color-text};
+  --color-text-lower-contrast: #{$theme-dark-color-text-lower-contrast};
+  --color-button-bar-item-fill: #{$theme-dark-color-button-bar-item-fill};
 }
 
 .columns {

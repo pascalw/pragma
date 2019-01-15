@@ -1,3 +1,20 @@
+module Theme = {
+  type t =
+    | Light
+    | Dark;
+
+  let toString =
+    fun
+    | Light => "light"
+    | Dark => "dark";
+
+  let fromString =
+    fun
+    | "light" => Some(Light)
+    | "dark" => Some(Dark)
+    | _ => None;
+};
+
 type state = {
   selectedNotebookId: option(string),
   selectedNoteId: option(string),
@@ -44,3 +61,5 @@ let saveState = state => {
 
 let setSelected = (notebookId, noteId) =>
   saveState({selectedNotebookId: notebookId, selectedNoteId: noteId});
+
+let getTheme = () => LocalStorage.getItem("pragma-theme")->Belt.Option.flatMap(Theme.fromString);
