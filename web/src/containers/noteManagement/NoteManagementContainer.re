@@ -1,4 +1,3 @@
-open Common;
 open UiTypes;
 
 let maxRecentNotes = 10;
@@ -41,10 +40,10 @@ let selectedCollection =
     );
 
   switch (collection) {
-  | Some(_) => collection >>= NoteCollection.fromCollection
+  | Some(_) => Belt.Option.map(collection, NoteCollection.fromCollection)
   | None =>
     Utils.find(notebooks, ((notebook, _)) => Some(notebook.id) == selectedCollectionId)
-    >>= (((notebook, _)) => NoteCollection.fromNotebook(notebook))
+    ->Belt.Option.map(((notebook, _)) => NoteCollection.fromNotebook(notebook))
   };
 };
 
@@ -99,7 +98,8 @@ let fetchAllData = () => {
           })
      )
   |> Repromise.andThen(((notebooks: list((Data.notebook, int)), noteCollections)) => {
-       let firstNotebookId = List.head(notebooks) >>= (((notebook, _)) => notebook.id);
+       let firstNotebookId =
+         List.head(notebooks)->Belt.Option.map(((notebook, _)) => notebook.id);
        let selectedCollectionId = Utils.Option.or_(appState.selectedNotebookId, firstNotebookId);
        let selectedCollection =
          selectedCollection(noteCollections, notebooks, selectedCollectionId);
