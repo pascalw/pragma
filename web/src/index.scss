@@ -27,6 +27,12 @@ body {
   line-height: 1.5;
 }
 
+::selection {
+  background: $color-primary;
+  color: #fff;
+  color: var(--color-selection-text);
+}
+
 :focus {
   outline:none;
 }
@@ -44,6 +50,20 @@ small {
   @include variable(color, --color-text, $color-text);
 }
 
+main {
+  --color-background: #{color-background};
+  --color-background-darker-1: #{$color-background-darker-1};
+  --color-background-darker-2: #{$color-background-darker-2};
+  --color-editor-background: #{$color-editor-background};
+  
+  --color-border: #{$color-border};
+  --color-border-darker-1: #{$color-border-darker-1};
+  --color-text: #{$color-text};
+  --color-text-lower-contrast: #{$color-text-lower-contrast};
+  --color-button-bar-item-fill: #{$color-button-bar-item-fill};
+  --color-selection-text: #{$color-selection-text};
+}
+
 main[data-theme="dark"] {
   --color-background: #{$theme-dark-color-background};
   --color-background-darker-1: #{$theme-dark-color-background-darker-1};
@@ -55,6 +75,7 @@ main[data-theme="dark"] {
   --color-text: #{$theme-dark-color-text};
   --color-text-lower-contrast: #{$theme-dark-color-text-lower-contrast};
   --color-button-bar-item-fill: #{$theme-dark-color-button-bar-item-fill};
+  --color-selection-text: #{$theme-dark-color-selection-text};
 }
 
 .columns {

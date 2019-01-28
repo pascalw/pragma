@@ -13,6 +13,7 @@ $color-button-bar-item-fill: rgba(0,0,0,.6);
 $color-error: #EF5B5B;
 $color-text: #363636;
 $color-text-lower-contrast: rgba(0,0,0,.6);
+$color-selection-text: #fff;
 
 $border-radius: 4px;
 $transition-style: .2s ease, border-color .2s ease, opacity .2s ease;
@@ -26,3 +27,6 @@ $theme-dark-color-border-darker-1: darken($theme-dark-color-background, 8%);
 $theme-dark-color-text: #eee;
 $theme-dark-color-text-lower-contrast: #848484;
 $theme-dark-color-button-bar-item-fill: $theme-dark-color-text;
+$theme-dark-color-link: $color-primary;
+$theme-dark-color-link-visited: #9575CD;
+$theme-dark-color-selection-text: $theme-dark-color-text;

@@ -19,6 +19,16 @@ $item-margin: .5em;
   }
 
   :global {
+    main[data-theme="dark"] & {
+      a {
+        color: $theme-dark-color-link;
+
+        &:visited {
+          color: $theme-dark-color-link-visited;
+        }
+      }
+    }
+
     ul, ol {
       margin: $item-margin 0;
     }
